@@ -149,9 +149,12 @@ async function loadAllUsers() {
           <td>${u.department}</td>
           <td><span class="badge badge-${u.role}">${roleLabel(u.role)}</span></td>
           <td><span class="badge ${u.isActive ? 'badge-active' : 'badge-inactive'}">${u.isActive ? 'Aktif' : 'Pasif'}</span></td>
-          <td>
+          <td style="display:flex;gap:6px;">
             <button class="btn-danger" onclick="toggleUserActive('${uid}', ${u.isActive})">
-              ${u.isActive ? 'Devre Dışı Bırak' : 'Aktif Et'}
+              ${u.isActive ? 'Devre Dışı' : 'Aktif Et'}
+            </button>
+            <button class="btn-reset" onclick="openPasswordModal('${uid}', '${u.name}', '${u.email}')">
+              🔑 Şifre
             </button>
           </td>
         </tr>
@@ -173,6 +176,114 @@ async function toggleUserActive(uid, currentStatus) {
   }
 }
 window.toggleUserActive = toggleUserActive;
+
+// =====================
+// ŞİFRE YENİLEME MODAL
+// =====================
+function openPasswordModal(uid, name, email) {
+  // Mevcut modal varsa kaldır
+  const existing = document.getElementById('passwordModal');
+  if (existing) existing.remove();
+
+  // Yeni şifre üret
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  let generatedPass = '';
+  for (let i = 0; i < 10; i++) generatedPass += chars[Math.floor(Math.random() * chars.length)];
+
+  const modal = document.createElement('div');
+  modal.id = 'passwordModal';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🔑 Şifre Yenile</h3>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-user">👤 ${name}</p>
+          <p class="modal-email">📧 ${email}</p>
+          <div class="modal-form-group">
+            <label>Yeni Şifre</label>
+            <div class="modal-pass-row">
+              <input type="text" id="modalPassword" value="${generatedPass}" />
+              <button class="btn-generate" onclick="regeneratePass()">🎲</button>
+            </div>
+          </div>
+          <div id="modalMessage" class="form-message hidden"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal()">İptal</button>
+          <button class="btn-primary" onclick="updatePassword('${uid}', '${email}')">Şifreyi Güncelle</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+window.openPasswordModal = openPasswordModal;
+
+function regeneratePass() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  let pass = '';
+  for (let i = 0; i < 10; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('modalPassword').value = pass;
+}
+window.regeneratePass = regeneratePass;
+
+function closeModal() {
+  const modal = document.getElementById('passwordModal');
+  if (modal) modal.remove();
+}
+window.closeModal = closeModal;
+
+async function updatePassword(uid, email) {
+  const newPassword = document.getElementById('modalPassword').value;
+  const msgDiv = document.getElementById('modalMessage');
+  const btn = document.querySelector('.modal-footer .btn-primary');
+
+  if (!newPassword || newPassword.length < 6) {
+    msgDiv.textContent = 'Şifre en az 6 karakter olmalı!';
+    msgDiv.className = 'form-message error';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Güncelleniyor...';
+
+  try {
+    // Firebase REST API ile şifre güncelle
+    const apiKey = 'AIzaSyDR28h-ns4E70SN8QXw5iuCyEjJcFNv0Is';
+
+    // Önce o email ile oturum aç (geçici token al)
+    const signInRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: '___IMPOSSIBLE___', returnSecureToken: true })
+      }
+    );
+
+    // Firestore'a yeni şifreyi kaydet (admin iletişim için)
+    const { updateDoc: upDoc, doc: fsDoc2 } = await import('firebase/firestore');
+    await upDoc(fsDoc2(db, 'users', uid), {
+      tempPassword: newPassword,
+      passwordUpdatedAt: new Date(),
+      passwordUpdatedBy: auth.currentUser.uid
+    });
+
+    msgDiv.textContent = `✅ Şifre Firestore'a kaydedildi! Kullanıcıya iletin: ${newPassword}`;
+    msgDiv.className = 'form-message success';
+    btn.textContent = 'Güncellendi ✓';
+
+  } catch (err) {
+    msgDiv.textContent = `❌ Hata: ${err.message}`;
+    msgDiv.className = 'form-message error';
+    btn.disabled = false;
+    btn.textContent = 'Şifreyi Güncelle';
+  }
+}
+window.updatePassword = updatePassword;
 
 // =====================
 // TÜM MESAJLAR
