@@ -223,12 +223,12 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const name = document.getElementById('newUserName').value.trim();
-  const emailPrefix = document.getElementById('newUserEmailPrefix').value.trim();
+  const emailPrefix = document.getElementById('newUserEmailPrefix').value.trim().replace('@nexmail.io', '');
   const department = document.getElementById('newUserDepartment').value;
   const role = document.getElementById('newUserRole').value;
   const password = document.getElementById('newUserPassword').value;
-
   const email = `${emailPrefix}@nexmail.io`;
+
   const btn = document.getElementById('addUserBtn');
   const msgDiv = document.getElementById('formMessage');
 
@@ -237,15 +237,48 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   msgDiv.className = 'form-message hidden';
 
   try {
-    // Cloud Function veya Admin SDK olmadan client-side ile kullanıcı oluşturmak
-    // Firebase Auth'ta mevcut kullanıcı oturumu bozulur, bu yüzden
-    // bu işlem için bir Cloud Function çağrısı gerekir.
-    // Şimdilik kullanıcıya bilgi mesajı gösteriyoruz.
-    
-    showMessage(msgDiv, `⚠️ Kullanıcı oluşturmak için Cloud Functions gerekli. Şimdilik kullanıcıyı Firebase Console > Authentication > Add User ile ekleyin:\n\nEmail: ${email}\nŞifre: ${password}`, 'error');
-    
+    // Firebase REST API ile kullanıcı oluştur (admin oturumunu bozmaz)
+    const apiKey = "AIzaSyDR28h-ns4E70SN8QXw5iuCyEjJcFNv0Is";
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, returnSecureToken: false })
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    const newUid = data.localId;
+
+    // Firestore'a kullanıcı profilini yaz
+    const { setDoc, doc: fsDoc, serverTimestamp } = await import("firebase/firestore");
+    await setDoc(fsDoc(db, "users", newUid), {
+      name,
+      email,
+      role,
+      department,
+      isActive: true,
+      createdAt: new Date(),
+      createdBy: auth.currentUser.uid
+    });
+
+    showMessage(msgDiv, `✅ Kullanıcı başarıyla oluşturuldu!\n📧 Email: ${email}\n🔑 Şifre: ${password}`, 'success');
+    document.getElementById('addUserForm').reset();
+    loadAllUsers();
+    loadDashboard();
+
   } catch (err) {
-    showMessage(msgDiv, `Hata: ${err.message}`, 'error');
+    const messages = {
+      'EMAIL_EXISTS': 'Bu email zaten kullanımda!',
+      'WEAK_PASSWORD : Password should be at least 6 characters': 'Şifre en az 6 karakter olmalı!',
+    };
+    showMessage(msgDiv, `❌ Hata: ${messages[err.message] || err.message}`, 'error');
   }
 
   btn.disabled = false;
