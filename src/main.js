@@ -34,9 +34,18 @@ loginForm.addEventListener('submit', async (e) => {
         throw new Error("Hesabınız aktif değil. Lütfen admin ile iletişime geçin.");
       }
 
-      messageDiv.innerHTML = `Hoş geldin ${userData.name}! Rolün: ${userData.role}`;
-      // Rol bazlı yönlendirme burada yapılabilir
-      // if (userData.role === 'admin') window.location.href = '/admin.html';
+      messageDiv.innerHTML = `Hoş geldin ${userData.name}! Yönlendiriliyorsunuz...`;
+      
+      // Rol bazlı yönlendirme
+      setTimeout(() => {
+        if (userData.role === 'admin') {
+          window.location.href = '/admin.html';
+        } else if (userData.role === 'manager') {
+          window.location.href = '/manager.html';
+        } else {
+          window.location.href = '/inbox.html';
+        }
+      }, 1000);
     } else {
       throw new Error("Kullanıcı veritabanında bulunamadı.");
     }
