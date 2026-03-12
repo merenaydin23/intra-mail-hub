@@ -1,0 +1,16 @@
+{
+  "name": "intra-mail-hub-main",
+  "version": "1.0.0",
+  "description": "## 📌 Project Overview [cite_start]Intra Mail Hub is a secure and structured internal communication platform designed to address the complex hierarchical needs of modern corporate environments[cite: 5, 24]. [cite_start]Developed as a core Software Engineering project, it focuses on architecting robust data flow patterns and maintaining high-integrity communication protocols[cite: 24, 25, 28].",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^12.10.0"
+  }
+}
