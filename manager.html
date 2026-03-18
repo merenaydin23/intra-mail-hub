@@ -4,23 +4,139 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IntraMail Hub — Müdür Paneli</title>
-  <style>
-    /* Kullanıcı görsellik istemediği için minimal / altyapısal bir tasarım */
-    body { font-family: sans-serif; padding: 20px; }
-    #messagesContainer { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
-    .msg-box { border-bottom: 1px solid #eee; padding: 10px 0; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/inbox.css">
 </head>
 <body>
 
-  <h1>Departman Mesajları (Müdür Görünümü)</h1>
-  <p>Şu anki Müdür: <span id="managerName">Yükleniyor...</span> | Departman: <span id="managerDept">--</span></p>
-  <button id="logoutBtn">Çıkış Yap</button>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">IM</div>
+      <span class="logo-text">IntraMail Hub</span>
+    </div>
 
-  <h2>Bu departmana atılan veya bu departmandan atılan son mesajlar:</h2>
-  <div id="messagesContainer">
-    Veriler çekiliyor...
-  </div>
+    <button class="compose-btn" id="composeBtn">
+      <span class="icon">✏️</span>
+      Yeni Mesaj
+    </button>
+
+    <nav class="sidebar-nav">
+      <!-- MANAGER ÖZEL SEKME -->
+      <div class="nav-header">DEPARTMAN YÖNETİMİ</div>
+      <a href="#" class="nav-item active" data-folder="department" style="background:#EEF2FF; color:#4F46E5; font-weight:600;">
+        <span class="nav-icon">📊</span> Departman Denetimi
+      </a>
+      
+      <div class="nav-header" style="margin-top: 20px;">KİŞİSEL KUTULAR</div>
+      <a href="#" class="nav-item" data-folder="inbox">
+        <span class="nav-icon">📥</span> Gelen Kutusu 
+        <span class="badge" id="unreadCount">0</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="sent">
+        <span class="nav-icon">📤</span> Gönderilenler
+      </a>
+      <a href="#" class="nav-item" data-folder="spam">
+        <span class="nav-icon">🛡️</span> Spam
+      </a>
+      <a href="#" class="nav-item" data-folder="archive">
+        <span class="nav-icon">📦</span> Arşiv
+      </a>
+      <a href="#" class="nav-item" data-folder="trash">
+        <span class="nav-icon">🗑️</span> Çöp Kutusu
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div>
+          <div class="user-name" id="userName">User</div>
+          <div class="user-role" id="userRole">Müdür</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+    </div>
+  </aside>
+
+  <!-- MAIN LIST CONTENT -->
+  <main class="message-list-col">
+    <div class="list-header">
+      <h2 id="currentFolderName">Departman Denetimi</h2>
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Mesajlarda ara...">
+      </div>
+    </div>
+    <div class="message-list" id="messageList">
+      <!-- Mesajlar dinamik -->
+    </div>
+  </main>
+
+  <!-- DETAIL CONTENT -->
+  <main class="message-detail-col">
+    <!-- Boş Durum -->
+    <div class="detail-empty" id="detailEmptyState">
+      <div class="icon">📫</div>
+      <p>Okumak için listeden bir mesaj seçin</p>
+    </div>
+
+    <!-- Mesaj Görüntüleme Bölümü -->
+    <div class="message-content hidden" id="messageContent">
+      <header class="detail-header">
+        <h2 id="detailSubject">Konusuz Mesaj</h2>
+        <div class="meta">
+          <div class="sender-info">
+            <div class="avatar" id="detailAvatar">A</div>
+            <div>
+              <div class="name" id="detailSenderName">Gönderen Adı</div>
+              <div class="email" id="detailSenderEmail">email@nexmail.io</div>
+            </div>
+          </div>
+          <div class="date-actions" style="text-align: right;">
+            <div class="date" id="detailDate">Tarih</div>
+            <div class="msg-actions" id="personalMsgActions" style="margin-top:0.5rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+              <button id="btnArchive" style="cursor:pointer; padding:0.25rem 0.5rem; border:1px solid var(--border-color); border-radius:4px; font-size:0.75rem; background:white; color:var(--text-dark);">📦 Arşivle</button>
+              <button id="btnTrash" style="cursor:pointer; padding:0.25rem 0.5rem; border:1px solid #FCA5A5; border-radius:4px; font-size:0.75rem; background:#FEF2F2; color:#991B1B;">🗑️ Sil</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div class="detail-body">
+        <p id="detailBody">Mesaj içeriği burada görünecek.</p>
+      </div>
+
+    </div>
+
+    <!-- Yeni Mesaj Gönderme Ekranı -->
+    <div class="compose-area hidden" id="composeArea">
+      <div class="compose-header">
+        <h3>Yeni Mesaj Gönder</h3>
+        <button id="closeComposeBtn" class="close-btn">✖</button>
+      </div>
+      <form class="compose-form" id="composeForm">
+        <div class="form-group">
+          <label>Kime:</label>
+          <select id="receiverSelect">
+            <option value="">Kullanıcı seçin...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mesajınız:</label>
+          <textarea id="messageBodyInput" rows="8" placeholder="Mesajınızı buraya yazın..." required></textarea>
+        </div>
+        <div class="form-actions" style="justify-content: space-between;">
+          <button type="button" class="action-btn">✨ Akıllı Öneri</button>
+          <div>
+            <span id="composeStatus"></span>
+            <button type="submit" class="primary-btn" id="sendBtn">Gönder</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
 
   <script type="module" src="./src/manager.js"></script>
 </body>
