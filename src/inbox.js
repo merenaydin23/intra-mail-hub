@@ -2,13 +2,14 @@ import { auth, db } from './firebase/config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { 
   collection, getDocs, doc, getDoc, 
-  query, where, orderBy, addDoc, serverTimestamp, onSnapshot,
-  updateDoc, setDoc
+  query, orderBy, addDoc, serverTimestamp, onSnapshot,
+  updateDoc, setDoc, deleteDoc
 } from "firebase/firestore";
 
 let currentUserInfo = null;
-let currentFolder = 'inbox'; // inbox, sent, spam
+let currentFolder = 'inbox'; // inbox, sent, spam, archive, trash
 let unsubscribeMessages = null;
+let currentViewMsgId = null;
 
 // =====================
 // AUTH KONTROLÜ
@@ -29,7 +30,6 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUserInfo = { uid: user.uid, ...userDoc.data() };
 
-    // Kullanıcı arayüzünü güncelle
     document.getElementById('userName').textContent = currentUserInfo.name;
     document.getElementById('userRole').textContent = 
       currentUserInfo.role === 'admin' ? 'Admin' : 
@@ -38,10 +38,7 @@ onAuthStateChanged(auth, async (user) => {
     const initials = currentUserInfo.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
 
-    // Alıcı listesini doldur (Kullanıcı seçimi için)
     loadUsersDropdown();
-
-    // Mesajları Dinlemeye Başla
     listenToMessages();
 
   } catch (err) {
@@ -65,11 +62,12 @@ document.querySelectorAll('.nav-item').forEach(item => {
     const titles = {
       'inbox': 'Gelen Kutusu',
       'sent': 'Gönderilenler',
-      'spam': 'Spam Klasörü'
+      'spam': 'Spam Klasörü',
+      'archive': 'Arşiv',
+      'trash': 'Çöp Kutusu'
     };
     document.getElementById('currentFolderName').textContent = titles[currentFolder];
     
-    // Mesaj içeriğini gizle
     document.getElementById('messageContent').classList.add('hidden');
     document.getElementById('detailEmptyState').classList.remove('hidden');
 
@@ -77,62 +75,77 @@ document.querySelectorAll('.nav-item').forEach(item => {
   });
 });
 
-// ÇIKIŞ
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await signOut(auth);
   window.location.href = '/index.html';
 });
 
 // =====================
-// MESAJ OKUMA / DİNLEME
+// MESAJ OKUMA / DİNLEME VE FİLTRELEME
 // =====================
 function listenToMessages() {
   if (!currentUserInfo) return;
-  if (unsubscribeMessages) unsubscribeMessages(); // Eski dinleyiciyi kapat
+  if (unsubscribeMessages) unsubscribeMessages(); 
 
   const msgRef = collection(db, "messages");
-  let q;
-
-  // Hangi klasördeysek filtreyi ona göre yap
-  if (currentFolder === 'inbox') {
-    // Bana gelen VE spam olmayan mesajlar
-    q = query(msgRef, 
-      where("receiverId", "==", currentUserInfo.uid),
-      where("isSpam", "==", false),
-      orderBy("timestamp", "desc")
-    );
-  } else if (currentFolder === 'sent') {
-    // Benim gönderdiklerim
-    q = query(msgRef, 
-      where("senderId", "==", currentUserInfo.uid),
-      orderBy("timestamp", "desc")
-    );
-  } else if (currentFolder === 'spam') {
-    // Bana gelen VE spam olanlar
-    q = query(msgRef, 
-      where("receiverId", "==", currentUserInfo.uid),
-      where("isSpam", "==", true),
-      orderBy("timestamp", "desc")
-    );
-  }
+  // Index hatası almamak ve esnek olmak için JS tarafında filtreleyeceğiz
+  const q = query(msgRef, orderBy("timestamp", "desc"));
 
   const listEl = document.getElementById('messageList');
   listEl.innerHTML = '<div class="empty-state">Yükleniyor...</div>';
 
   unsubscribeMessages = onSnapshot(q, async (snapshot) => {
     if (snapshot.empty) {
-      listEl.innerHTML = '<div class="empty-state">Bu klasörde mesaj bulunmuyor.</div>';
+      listEl.innerHTML = '<div class="empty-state">Mesaj bulunmuyor.</div>';
       if (currentFolder === 'inbox') document.getElementById('unreadCount').textContent = '0';
       return;
     }
 
+    const messagesData = [];
+    const now = new Date();
+
+    for (let d of snapshot.docs) {
+      let m = { id: d.id, ...d.data() };
+      
+      // Sadece gönderici veya alıcı ben isem beni ilgilendirir
+      if (m.senderId !== currentUserInfo.uid && m.receiverId !== currentUserInfo.uid) {
+         continue; 
+      }
+
+      const isArch = m.isArchived || false;
+      const isDel = m.isDeleted || false;
+
+      // 15 Gün Çöp Kutusu Oto-Silme Mantığı
+      if (isDel && m.deletedAt) {
+        const diffTime = Math.abs(now - m.deletedAt.toDate());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > 15) {
+          // 15 günü geçmişse kalıcı olarak veritabanından sil
+          deleteDoc(doc(db, "messages", m.id));
+          continue;
+        }
+      }
+
+      // Klasör Filtreleri
+      if (currentFolder === 'inbox' && (m.receiverId !== currentUserInfo.uid || m.isSpam || isArch || isDel)) continue;
+      if (currentFolder === 'sent' && (m.senderId !== currentUserInfo.uid || isArch || isDel)) continue;
+      if (currentFolder === 'spam' && (m.receiverId !== currentUserInfo.uid || !m.isSpam || isArch || isDel)) continue;
+      if (currentFolder === 'archive' && (!isArch || isDel)) continue;
+      if (currentFolder === 'trash' && !isDel) continue;
+
+      messagesData.push(m);
+    }
+
     if (currentFolder === 'inbox') {
-      document.getElementById('unreadCount').textContent = snapshot.docs.length;
+      document.getElementById('unreadCount').textContent = messagesData.length;
+    }
+
+    if (messagesData.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">Bu klasör klasörde hiç mesaj yok.</div>';
+      return;
     }
 
     let html = '';
-    
-    // Gönderen/Alıcı isimlerini bulmak için tüm userları cache'leyelim
     const usersCache = {};
     const fetchUser = async (uid) => {
       if (usersCache[uid]) return usersCache[uid];
@@ -142,19 +155,14 @@ function listenToMessages() {
           usersCache[uid] = uDoc.data();
           return usersCache[uid];
         }
-      } catch (e) { console.error("User fetch error:", e); }
+      } catch (e) { }
       return { name: "Bilinmeyen Kullanıcı" };
     };
-
-    const messagesData = [];
-    for (let d of snapshot.docs) {
-      messagesData.push({ id: d.id, ...d.data() });
-    }
 
     for (let msg of messagesData) {
       let displayName = "Bilinmeyen";
       
-      if (currentFolder === 'sent') {
+      if (msg.senderId === currentUserInfo.uid) {
         const u = await fetchUser(msg.receiverId);
         displayName = "Kime: " + u.name;
       } else {
@@ -165,8 +173,6 @@ function listenToMessages() {
       const dateStr = msg.timestamp ? msg.timestamp.toDate().toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '-';
       const previewText = msg.content ? (msg.content.substring(0, 40) + '...') : '';
       
-      // Data attribute olarak tüm objeyi string olarak gömüyoruz ki tıklandığında kolayca alalım
-      // Gerçek projelerde id üzerinden tekrar okumak daha iyidir ama burası memory cache üzerinden gidecek
       html += `
         <div class="msg-item" data-id="${msg.id}" data-sender="${displayName}">
           <div class="msg-header">
@@ -180,7 +186,6 @@ function listenToMessages() {
 
     listEl.innerHTML = html;
 
-    // Mesajlara tıklama olayını bağla
     document.querySelectorAll('.msg-item').forEach(item => {
       item.addEventListener('click', () => {
         document.querySelectorAll('.msg-item').forEach(i => i.classList.remove('active'));
@@ -202,10 +207,11 @@ function listenToMessages() {
 
 // MESAJ DETAYINI GÖSTER
 function showDetail(msg, displayName) {
+  currentViewMsgId = msg.id; // Global tutuyoruz
   document.getElementById('detailEmptyState').classList.add('hidden');
   document.getElementById('messageContent').classList.remove('hidden');
 
-  document.getElementById('detailSubject').textContent = "Konusuz Mesaj"; // İleride konu eklenebilir
+  document.getElementById('detailSubject').textContent = "Konusuz Mesaj"; 
   document.getElementById('detailSenderName').textContent = displayName;
   
   const initials = displayName.replace("Kime: ", "").split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -225,6 +231,21 @@ function showDetail(msg, displayName) {
   
   document.getElementById('detailBody').textContent = bodyContent;
 }
+
+// ARŞİV VE ÇÖP KUTUSU AKSİYONLARI BAĞLAMASI
+document.getElementById('btnArchive').addEventListener('click', async () => {
+  if(!currentViewMsgId) return;
+  await updateDoc(doc(db, "messages", currentViewMsgId), { isArchived: true, isDeleted: false });
+  document.getElementById('messageContent').classList.add('hidden');
+  document.getElementById('detailEmptyState').classList.remove('hidden');
+});
+
+document.getElementById('btnTrash').addEventListener('click', async () => {
+  if(!currentViewMsgId) return;
+  await updateDoc(doc(db, "messages", currentViewMsgId), { isDeleted: true, isArchived: false, deletedAt: serverTimestamp() });
+  document.getElementById('messageContent').classList.add('hidden');
+  document.getElementById('detailEmptyState').classList.remove('hidden');
+});
 
 // =====================
 // YENİ MESAJ GÖNDERME
@@ -246,7 +267,7 @@ async function loadUsersDropdown() {
   const select = document.getElementById('receiverSelect');
   
   usersSnap.docs.forEach(d => {
-    if (d.id !== currentUserInfo?.uid) { // Kendine mesaj atmayı engelle (istenirse açılabilir)
+    if (d.id !== currentUserInfo?.uid) { 
       const u = d.data();
       const option = document.createElement('option');
       option.value = d.id;
@@ -281,10 +302,12 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
       spamScore: 0,
       suggestions: [],
       attachments: [],
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
+      isArchived: false,
+      isDeleted: false,
+      deletedAt: null
     });
 
-    // Threads koleksiyonu güncellemesi
     const threadId = [currentUserInfo.uid, receiverId].sort().join('_');
     const threadRef = doc(db, "threads", threadId);
     const threadSnap = await getDoc(threadRef);

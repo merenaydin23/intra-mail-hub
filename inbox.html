@@ -32,6 +32,12 @@
       <a href="#" class="nav-item" data-folder="spam">
         <span class="nav-icon">🛡️</span> Spam
       </a>
+      <a href="#" class="nav-item" data-folder="archive">
+        <span class="nav-icon">📦</span> Arşiv
+      </a>
+      <a href="#" class="nav-item" data-folder="trash">
+        <span class="nav-icon">🗑️</span> Çöp Kutusu
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -79,7 +85,13 @@
               <div class="email" id="detailSenderEmail">email@nexmail.io</div>
             </div>
           </div>
-          <div class="date" id="detailDate">Tarih</div>
+          <div class="date-actions" style="text-align: right;">
+            <div class="date" id="detailDate">Tarih</div>
+            <div class="msg-actions" style="margin-top:0.5rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+              <button id="btnArchive" style="cursor:pointer; padding:0.25rem 0.5rem; border:1px solid var(--border-color); border-radius:4px; font-size:0.75rem; background:white; color:var(--text-dark);">📦 Arşivle</button>
+              <button id="btnTrash" style="cursor:pointer; padding:0.25rem 0.5rem; border:1px solid #FCA5A5; border-radius:4px; font-size:0.75rem; background:#FEF2F2; color:#991B1B;">🗑️ Sil</button>
+            </div>
+          </div>
         </div>
       </header>
       
