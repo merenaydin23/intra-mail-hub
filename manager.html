@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntraMail Hub — Müdür Paneli</title>
+  <style>
+    /* Kullanıcı görsellik istemediği için minimal / altyapısal bir tasarım */
+    body { font-family: sans-serif; padding: 20px; }
+    #messagesContainer { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+    .msg-box { border-bottom: 1px solid #eee; padding: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>Departman Mesajları (Müdür Görünümü)</h1>
+  <p>Şu anki Müdür: <span id="managerName">Yükleniyor...</span> | Departman: <span id="managerDept">--</span></p>
+  <button id="logoutBtn">Çıkış Yap</button>
+
+  <h2>Bu departmana atılan veya bu departmandan atılan son mesajlar:</h2>
+  <div id="messagesContainer">
+    Veriler çekiliyor...
+  </div>
+
+  <script type="module" src="./src/manager.js"></script>
+</body>
+</html>
