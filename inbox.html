@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntraMail Hub — Gelen Kutusu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/inbox.css">
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">IM</div>
+      <span class="logo-text">IntraMail</span>
+    </div>
+
+    <button class="compose-btn" id="composeBtn">
+      <span class="icon">✏️</span> Yeni Mesaj
+    </button>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-folder="inbox">
+        <span class="nav-icon">📥</span> Gelen Kutusu
+        <span class="badge" id="unreadCount">0</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="sent">
+        <span class="nav-icon">📤</span> Gönderilenler
+      </a>
+      <a href="#" class="nav-item" data-folder="spam">
+        <span class="nav-icon">🛡️</span> Spam
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">--</div>
+        <div>
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-role" id="userRole">--</div>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Çıkış</button>
+    </div>
+  </aside>
+
+  <!-- LIST COLUMN -->
+  <div class="message-list-col">
+    <header class="list-header">
+      <h2 id="currentFolderName">Gelen Kutusu</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Mesajlarda ara..." />
+      </div>
+    </header>
+    <div class="message-list" id="messageList">
+      <div class="empty-state">Mesajlar yükleniyor...</div>
+    </div>
+  </div>
+
+  <!-- DETAIL COLUMN -->
+  <main class="message-detail-col">
+    <!-- Empty State (No message selected) -->
+    <div class="detail-empty-state" id="detailEmptyState">
+      <div class="icon">✉️</div>
+      <p>Okumak için bir mesaj seçin</p>
+    </div>
+
+    <!-- Message Content (Hidden by default) -->
+    <div class="message-content hidden" id="messageContent">
+      <header class="content-header">
+        <h3 class="subject" id="detailSubject">Konu...</h3>
+        <div class="meta">
+          <div class="sender-info">
+            <div class="avatar" id="detailAvatar">A</div>
+            <div>
+              <div class="name" id="detailSenderName">Gönderen Adı</div>
+              <div class="email" id="detailSenderEmail">email@nexmail.io</div>
+            </div>
+          </div>
+          <div class="date" id="detailDate">Tarih</div>
+        </div>
+      </header>
+      
+      <div class="body" id="detailBody">
+        Mesaj içeriği burada görünecek...
+      </div>
+    </div>
+
+    <!-- Compose Area (Hidden by default) -->
+    <div class="compose-area hidden" id="composeArea">
+      <header class="compose-header">
+        <h3>Yeni Mesaj Gönder</h3>
+        <button class="close-btn" id="closeComposeBtn">✕</button>
+      </header>
+      <form class="compose-form" id="composeForm">
+        <div class="form-group">
+          <label>Kime:</label>
+          <select id="receiverSelect" required>
+            <option value="">Kullanıcı seçin...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mesajınız:</label>
+          <textarea id="messageBodyInput" rows="10" placeholder="Mesajınızı buraya yazın..." required></textarea>
+        </div>
+        <!-- AI Önerileri Alanı (Şu an placeholder, H10'da dolacak) -->
+        <div class="ai-suggestions hidden" id="aiSuggestions">
+          <span>✨ AI Önerileri:</span>
+          <button type="button" class="btn-suggestion">Teşekkür ederim, aldım.</button>
+          <button type="button" class="btn-suggestion">Müsait olunca inceleyeceğim.</button>
+        </div>
+        <div class="form-actions">
+          <p class="status-msg" id="composeStatus"></p>
+          <button type="button" class="btn-ai" id="aiSuggestBtn">✨ Akıllı Öneri</button>
+          <button type="submit" class="btn-primary" id="sendBtn">Gönder</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="./src/inbox.js"></script>
+</body>
+</html>
