@@ -1,0 +1,451 @@
+/* ==============================
+   GENEL AYARLAR, RENKLER & TYPOGRAPHY
+============================== */
+:root {
+  --primary-color: #4F46E5; /* Indigo 600 */
+  --primary-hover: #4338CA;
+  --bg-color: #F9FAFB;      /* Gray 50 */
+  --surface-color: #FFFFFF;
+  --text-dark: #111827;     /* Gray 900 */
+  --text-light: #6B7280;    /* Gray 500 */
+  --border-color: #E5E7EB;  /* Gray 200 */
+  --danger-color: #EF4444;  /* Red 500 */
+  --success-color: #10B981; /* Emerald 500 */
+  --hover-bg: #F3F4F6;      /* Gray 100 */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ==============================
+   SIDEBAR (SOL MENÜ)
+============================== */
+.sidebar {
+  width: 250px;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--primary-color);
+  padding: 1.5rem;
+}
+
+.compose-btn {
+  margin: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.compose-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.sidebar-nav {
+  padding: 0 1rem;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--text-dark);
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+  background-color: #EEF2FF; /* Indigo 50 */
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.nav-icon {
+  margin-right: 0.75rem;
+}
+
+.badge {
+  background-color: #DBEAFE;
+  color: #1D4ED8;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #E0E7FF;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-light);
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: var(--hover-bg);
+  color: var(--danger-color);
+}
+
+/* ==============================
+   MESSAGE LIST (ORTA KOLON)
+============================== */
+.message-list-col {
+  width: 350px;
+  border-right: 1px solid var(--border-color);
+  background: var(--surface-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.list-header h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+/* Message Item in List */
+.msg-item {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.msg-item:hover, .msg-item.active {
+  background-color: var(--hover-bg);
+}
+
+.msg-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.msg-sender {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.msg-time {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.msg-preview {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==============================
+   DETAIL SECTON (SAĞ KOLON)
+============================== */
+.message-detail-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+  position: relative;
+}
+
+.detail-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.detail-empty-state .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Okuma Alanı */
+.message-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: white;
+  margin: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.content-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.content-header .subject {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sender-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sender-info .avatar {
+  width: 40px;
+  height: 40px;
+  background: #E0E7FF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.sender-info .name {
+  font-weight: 600;
+}
+
+.sender-info .email, .date {
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.detail-body {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--text-dark);
+}
+
+/* Yazma Alanı (Compose) */
+.compose-area {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 500px;
+  height: 600px;
+  margin: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.compose-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--text-dark);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+.compose-form {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+select, textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+select:focus, textarea:focus {
+  border-color: var(--primary-color);
+}
+
+textarea {
+  resize: vertical;
+  flex: 1;
+}
+
+.ai-suggestions {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #F0FDF4; /* Emerald 50 */
+  border: 1px solid #A7F3D0; /* Emerald 200 */
+  border-radius: 6px;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-suggestion {
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border: 1px solid #A7F3D0;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.btn-ai {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.status-msg {
+  font-size: 0.875rem;
+  margin-right: auto;
+}
+
+.status-msg.success { color: var(--success-color); }
+.status-msg.error { color: var(--danger-color); }
+/* Devam edecek... */
