@@ -2,7 +2,8 @@ import { auth, db } from './firebase/config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { 
   collection, getDocs, doc, getDoc, 
-  query, where, orderBy, addDoc, serverTimestamp, onSnapshot
+  query, where, orderBy, addDoc, serverTimestamp, onSnapshot,
+  updateDoc, setDoc
 } from "firebase/firestore";
 
 let currentUserInfo = null;
@@ -283,7 +284,23 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
       timestamp: serverTimestamp()
     });
 
-    // TODO: Threads koleksiyonu güncellemesi buraya eklenebilir.
+    // Threads koleksiyonu güncellemesi
+    const threadId = [currentUserInfo.uid, receiverId].sort().join('_');
+    const threadRef = doc(db, "threads", threadId);
+    const threadSnap = await getDoc(threadRef);
+
+    if (threadSnap.exists()) {
+      await updateDoc(threadRef, {
+        lastMessage: content,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      await setDoc(threadRef, {
+        participants: [currentUserInfo.uid, receiverId],
+        lastMessage: content,
+        updatedAt: serverTimestamp()
+      });
+    }
 
     showMessage("Mesaj başarıyla gönderildi!", "success");
     document.getElementById('messageBodyInput').value = '';
