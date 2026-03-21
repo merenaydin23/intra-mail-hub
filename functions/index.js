@@ -6,7 +6,7 @@ admin.initializeApp();
 
 // Gemini API istemcisini başlatıyoruz.
 // Not: Gerçek senaryoda API anahtarını process.env ortam değişkenlerinden alacağız.
-const ai = new GoogleGenAI({}); 
+const ai = new GoogleGenAI({ apiKey: "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8" }); 
 // ÖNEMLİ: Eğer GEMINI_API_KEY ortam değişkenlerinde tanımlıysa GoogleGenAI otomatik algılar.
 
 exports.processNewMessage = onDocumentCreated("messages/{messageId}", async (event) => {
