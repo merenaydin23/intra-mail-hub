@@ -1,6 +1,29 @@
 import { auth, db } from './firebase/config.js';
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+
+// GEÇİCİ ADMİN OLUŞTURUCU (Sayfa yüklenince 1 defa otomatik çalışır)
+async function createAdminEren() {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, "eren@nexmail.io", "123456");
+    await setDoc(doc(db, "users", cred.user.uid), {
+      name: "Eren Aydın",
+      email: "eren@nexmail.io",
+      role: "admin",
+      department: "Yönetim",
+      isActive: true,
+      createdAt: new Date().toISOString()
+    });
+    console.log("🔥 Admin hesabı (Eren Aydın) başarıyla db'ye işlendi! Login olabilirsiniz.");
+  } catch (err) {
+    if (err.code === 'auth/email-already-in-use') {
+      console.log("Admin hesabı zaten kayıtlı, giriş yapabilirsiniz.");
+    } else {
+      console.error("Admin kayıt hatası:", err);
+    }
+  }
+}
+createAdminEren();
 
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
