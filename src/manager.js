@@ -261,8 +261,42 @@ function showDetail(msg, displayName) {
   }
   
   document.getElementById('detailBody').textContent = bodyContent;
-}
 
+  // Akıllı Yanıt Önerilerini Oluştur
+  const existingSuggestions = document.getElementById('renderedAiSuggestions');
+  if (existingSuggestions) existingSuggestions.remove();
+
+  if (msg.suggestions && msg.suggestions.length > 0 && msg.senderId !== currentUserInfo.uid) {
+    const suggContainer = document.createElement('div');
+    suggContainer.id = 'renderedAiSuggestions';
+    suggContainer.style.cssText = "margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;";
+    
+    const label = document.createElement('span');
+    label.style.cssText = "font-weight:600; font-size:12px; color:#6b7280; display:block; margin-bottom:8px;";
+    label.textContent = "✨ Akıllı Yanıt Önerileri";
+    suggContainer.appendChild(label);
+
+    const btnWrapper = document.createElement('div');
+    btnWrapper.style.cssText = "display:flex; gap:10px; flex-wrap:wrap;";
+
+    msg.suggestions.forEach(s => {
+      const btn = document.createElement('button');
+      btn.style.cssText = "background:#EEF2FF; color:#4F46E5; border:1px solid #C7D2FE; padding:8px 12px; border-radius:15px; font-size:13px; cursor:pointer;";
+      btn.textContent = s;
+      btn.onmouseover = () => btn.style.background = "#E0E7FF";
+      btn.onmouseout = () => btn.style.background = "#EEF2FF";
+      btn.onclick = () => {
+        document.getElementById('composeArea').classList.remove('hidden');
+        document.getElementById('receiverSelect').value = msg.senderId;
+        document.getElementById('messageBodyInput').value = s;
+      };
+      btnWrapper.appendChild(btn);
+    });
+
+    suggContainer.appendChild(btnWrapper);
+    document.getElementById('detailBody').parentNode.appendChild(suggContainer);
+  }
+}
 // ARŞİV VE ÇÖP KUTUSU AKSİYONLARI 
 document.getElementById('btnArchive').addEventListener('click', async () => {
   if(!currentViewMsgId) return;
@@ -325,18 +359,20 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
   let aiTranslated = "";
   let aiSpamScore = 0;
   let aiIsSpam = false;
+  let aiSuggestions = [];
 
   try {
     const aiKey = "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8";
-    const prompt = `Lütfen aşağıdaki şirket içi mesajı incele ve iki şey yap:
+    const prompt = `Lütfen aşağıdaki şirket içi mesajı incele ve şu görevleri yap:
 1. Türkçe ise İngilizceye, başka bir dilde ise Türkçeye profesyonelce çevir. (translatedContent)
 2. Mesajda hakaret, tehdit, oltalama, saygısızlık veya şirket kuralı ihlali varsa 0-100 arası bir zarar skoru ver (100=çok zararlı). Sadece iş mesajıysa skor 0 olsun. (spamScore)
 3. Eğer skor 60 ve üzeri ise isSpam true, değilse false olsun.
+4. Bu mesaja verilebilecek en uygun 3 adet KISA VE ÖZ yanıt önerisini dizi halinde oluştur. Örnek: ["Hemen inceliyorum.", "Lütfen daha fazla detay verin.", "Onaylıyorum."] (suggestions)
 
 Mesaj: "${content}"
 
 Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime yazma:
-{"translatedContent": "çeviri", "spamScore": 0, "isSpam": false}`;
+{"translatedContent": "çeviri", "spamScore": 0, "isSpam": false, "suggestions": ["Yanıt1", "Yanıt2", "Yanıt3"]}`;
 
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${aiKey}`, {
       method: 'POST',
@@ -355,6 +391,7 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
       aiTranslated = parsed.translatedContent || "";
       aiSpamScore = parsed.spamScore || 0;
       aiIsSpam = parsed.isSpam || false;
+      aiSuggestions = parsed.suggestions || [];
     }
   } catch (err) {
     console.error("AI Analiz Hatası:", err);
@@ -371,7 +408,7 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
       isSpam: aiIsSpam,
       spamScore: aiSpamScore,
       aiAnalyzed: true,
-      suggestions: [],
+      suggestions: aiSuggestions,
       attachments: [],
       timestamp: serverTimestamp(),
       isArchived: false,
@@ -409,4 +446,44 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
 function showMessage(msg, type) {
   statusMsg.textContent = msg;
   statusMsg.className = `status-msg ${type}`;
+}
+
+// =====================
+// AI UYARLAMA / RESMİLEŞTİRME (FORMALIZER)
+// =====================
+const aiSuggestBtn = document.getElementById('aiSuggestBtn');
+if (aiSuggestBtn) {
+  aiSuggestBtn.addEventListener('click', async () => {
+    const inputEl = document.getElementById('messageBodyInput');
+    const content = inputEl.value.trim();
+    if (!content) {
+      showMessage("Önce taslak bir mesaj yazmalısınız.", "error");
+      return;
+    }
+    
+    aiSuggestBtn.textContent = "✨ Düzenleniyor...";
+    aiSuggestBtn.disabled = true;
+
+    try {
+      const aiKey = "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8";
+      const prompt = `Aşağıdaki iş e-postası taslağını çok daha profesyonel, resmi ve kurumsal bir Türkçe ile baştan yaz. Sadece ve sadece düzeltilmiş metni düz olarak ver, asla 'Tamam', 'Aşağıda sunuyorum' gibi fazladan açıklamalar yazma:\n\n"${content}"`;
+      
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${aiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      
+      const data = await res.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        inputEl.value = data.candidates[0].content.parts[0].text.trim();
+        showMessage("Taslak yapay zeka tarafından resmileştirildi!", "success");
+      }
+    } catch(err) {
+      showMessage("AI düzeltme yapamadı.", "error");
+    }
+
+    aiSuggestBtn.textContent = "✨ Akıllı Öneri";
+    aiSuggestBtn.disabled = false;
+  });
 }
