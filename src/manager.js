@@ -320,6 +320,46 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
   }
 
   btn.disabled = true;
+  btn.textContent = 'AI Analizi Yapılıyor...';
+
+  let aiTranslated = "";
+  let aiSpamScore = 0;
+  let aiIsSpam = false;
+
+  try {
+    const aiKey = "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8";
+    const prompt = `Lütfen aşağıdaki şirket içi mesajı incele ve iki şey yap:
+1. Türkçe ise İngilizceye, başka bir dilde ise Türkçeye profesyonelce çevir. (translatedContent)
+2. Mesajda hakaret, tehdit, oltalama, saygısızlık veya şirket kuralı ihlali varsa 0-100 arası bir zarar skoru ver (100=çok zararlı). Sadece iş mesajıysa skor 0 olsun. (spamScore)
+3. Eğer skor 60 ve üzeri ise isSpam true, değilse false olsun.
+
+Mesaj: "${content}"
+
+Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime yazma:
+{"translatedContent": "çeviri", "spamScore": 0, "isSpam": false}`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${aiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+    
+    const data = await res.json();
+    if(data.candidates && data.candidates[0].content.parts[0].text) {
+      let aiText = data.candidates[0].content.parts[0].text;
+      aiText = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(aiText);
+      aiTranslated = parsed.translatedContent || "";
+      aiSpamScore = parsed.spamScore || 0;
+      aiIsSpam = parsed.isSpam || false;
+    }
+  } catch (err) {
+    console.error("AI Analiz Hatası:", err);
+  }
+
   btn.textContent = 'Gönderiliyor...';
 
   try {
@@ -327,9 +367,10 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
       senderId: currentUserInfo.uid,
       receiverId: receiverId,
       content: content,
-      translatedContent: "",
-      isSpam: false,
-      spamScore: 0,
+      translatedContent: aiTranslated,
+      isSpam: aiIsSpam,
+      spamScore: aiSpamScore,
+      aiAnalyzed: true,
       suggestions: [],
       attachments: [],
       timestamp: serverTimestamp(),
