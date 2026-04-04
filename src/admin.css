@@ -2,19 +2,21 @@
    ULTIMATE PREMIUM DASHBOARD SYSTEM
 ============================== */
 :root {
-  --primary: #4338ca;
-  --primary-light: #6366f1;
-  --sidebar-bg: #0f172a;
-  --app-bg: #f8fafc;
+  --primary: #007B7B;        /* Bellona Teal */
+  --primary-light: #00A3A3;  /* Açık Teal */
+  --primary-dark: #005F5F;   /* Koyu Teal */
+  --sidebar-bg: #0a1628;     /* Koyu Navy */
+  --app-bg: #f0fafa;         /* Teal tinted background */
   --surface: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+  --text-main: #0a2828;
+  --text-muted: #4a7070;
+  --border: #d0e8e8;
   --success: #10b981;
   --danger: #ef4444;
+  --secondary: #00A3A3;
   --radius-xl: 24px;
   --radius-lg: 16px;
-  --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+  --shadow-premium: 0 20px 40px -10px rgba(0, 123, 123, 0.12);
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
