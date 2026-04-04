@@ -27,7 +27,7 @@ onAuthStateChanged(auth, async (user) => {
 
   // Hangi sayfadayız?
   const path = window.location.pathname;
-  if (path.includes('yonetim_dashboard')) initDashboard();
+  if (path.includes('yonetim.html') || path.endsWith('/yonetim')) initDashboard();
   if (path.includes('yonetim_personel')) initPersonel();
   if (path.includes('yonetim_ekle')) initEkle();
   if (path.includes('yonetim_mesajlar')) loadAllMessages();
