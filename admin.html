@@ -3,44 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IntraMail Hub — Admin Paneli</title>
+  <title>IntraMail Hub — Admin Yönetim Paneli</title>
+  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="./src/admin.css">
 </head>
 <body>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">IM</div>
-      <span class="logo-text">IntraMail Hub</span>
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Yönetim <strong>Paneli</strong></span>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
       <a href="#" class="nav-item active" data-section="dashboard">
-        <span class="nav-icon">📊</span> Dashboard
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
       </a>
       <a href="#" class="nav-item" data-section="users">
-        <span class="nav-icon">👥</span> Kullanıcılar
+        <i class="fa-solid fa-users-gear"></i>
+        <span>Kullanıcılar</span>
       </a>
       <a href="#" class="nav-item" data-section="add-user">
-        <span class="nav-icon">➕</span> Kullanıcı Ekle
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Yeni Kullanıcı</span>
       </a>
       <a href="#" class="nav-item" data-section="messages">
-        <span class="nav-icon">✉️</span> Mesajlar
+        <i class="fa-solid fa-envelope-open-text"></i>
+        <span>Tüm Mesajlar</span>
       </a>
     </nav>
 
     <div class="sidebar-footer">
-      <div class="admin-info">
-        <div class="admin-avatar" id="adminAvatar">ME</div>
-        <div>
+      <div class="admin-card">
+        <div class="admin-avatar" id="adminAvatar">--</div>
+        <div class="admin-details">
           <div class="admin-name" id="adminName">Yükleniyor...</div>
-          <div class="admin-role">Admin</div>
+          <div class="admin-role">Sistem Yöneticisi</div>
         </div>
+        <button class="logout-btn-minimal" id="logoutBtn" title="Çıkış Yap">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
-      <button class="logout-btn" id="logoutBtn">Çıkış</button>
     </div>
   </aside>
 
@@ -48,10 +60,15 @@
   <main class="main-content">
 
     <!-- HEADER -->
-    <header class="top-header">
-      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    <header class="top-bar">
+      <div class="header-left">
+        <h1 id="pageTitle">Dashboard</h1>
+        <p class="subtitle" id="currentDate">--</p>
+      </div>
       <div class="header-right">
-        <span class="date-badge" id="currentDate"></span>
+        <div class="badge-status">
+          <i class="fa-solid fa-circle-check"></i> Sistem Çevrimiçi
+        </div>
       </div>
     </header>
 
@@ -59,162 +76,194 @@
     <section id="section-dashboard" class="section active">
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-info">
-            <div class="stat-number" id="totalUsers">0</div>
-            <div class="stat-label">Toplam Kullanıcı</div>
+          <div class="stat-icon bg-blue"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-content">
+            <h4 id="totalUsers">0</h4>
+            <p>Toplam Kullanıcı</p>
+          </div>
+          <div class="stat-trend"><i class="fa-solid fa-arrow-up"></i></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon bg-green"><i class="fa-solid fa-user-check"></i></div>
+          <div class="stat-content">
+            <h4 id="activeUsers">0</h4>
+            <p>Aktif Personel</p>
           </div>
         </div>
+
         <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-info">
-            <div class="stat-number" id="activeUsers">0</div>
-            <div class="stat-label">Aktif Kullanıcı</div>
+          <div class="stat-icon bg-indigo"><i class="fa-solid fa-paper-plane"></i></div>
+          <div class="stat-content">
+            <h4 id="totalMessages">0</h4>
+            <p>Mesaj Trafiği</p>
           </div>
         </div>
+
         <div class="stat-card">
-          <div class="stat-icon">✉️</div>
-          <div class="stat-info">
-            <div class="stat-number" id="totalMessages">0</div>
-            <div class="stat-label">Toplam Mesaj</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🚫</div>
-          <div class="stat-info">
-            <div class="stat-number" id="spamMessages">0</div>
-            <div class="stat-label">Spam Mesaj</div>
+          <div class="stat-icon bg-red"><i class="fa-solid fa-shield-virus"></i></div>
+          <div class="stat-content">
+            <h4 id="spamMessages">0</h4>
+            <p>Engellenen Spam</p>
           </div>
         </div>
       </div>
 
-      <div class="recent-users-card">
-        <h2 class="card-title">Son Eklenen Kullanıcılar</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Ad Soyad</th>
-              <th>Email</th>
-              <th>Departman</th>
-              <th>Rol</th>
-              <th>Durum</th>
-            </tr>
-          </thead>
-          <tbody id="recentUsersTable">
-            <tr><td colspan="5" class="empty-row">Yükleniyor...</td></tr>
-          </tbody>
-        </table>
+      <div class="content-card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Kullanıcılar</h3>
+          <button class="btn-text" onclick="goToSection('users')">Tümünü Gör</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ad Soyad</th>
+                <th>Kurumsal Email</th>
+                <th>Departman</th>
+                <th>Rol</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody id="recentUsersTable">
+              <tr><td colspan="5" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
     <!-- USERS SECTION -->
     <section id="section-users" class="section">
-      <div class="section-header">
-        <h2>Tüm Kullanıcılar</h2>
-        <button class="btn-primary" onclick="goToAddUser()">+ Yeni Kullanıcı</button>
-      </div>
-      <div class="card">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Ad Soyad</th>
-              <th>Email</th>
-              <th>Departman</th>
-              <th>Rol</th>
-              <th>Durum</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody id="allUsersTable">
-            <tr><td colspan="6" class="empty-row">Yükleniyor...</td></tr>
-          </tbody>
-        </table>
+      <div class="content-card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-users"></i> Tüm Kullanıcı Listesi</h3>
+          <button class="btn-action-primary" onclick="goToAddUser()">
+            <i class="fa-solid fa-plus"></i> Kullanıcı Ekle
+          </button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ad Soyad</th>
+                <th>Email</th>
+                <th>Departman</th>
+                <th>Rol</th>
+                <th>Erişim</th>
+                <th>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="allUsersTable">
+              <tr><td colspan="6" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
     <!-- ADD USER SECTION -->
     <section id="section-add-user" class="section">
-      <div class="card form-card">
-        <h2 class="card-title">Yeni Kullanıcı Ekle</h2>
-        <p class="card-subtitle">Oluşturulan kullanıcıya @nexmail.io uzantılı kurumsal mail otomatik atanır.</p>
+      <div class="form-wrapper">
+        <div class="content-card narrow">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-user-plus"></i> Personel Hesabı Oluştur</h3>
+          </div>
+          <div class="card-body">
+            <p class="form-hint">Yalnızca <strong>@intramail.corp</strong> uzantılı kurumsal adresler oluşturulabilir.</p>
 
-        <form id="addUserForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Ad Soyad</label>
-              <input type="text" id="newUserName" placeholder="Örn: Ahmet Kaya" required />
-            </div>
-            <div class="form-group">
-              <label>Email Öneki</label>
-              <div class="email-input-group">
-                <input type="text" id="newUserEmailPrefix" placeholder="ahmet.kaya" required />
-                <span class="email-suffix">@nexmail.io</span>
+            <form id="addUserForm" class="admin-form">
+              <div class="form-group">
+                <label>Personel Adı Soyadı</label>
+                <div class="field">
+                  <i class="fa-solid fa-user"></i>
+                  <input type="text" id="newUserName" placeholder="Örn: Ahmet Yılmaz" required />
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Departman</label>
-              <select id="newUserDepartment" required>
-                <option value="">Seçiniz...</option>
-                <option value="IT">IT</option>
-                <option value="HR">İnsan Kaynakları</option>
-                <option value="Muhasebe">Muhasebe</option>
-                <option value="Pazarlama">Pazarlama</option>
-                <option value="Satış">Satış</option>
-                <option value="Hukuk">Hukuk</option>
-                <option value="Yönetim">Yönetim</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Rol</label>
-              <select id="newUserRole" required>
-                <option value="">Seçiniz...</option>
-                <option value="employee">Çalışan (Employee)</option>
-                <option value="manager">Müdür (Manager)</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Şifre</label>
-              <div class="password-group">
-                <input type="password" id="newUserPassword" placeholder="Min. 8 karakter" required />
-                <button type="button" class="btn-generate" id="generatePassBtn">🎲 Otomatik Üret</button>
+              <div class="form-group">
+                <label>Kurumsal Kullanıcı Adı (Email)</label>
+                <div class="email-field">
+                  <i class="fa-solid fa-at"></i>
+                  <input type="text" id="newUserEmailPrefix" placeholder="ahmet.yilmaz" required />
+                  <span class="domain">@intramail.corp</span>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div id="formMessage" class="form-message hidden"></div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Departman</label>
+                  <select id="newUserDepartment" required>
+                    <option value="">Seçeiniz...</option>
+                    <option value="Yazılım Geliştirme">Yazılım Geliştirme</option>
+                    <option value="İnsan Kaynakları">İnsan Kaynakları</option>
+                    <option value="Finans & Muhasebe">Finans & Muhasebe</option>
+                    <option value="Satın Alma">Satın Alma</option>
+                    <option value="Hukuk">Hukuk</option>
+                    <option value="Yönetim Kurulu">Yönetim Kurulu</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label>Yetki / Kategori Rolü</label>
+                  <select id="newUserRole" required>
+                    <option value="factory">Fabrika Yöneticisi/Çalışanı</option>
+                    <option value="regional">Bölge Bayisi</option>
+                    <option value="local">Yerel Bayi</option>
+                    <option value="local_employee">Yerel Bayi Çalışanı</option>
+                  </select>
+                </div>
+              </div>
 
-          <div class="form-actions">
-            <button type="submit" class="btn-primary" id="addUserBtn">Kullanıcı Oluştur</button>
+              <div class="form-group">
+                <label>Geçici Erişim Şifresi</label>
+                <div class="password-field">
+                  <i class="fa-solid fa-lock"></i>
+                  <input type="text" id="newUserPassword" placeholder="Min. 8 karakter" required />
+                  <button type="button" class="btn-gen" id="generatePassBtn" title="Güvenli şifre üret">
+                    <i class="fa-solid fa-dice"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div id="formMessage" class="form-status hidden"></div>
+
+              <div class="form-actions-footer">
+                <button type="submit" class="btn-submit" id="addUserBtn">
+                  <span>Hesabı Tanımla</span> <i class="fa-solid fa-check-double"></i>
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </section>
 
     <!-- MESSAGES SECTION -->
     <section id="section-messages" class="section">
-      <div class="card">
-        <h2 class="card-title">Tüm Mesajlar</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Gönderen</th>
-              <th>Alıcı</th>
-              <th>İçerik</th>
-              <th>Spam</th>
-              <th>Tarih</th>
-            </tr>
-          </thead>
-          <tbody id="allMessagesTable">
-            <tr><td colspan="5" class="empty-row">Henüz mesaj yok.</td></tr>
-          </tbody>
-        </table>
+      <div class="content-card">
+        <div class="card-header">
+          <h3><i class="fa-solid fa-message"></i> Sistem Mesaj Trafiği Denetimi</h3>
+          <div class="tag-legend">
+            <span class="tag tag-safe">Temiz</span>
+            <span class="tag tag-spam">Spam Şüphesi</span>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Gönderen</th>
+                <th>Alıcı</th>
+                <th>Mesaj Özeti</th>
+                <th>AI Analiz</th>
+                <th>Tarih</th>
+              </tr>
+            </thead>
+            <tbody id="allMessagesTable">
+              <tr><td colspan="5" class="loader-row">Veriler getiriliyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -223,3 +272,4 @@
   <script type="module" src="./src/admin.js"></script>
 </body>
 </html>
+
