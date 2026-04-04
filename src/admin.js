@@ -284,9 +284,9 @@ function generateCredentials() {
   const subRole = subRoleEl.value;
 
   const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u',' ':'','-':''};
-  const safeName = rawName.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
-  const safeCompany = rawCompany.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
-  const safeDept = rawDept.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
+  const safeName = rawName.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
+  const safeCompany = rawCompany.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
+  const safeDept = rawDept.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
 
   if (!category) return;
 
