@@ -186,29 +186,40 @@ window.toggleUserActive = toggleUserActive;
 // =====================
 async function loadAllMessages() {
   try {
-    const msgSnap = await getDocs(collection(db, "messages"));
-    const tbody = document.getElementById('allMessagesTable');
+    const [msgSnap, usersSnap] = await Promise.all([
+      getDocs(collection(db, "messages")),
+      getDocs(collection(db, "users"))
+    ]);
+    
+    // Kullanıcı eşleme (ID -> İsim)
+    const userMap = {};
+    usersSnap.docs.forEach(d => userMap[d.id] = d.data().name);
 
+    const tbody = document.getElementById('allMessagesTable');
     if (msgSnap.empty) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Henüz mesaj yok.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Sistemde henüz mesaj trafiği yok.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = msgSnap.docs.map(d => {
+    tbody.innerHTML = msgSnap.docs.sort((a,b) => (b.data().timestamp?.toMillis() || 0) - (a.data().timestamp?.toMillis() || 0)).map(d => {
       const m = d.data();
+      const senderName = userMap[m.senderId] || m.senderId;
+      const receiverName = userMap[m.receiverId] || m.receiverId;
+      
       return `
         <tr>
-          <td>${m.senderId?.substring(0,8)}...</td>
-          <td>${m.receiverId?.substring(0,8)}...</td>
-          <td>${m.content?.substring(0, 50)}${m.content?.length > 50 ? '...' : ''}</td>
+          <td><strong style="color:var(--primary);">${senderName}</strong></td>
+          <td>${receiverName}</td>
+          <td>${m.content?.substring(0, 45)}${m.content?.length > 45 ? '...' : ''}</td>
           <td><span class="badge ${m.isSpam ? 'badge-spam' : 'badge-clean'}">${m.isSpam ? '🚫 Spam' : '✅ Temiz'}</span></td>
           <td>${m.timestamp?.toDate ? m.timestamp.toDate().toLocaleDateString('tr-TR') : '-'}</td>
         </tr>
       `;
     }).join('');
   } catch (err) {
+    console.error("Mesajlar yüklenemedi:", err);
     document.getElementById('allMessagesTable').innerHTML = 
-      '<tr><td colspan="5" class="empty-row">Mesajlar henüz yüklenmedi.</td></tr>';
+      '<tr><td colspan="5" class="empty-row">Mesaj trafiğine şu an ulaşılamıyor.</td></tr>';
   }
 }
 
