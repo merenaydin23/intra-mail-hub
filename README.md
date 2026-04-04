@@ -9,12 +9,16 @@
 * **Yapay Zeka Destekli:** Gemini API ile mesaj özetleme, resmileştirme (formalize) ve akıllı yanıt önerileri.
 * **Güvenli İletişim:** `@intramail.corp` uzantılı hesaplar arası güvenli veri akışı.
 
-## 📂 Repository Structure
+## 📂 Dosya ve Sayfa Yapısı
 * `giris.html`: Sisteme ana giriş (Login) ekranı.
-* `iletisim.html`: Bayi ve personel için ana mesajlaşma portalı.
-* `yonetim.html`: Fabrika genel yöneticisi için kontrol paneli.
-* `/src`: Mesajlaşma ve yönetim çekirdek kodları.
-* `/docs`: Sistem Gereksinimleri Spesifikasyonu (SRS) ve teknik dökümantasyon.
+* `yonetim.html`: Fabrika genel yöneticisi (Admin) için kontrol paneli.
+* `fabrika.html`: Fabrika yöneticileri/çalışanları iletişim portalı.
+* `bolge.html`: Bölge bayileri iletişim portalı.
+* `yerel.html`: Yerel bayiler iletişim portalı.
+* `calisan.html`: Yerel bayi çalışanları portalı.
+* `/src`: Mesajlaşma ve yönetim JS/CSS çekirdek kodları.
+* `/docs`: Sistem Gereksinimleri Spesifikasyonu (SRS).
+
 
 ---
 [cite_start]**Developed by [Muhammed Eren Aydın](https://muhammederenaydın.com)** [cite: 1, 4, 29]
