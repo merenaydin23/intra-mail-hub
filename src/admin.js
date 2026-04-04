@@ -116,12 +116,16 @@ function renderUserTable() {
   table.innerHTML = '';
 
   const searchQuery = document.getElementById('userSearchInput')?.value.toLowerCase() || '';
+  const selectedRegion = document.getElementById('regionFilter')?.value || 'all';
 
   const filtered = allUsersData.filter(u => {
     if (u.email === 'eren@intramail.corp' || u.role === 'admin') return false;
+    
     const isCategoryMatch = currentFilter === 'all' || u.category === currentFilter;
+    const isRegionMatch = selectedRegion === 'all' || u.company === selectedRegion;
     const isSearchMatch = u.name.toLowerCase().includes(searchQuery) || u.email.toLowerCase().includes(searchQuery);
-    return isCategoryMatch && isSearchMatch;
+
+    return isCategoryMatch && isRegionMatch && isSearchMatch;
   });
 
   if (filtered.length === 0) {
@@ -143,18 +147,26 @@ function renderUserTable() {
       </td>
       <td>
         <div class="info-box">
-          <span class="info-main">${u.email}</span>
-          <span class="info-sub">${u.department || 'Genel'}</span>
+          <span class="info-main" style="color:var(--primary); font-family: monospace; font-size:0.8rem;">${u.email}</span>
         </div>
       </td>
-      <td><span class="role-tag role-${u.role}">${roleLabel(u.role)}</span></td>
+      <td>
+        <div class="info-box">
+          <span class="info-main" style="letter-spacing:1px; font-weight:800; color:#334155; font-family: monospace;">${u.password || '******'}</span>
+        </div>
+      </td>
+      <td>
+        <div class="info-box">
+           <span class="role-tag role-${u.role}" style="display:inline-block; margin-bottom:4px;">${roleLabel(u.role)}</span>
+           <span class="info-sub">${u.department || 'Genel'}</span>
+        </div>
+      </td>
       <td>
         <div class="status-badge">
           <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span>
-          ${u.isActive ? 'Çevrimiçi' : 'Çevrimdışı'}
+          ${u.isActive ? 'Aktif' : 'Pasif'}
         </div>
       </td>
-      <td><span class="info-sub" style="font-weight:700;">${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</span></td>
       <td>
         <button class="btn-action" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
           <i class="fa-solid fa-trash-can"></i>
@@ -165,10 +177,14 @@ function renderUserTable() {
   });
 }
 
-// Listeners
+// Sekme ve Arama Dinleyicileri
 document.addEventListener('input', (e) => {
     if (e.target.id === 'userSearchInput') renderUserTable();
     if (['newUserName', 'newUserCompany', 'newUserDepartment'].includes(e.target.id)) generateCredentials();
+});
+
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'regionFilter') renderUserTable();
 });
 
 document.addEventListener('click', (e) => {
