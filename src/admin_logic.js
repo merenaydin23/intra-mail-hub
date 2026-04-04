@@ -239,23 +239,63 @@ function renderUserTable() {
                      u.tcNo?.includes(searchQuery);
                      
     return isCategory && isCompany && isSearch;
+  }).sort((a, b) => {
+    // Önce subRole === 'manager' olanlar (Patronlar en üste)
+    const aMgr = a.subRole === 'manager' ? 1 : 0;
+    const bMgr = b.subRole === 'manager' ? 1 : 0;
+    if (aMgr !== bMgr) return bMgr - aMgr;
+    
+    // Sonra tarihe göre (yeni gelenler üstte)
+    const aDate = a.createdAt?.seconds || 0;
+    const bDate = b.createdAt?.seconds || 0;
+    return bDate - aDate;
   });
 
-  table.innerHTML = filtered.map(u => `
-    <tr>
-      <td>
-        <div class="user-nested-cell">
-          <div class="user-avatar-mini">${getInitials(u.name)}</div>
-          <div class="user-details"><h5>${u.name}</h5><p>${u.company || 'BELLONA'}</p></div>
+  table.innerHTML = filtered.map(u => {
+    // Aktiflik durumuna göre stil belirle
+    const statusStyle = u.isActive 
+        ? 'background:#ecfdf5; color:#059669; border:1px solid #10b98133;' // Yeşil temalı Aktif
+        : 'background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;'; // Pasif
+    
+    return `
+    <div class="user-card anim-fade-up">
+        <div class="user-info-main">
+            <div class="user-avatar-small">${u.name?.[0] || 'U'}</div>
+            <div class="user-name-box">
+                <strong>${u.name}</strong>
+                <span class="company-tag">${u.company || '-'}</span>
+            </div>
         </div>
-      </td>
-      <td><div class="info-box"><span class="info-main" style="color:var(--primary); font-family:monospace; font-size:0.8rem;">${u.email}</span><span class="info-sub" style="font-weight:800; color:#334155; font-family:monospace;">PW: ${u.password || '******'}</span></div></td>
-      <td><div class="info-box"><span class="info-main">TC: ${u.tcNo || '-'}</span><span class="info-sub">DT: ${u.birthDate || '-'}</span></div></td>
-      <td><div class="info-box"><span class="role-tag role-${u.role}" style="margin-bottom:4px;">${roleLabel(u.role)}</span><span class="info-sub">${u.department || 'Genel'}</span></div></td>
-      <td><div class="status-badge"><span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
-      <td><button class="btn-action" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
-    </tr>
-  `).join('');
+        
+        <div class="user-contact">
+            <span class="user-email">${u.email}</span>
+            <span class="user-pw">PW: ${u.password || '****'}</span>
+        </div>
+
+        <div class="user-details-mini">
+            <span class="detail-item">TC: ${u.tcNo || '-'}</span>
+            <span class="detail-item">DT: ${u.birthDate || '-'}</span>
+        </div>
+
+        <div class="user-role-badge">
+            <strong>${u.subRole === 'manager' ? 'BAYİ SAHİBİ' : 'PERSONEL'}</strong>
+            <span>${u.department || 'Genel'}</span>
+        </div>
+
+        <div class="user-status">
+            <div class="status-badge" style="${statusStyle}">
+                <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span> 
+                ${u.isActive ? 'Aktif' : 'Pasif'}
+            </div>
+        </div>
+
+        <div class="user-actions">
+            <button class="btn-delete" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    </div>
+  `}).join('');
 }
 
 // =====================
