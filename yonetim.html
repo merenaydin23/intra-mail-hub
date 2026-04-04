@@ -173,73 +173,92 @@
             <p class="form-hint">Lütfen önce kategori seçiniz, sistem alanları buna göre düzenleyecektir.</p>
 
             <form id="addUserForm" class="admin-form">
-              <!-- TEMEL BİLGİLER -->
+              <!-- GRUP 1: TEMEL BİLGİLER -->
+              <div class="form-section-title"><i class="fa-solid fa-address-card"></i> Personel Temel Bilgileri</div>
               <div class="form-row">
                 <div class="form-group flex-1">
-                  <label>Personel Adı Soyadı</label>
+                  <label>Ad Soyad</label>
                   <div class="field">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="newUserName" placeholder="Örn: Muhammed Eren" required />
+                    <input type="text" id="newUserName" placeholder="Örn: Kerem Ömeroğlu" required />
                   </div>
                 </div>
                 <div class="form-group flex-1">
-                  <label>Kategori Seçimi</label>
-                  <select id="newUserCategory" required>
-                    <option value="">Kategori seçiniz...</option>
-                    <option value="factory">Fabrika (Üretim)</option>
-                    <option value="regional">Bölge Bayisi</option>
-                    <option value="local">Yerel Bayi</option>
-                  </select>
+                  <label>T.C. Kimlik Numarası</label>
+                  <div class="field">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    <input type="text" id="newUserTc" placeholder="11 Haneli TC" pattern="[0-9]{11}" maxlength="11" required />
+                  </div>
                 </div>
               </div>
 
-              <!-- DİNAMİK ALANLAR KONTEYNERİ -->
               <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Doğum Tarihi</label>
+                  <div class="field">
+                    <i class="fa-solid fa-cake-candles"></i>
+                    <input type="date" id="newUserBirth" required />
+                  </div>
+                </div>
+                <div class="form-group flex-1">
+                  <label>Kullanıcı Kategorisi</label>
+                  <div class="field">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <select id="newUserCategory" required>
+                      <option value="">Seçiniz...</option>
+                      <option value="factory">Fabrika (Bellona)</option>
+                      <option value="regional">Bölge Bayisi (Karavil)</option>
+                      <option value="local">Yerel Bayi</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRUP 2: ŞİRKET VE ROL BİLGİLERİ -->
+              <div class="form-section-title"><i class="fa-solid fa-sitemap"></i> Şirket & Görev Tanımı</div>
+              <div class="form-row dynamic-fields">
                 <div class="form-group flex-1" id="companyGroup">
                   <label id="companyLabel">Şirket / Bayi Adı</label>
                   <div class="field">
-                    <i class="fa-solid fa-building"></i>
-                    <input type="text" id="newUserCompany" placeholder="Örn: Ayka Mobilya" />
+                    <i class="fa-solid fa-building-user"></i>
+                    <input type="text" id="newUserCompany" placeholder="Şirket Adı" />
                   </div>
                 </div>
-                <div class="form-group flex-1" id="subRoleGroup">
-                  <label>Ünvan / Pozisyon Seviyesi</label>
-                  <select id="newUserSubRole">
-                    <option value="employee">Çalışan / Personel</option>
-                    <option value="manager">Yönetici / Bayi Sahibi</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-row">
                 <div class="form-group flex-1" id="deptGroup">
-                  <label>Çalıştığı Departman</label>
+                  <label>Departman / Birim</label>
                   <div class="field">
                     <i class="fa-solid fa-briefcase"></i>
-                    <input type="text" id="newUserDepartment" placeholder="Örn: Lojistik, Satış" />
+                    <input type="text" id="newUserDepartment" placeholder="Örn: Satış, Lojistik" />
                   </div>
                 </div>
+              </div>
+              <div class="form-row">
                 <div class="form-group flex-1">
-                  <label>TC Kimlik & Doğum Tarihi</label>
-                  <div style="display:flex; gap:8px;">
-                    <input type="text" id="newUserTc" placeholder="TC No" pattern="[0-9]{11}" maxlength="11" style="flex:1" required />
-                    <input type="date" id="newUserBirth" style="flex:1" required />
+                  <label>Ünvan / Pozisyon</label>
+                  <div class="field">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <select id="newUserSubRole">
+                      <option value="employee">Çalışan / Personel</option>
+                      <option value="manager">Yönetici / Bayi Sahibi</option>
+                    </select>
                   </div>
                 </div>
               </div>
 
+              <!-- GRUP 3: SİSTEM ERİŞİM (OTOMATİK) -->
+              <div class="form-section-title"><i class="fa-solid fa-shield-halved"></i> Sistem Erişim Kimliği</div>
               <div class="form-row">
                 <div class="form-group flex-1">
-                  <label>Kurumsal Sistem E-postası (Otomatik)</label>
-                  <div class="email-field">
+                  <label>Kurumsal E-posta</label>
+                  <div class="email-field read-only">
                     <i class="fa-solid fa-at"></i>
-                    <input type="email" id="newUserEmail" placeholder="Sistem otomatik üretecek" readonly />
+                    <input type="email" id="newUserEmail" placeholder="Otomatik Üretilecek" readonly />
                   </div>
                 </div>
                 <div class="form-group flex-1">
-                  <label>Geçici Sistem Şifresi (Otomatik)</label>
-                  <div class="password-field">
-                    <i class="fa-solid fa-lock"></i>
+                  <label>Geçici Şifre</label>
+                  <div class="password-field read-only">
+                    <i class="fa-solid fa-key"></i>
                     <input type="text" id="newUserPassword" placeholder="Auto..." readonly />
                   </div>
                 </div>
@@ -249,7 +268,7 @@
 
               <div class="form-actions-footer">
                 <button type="submit" class="btn-submit" id="addUserBtn">
-                  <span>Hesabı Tanımla</span> <i class="fa-solid fa-check-double"></i>
+                  <i class="fa-solid fa-user-plus"></i> Hesabı Tanımla ve Kaydet
                 </button>
               </div>
             </form>
