@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bellona | Tüm Mesajlar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="src/admin.css">
+</head>
+<body>
+
+  <!-- SHARED SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><i class="fa-solid fa-microchip"></i><span>Fabrika<strong>Yönetimi</strong></span></div>
+    <nav class="sidebar-nav">
+      <a href="yonetim_dashboard.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+      </a>
+      <a href="yonetim_personel.html" class="nav-item">
+        <i class="fa-solid fa-id-card-clip"></i> <span>Kullanıcılar</span>
+      </a>
+      <a href="yonetim_ekle.html" class="nav-item">
+        <i class="fa-solid fa-user-plus"></i> <span>Yeni Kullanıcı</span>
+      </a>
+      <a href="yonetim_mesajlar.html" class="nav-item active">
+        <i class="fa-solid fa-envelope-open-text"></i> <span>Tüm Mesajlar</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-panel-card"><div class="admin-avatar" id="adminAvatar">MA</div><div class="admin-details"><p class="admin-name" id="adminName">Admin</p><p class="admin-role">Yönetici</p></div><button class="logout-btn-minimal" id="logoutBtn" title="Güvenli Çıkış"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="main-content">
+    <header class="header-top">
+      <div>
+        <h1>Sistem Mesaj Trafiği</h1>
+        <p>B2B ve şube içi tüm haberleşme kayıtlarını denetleyin.</p>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="content-header">
+        <h3><i class="fa-solid fa-inbox"></i> Mesaj Arşivi</h3>
+      </div>
+      <div class="table-container" style="padding: 1.5rem;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>GÖNDEREN</th>
+              <th>ALICI</th>
+              <th>KONU / İÇERİK ÖZETİ</th>
+              <th>DURUM</th>
+              <th>TARİH</th>
+            </tr>
+          </thead>
+          <tbody id="allMessagesTable">
+             <tr><td colspan="5" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Mesaj veritabanına bağlanılıyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="src/admin_logic.js" type="module"></script>
+</body>
+</html>
