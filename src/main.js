@@ -59,12 +59,18 @@ loginForm.addEventListener('submit', async (e) => {
 
       messageDiv.innerHTML = `Hoş geldin ${userData.name}! Yönlendiriliyorsunuz...`;
       
-      // Rol bazlı yönlendirme (Sadece Admin yetkilidir)
+      // Rol bazlı 5 farklı sayfaya yönlendirme
       setTimeout(() => {
         if (userData.role === 'admin') {
-          window.location.href = '/admin.html';
+          window.location.href = './yonetim.html';
+        } else if (userData.role === 'factory') {
+          window.location.href = './fabrika.html';
+        } else if (userData.role === 'regional') {
+          window.location.href = './bolge.html';
+        } else if (userData.role === 'local') {
+          window.location.href = './yerel.html';
         } else {
-          window.location.href = '/inbox.html';
+          window.location.href = './calisan.html';
         }
       }, 1000);
     } else {
