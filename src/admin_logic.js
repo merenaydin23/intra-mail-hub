@@ -30,6 +30,7 @@ onAuthStateChanged(auth, async (user) => {
   if (path.includes('yonetim_dashboard')) initDashboard();
   if (path.includes('yonetim_personel')) initPersonel();
   if (path.includes('yonetim_ekle')) initEkle();
+  if (path.includes('yonetim_mesajlar')) loadAllMessages();
 });
 
 function getInitials(name) { return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(); }
