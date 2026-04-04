@@ -174,30 +174,39 @@
     <section id="section-users" class="section">
       <div class="content-card">
         <div class="card-header">
-          <h3><i class="fa-solid fa-users"></i> Personel Yönetim Merkezi</h3>
-          <button class="btn-action-primary" onclick="goToAddUser()">
-            <i class="fa-solid fa-plus"></i> Yeni Personel Tanımla
+          <div class="header-main-info">
+            <h3><i class="fa-solid fa-users"></i> Personel Yönetim Merkezi</h3>
+            <p class="subtitle">Sistemde kayıtlı personelleri yönetin, yetki ve erişim durumlarını güncelleyin.</p>
+          </div>
+          <button class="btn-submit" style="width:auto; padding: 0.8rem 1.5rem;" onclick="goToAddUser()">
+            <i class="fa-solid fa-plus"></i> Yeni Personel
           </button>
         </div>
 
-        <!-- TABS FOR CATEGORIES -->
-        <div class="user-tabs">
-          <button class="tab-btn active" data-filter="all">Tümü</button>
-          <button class="tab-btn" data-filter="factory">Fabrika</button>
-          <button class="tab-btn" data-filter="regional">Bölge Bayileri</button>
-          <button class="tab-btn" data-filter="local">Yerel Bayiler</button>
+        <!-- SEARCH & TABS BAR -->
+        <div class="table-controls">
+          <div class="user-tabs">
+            <button class="tab-btn active" data-filter="all">Tümü</button>
+            <button class="tab-btn" data-filter="factory">Fabrika</button>
+            <button class="tab-btn" data-filter="regional">Bölge Bayileri</button>
+            <button class="tab-btn" data-filter="local">Yerel Bayiler</button>
+          </div>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="userSearchInput" placeholder="Personel ara (Ad veya E-posta)..." />
+          </div>
         </div>
 
         <div class="table-container">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Personel / Şirket</th>
-                <th>E-posta / Departman</th>
-                <th>Rol</th>
-                <th>Erişim</th>
-                <th>Kayıt Tarihi</th>
-                <th>İşlemler</th>
+                <th><i class="fa-solid fa-user-tag"></i> Personel / Şirket</th>
+                <th><i class="fa-solid fa-at"></i> İletişim / Departman</th>
+                <th><i class="fa-solid fa-shield-halved"></i> Rol</th>
+                <th><i class="fa-solid fa-toggle-on"></i> Durum</th>
+                <th><i class="fa-solid fa-calendar-check"></i> Tarih</th>
+                <th><i class="fa-solid fa-ellipsis-vertical"></i> İşlemler</th>
               </tr>
             </thead>
             <tbody id="allUsersTable">

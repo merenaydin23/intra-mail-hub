@@ -109,10 +109,19 @@ function renderUserTable() {
   if (!table) return;
   table.innerHTML = '';
 
+  const searchQuery = document.getElementById('userSearchInput')?.value.toLowerCase() || '';
+
   const filtered = allUsersData.filter(u => {
     if (u.email === 'eren@intramail.corp') return false;
-    if (currentFilter === 'all') return true;
-    return (u.category === currentFilter);
+    
+    // Kategori Filtresi
+    const isCategoryMatch = currentFilter === 'all' || u.category === currentFilter;
+    
+    // Arama Filtresi (Ad veya Email)
+    const isSearchMatch = u.name.toLowerCase().includes(searchQuery) || 
+                         u.email.toLowerCase().includes(searchQuery);
+
+    return isCategoryMatch && isSearchMatch;
   });
 
   if (filtered.length === 0) {
@@ -153,7 +162,11 @@ function renderUserTable() {
   });
 }
 
-// Tab Listeners
+// Sekme ve Arama Dinleyicileri
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'userSearchInput') renderUserTable();
+});
+
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('tab-btn')) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
