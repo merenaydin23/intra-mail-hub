@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IntraMail Hub | Fabrika & Bayi İletişim Portalı</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./src/style.css">
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="background-overlay"></div>
+      
+      <main class="login-card">
+        <header class="card-header">
+          <div class="logo">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>IntraMail <strong>Hub</strong></span>
+          </div>
+          <h2>Fabrika & Bayi Portalı</h2>
+          <p>Yönetim, Bölge ve Yerel Bayi İletişim Ağı.</p>
+        </header>
+
+        <form id="login-form">
+          <div class="input-group">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" id="email" placeholder="Kurumsal E-posta (@intramail.corp)" required />
+          </div>
+
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="password" placeholder="Şifre" required />
+          </div>
+
+          <button type="submit" class="btn-login">
+            <span>Giriş Yap</span>
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          </button>
+        </form>
+
+        <footer class="card-footer">
+          <div id="message" class="status-msg"></div>
+          <p class="copyright">© 2026 IntraMail Hub · Muhammed Eren Aydın</p>
+        </footer>
+      </main>
+
+      <aside class="hero-section">
+        <div class="hero-content">
+          <span class="badge">Sürüm 2.0 - AI Powered</span>
+          <h1>Güvenli ve Akıllı <br>Kurumsal İletişim</h1>
+          <p>Gemini API destekli otomatik çeviri, spam tespiti ve akıllı yanıt önerileri ile departmanlar arası iletişimi hızlandırın.</p>
+          <div class="features-list">
+            <div class="feature-item">
+              <i class="fa-solid fa-language"></i>
+              <span>Anlık Çeviri</span>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-shield-virus"></i>
+              <span>Spam Koruması</span>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-bolt-lightning"></i>
+              <span>Akıllı Yanıt</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
+
