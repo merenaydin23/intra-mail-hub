@@ -42,29 +42,74 @@ async function initDashboard() {
   try {
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const nonAdmin = users.filter(u => u.role !== 'admin');
 
-    // 1. Bölge Yöneticileri (Regional + Manager)
+    // Temel istatistikler
     const regionalManagers = users.filter(u => u.category === 'regional' && u.subRole === 'manager').length;
-    // 2. Toplam Bayiler (Unique Company names in category 'local')
     const uniqueDealers = [...new Set(users.filter(u => u.category === 'local').map(u => u.company))].length;
-    // 3. Bayi Personelleri (Local + Employee)
     const dealerEmployees = users.filter(u => u.category === 'local' && u.subRole === 'employee').length;
-
     document.getElementById('statRegionalManagers').textContent = regionalManagers;
     document.getElementById('statTotalDealers').textContent = uniqueDealers;
     document.getElementById('statDealerEmployees').textContent = dealerEmployees;
     document.getElementById('statTotalUsers').textContent = users.length;
 
+    // Yaş hesaplama yardımcısı
+    const calcAge = (birthDate) => {
+      if (!birthDate) return null;
+      const today = new Date();
+      const bd = new Date(birthDate);
+      if (isNaN(bd)) return null;
+      let age = today.getFullYear() - bd.getFullYear();
+      if (today < new Date(today.getFullYear(), bd.getMonth(), bd.getDate())) age--;
+      return age;
+    };
+
+    // Ortalama yaş ve en yaşlı çalışan
+    const withAge = nonAdmin.map(u => ({ ...u, age: calcAge(u.birthDate) })).filter(u => u.age !== null);
+    if (withAge.length > 0) {
+      const avgAge = Math.round(withAge.reduce((s, u) => s + u.age, 0) / withAge.length);
+      const oldest = withAge.reduce((a, b) => a.age > b.age ? a : b);
+      if (document.getElementById('statAvgAge')) document.getElementById('statAvgAge').textContent = avgAge;
+      if (document.getElementById('statOldestName')) document.getElementById('statOldestName').textContent = oldest.name;
+      if (document.getElementById('statOldestAge')) document.getElementById('statOldestAge').textContent = `En Yaşlı — ${oldest.age} yaşında`;
+    }
+
+    // Şirket bazında dağılım tablosu
+    const companyMap = {};
+    nonAdmin.forEach(u => {
+      const co = u.company || 'Bilinmiyor';
+      if (!companyMap[co]) companyMap[co] = { count: 0, ages: [], category: u.category };
+      companyMap[co].count++;
+      const a = calcAge(u.birthDate);
+      if (a) companyMap[co].ages.push(a);
+    });
+    const breakdownTbody = document.getElementById('companyBreakdownTable');
+    if (breakdownTbody) {
+      const catLabel = { factory:'Fabrika', regional:'Bölge Bayii', local:'Yerel Bayi', local_employee:'Personel' };
+      breakdownTbody.innerHTML = Object.entries(companyMap)
+        .sort((a,b) => b[1].count - a[1].count)
+        .map(([co, data]) => {
+          const avgCo = data.ages.length > 0 ? Math.round(data.ages.reduce((s,a)=>s+a,0)/data.ages.length) : '-';
+          return `<tr>
+            <td><strong>${co}</strong></td>
+            <td><span class="role-tag" style="background:#f1f5f9;">${catLabel[data.category] || data.category}</span></td>
+            <td><strong style="color:var(--primary); font-size:1.1rem;">${data.count}</strong> personel</td>
+            <td>${avgCo !== '-' ? avgCo + ' yaş' : '-'}</td>
+          </tr>`;
+        }).join('');
+    }
+
+    // Son operasyonlar
     const tbody = document.getElementById('recentUsersTable');
     if (tbody) {
-        tbody.innerHTML = users.slice(0, 10).map(u => `
-            <tr>
-                <td><strong>${u.name}</strong><br/><small style="color:#64748b;">${u.company || 'Bellona'}</small></td>
-                <td><span class="role-tag" style="background:#f1f5f9;">${u.category?.toUpperCase()}</span></td>
-                <td><div class="status-badge"><span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
-                <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</td>
-            </tr>
-        `).join('');
+      tbody.innerHTML = users.slice(0, 10).map(u => `
+        <tr>
+          <td><strong>${u.name}</strong><br/><small style="color:#64748b;">${u.company || 'Bellona'}</small></td>
+          <td><span class="role-tag" style="background:#f1f5f9;">${u.category?.toUpperCase() || '-'}</span></td>
+          <td><div class="status-badge"><span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
+          <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</td>
+        </tr>
+      `).join('');
     }
   } catch (err) { console.error("Dashboard error:", err); }
 }
@@ -78,18 +123,30 @@ async function initPersonel() {
   allUsersData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
   if(document.getElementById('userCountBadge')) document.getElementById('userCountBadge').textContent = allUsersData.length;
+
+  // Şirketleri dinamik olarak dropdown'a doldur
+  const companyFilter = document.getElementById('companyFilter');
+  if (companyFilter) {
+    const companies = [...new Set(allUsersData.filter(u => u.role !== 'admin' && u.company).map(u => u.company))].sort();
+    companies.forEach(co => {
+      const opt = document.createElement('option');
+      opt.value = co;
+      opt.textContent = co;
+      companyFilter.appendChild(opt);
+    });
+    companyFilter.addEventListener('change', renderUserTable);
+  }
+
   renderUserTable();
 
-  // Listeners
   document.getElementById('userSearchInput')?.addEventListener('input', renderUserTable);
-  document.getElementById('regionFilter')?.addEventListener('change', renderUserTable);
   document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          currentFilter = e.target.dataset.filter;
-          renderUserTable();
-      });
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      renderUserTable();
+    });
   });
 }
 
@@ -98,14 +155,14 @@ function renderUserTable() {
   if (!table) return;
 
   const searchQuery = document.getElementById('userSearchInput')?.value.toLowerCase() || '';
-  const selectedRegion = document.getElementById('regionFilter')?.value || 'all';
+  const selectedCompany = document.getElementById('companyFilter')?.value || 'all';
 
   const filtered = allUsersData.filter(u => {
     if (u.role === 'admin') return false;
     const isCategory = currentFilter === 'all' || u.category === currentFilter;
-    const isRegion = selectedRegion === 'all' || u.company === selectedRegion;
-    const isSearch = u.name.toLowerCase().includes(searchQuery) || u.email.toLowerCase().includes(searchQuery) || u.tcNo?.includes(searchQuery);
-    return isCategory && isRegion && isSearch;
+    const isCompany = selectedCompany === 'all' || u.company === selectedCompany;
+    const isSearch = !searchQuery || u.name?.toLowerCase().includes(searchQuery) || u.email?.toLowerCase().includes(searchQuery) || u.tcNo?.includes(searchQuery);
+    return isCategory && isCompany && isSearch;
   });
 
   table.innerHTML = filtered.map(u => `
