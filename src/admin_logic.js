@@ -71,8 +71,11 @@ async function initDashboard() {
       const oldest = withAge.reduce((a, b) => a.age > b.age ? a : b);
       if (document.getElementById('statAvgAge')) document.getElementById('statAvgAge').textContent = avgAge;
       if (document.getElementById('statOldestName')) document.getElementById('statOldestName').textContent = oldest.name;
-      if (document.getElementById('statOldestAge')) document.getElementById('statOldestAge').textContent = `En Yaşlı — ${oldest.age} yaşında`;
+      if (document.getElementById('statOldestAge')) document.getElementById('statOldestAge').innerHTML = `En Yaşlı Personel &bull; ${oldest.age} yaş`;
     }
+
+    // Doğum Günü Yaklaşanlar (Önümüzdeki 30 gün)
+    renderBirthdays(nonAdmin);
 
     // Şirket bazında dağılım tablosu
     const companyMap = {};
@@ -111,6 +114,63 @@ async function initDashboard() {
     }
   } catch (err) { console.error("Dashboard error:", err); }
 }
+
+function renderBirthdays(users) {
+    const list = document.getElementById('birthdayList');
+    if (!list) return;
+
+    const today = new Date();
+    const upcoming = users.filter(u => {
+        if (!u.birthDate) return false;
+        const b = new Date(u.birthDate);
+        const bThisYear = new Date(today.getFullYear(), b.getMonth(), b.getDate());
+        const bNextYear = new Date(today.getFullYear() + 1, b.getMonth(), b.getDate());
+        
+        const diff1 = (bThisYear - today) / (1000 * 60 * 60 * 24);
+        const diff2 = (bNextYear - today) / (1000 * 60 * 60 * 24);
+        
+        return (diff1 >= 0 && diff1 <= 30) || (diff2 >= 0 && diff2 <= 30);
+    }).sort((a,b) => {
+        const da = new Date(a.birthDate);
+        const db = new Date(b.birthDate);
+        return da.getMonth() - db.getMonth() || da.getDate() - db.getDate();
+    });
+
+    if (upcoming.length === 0) {
+        list.innerHTML = '<p style="color:#94a3b8; font-size:0.85rem; text-align:center;">Önümüzdeki 30 gün içinde doğum günü olan personel bulunmamaktadır.</p>';
+        return;
+    }
+
+    list.innerHTML = upcoming.map(u => {
+        const b = new Date(u.birthDate);
+        return `
+            <div class="birthday-row">
+                <div>
+                    <h5 style="font-family:'Outfit'; color:#0f172a; margin-bottom:2px;">${u.name}</h5>
+                    <p style="font-size:0.75rem; color:#94a3b8;">${b.toLocaleDateString('tr-TR', {day:'numeric', month:'long'})} &bull; ${u.company}</p>
+                </div>
+                <button class="btn-greet" onclick="greetBirthday('${u.name}', '${u.email}')">
+                    <i class="fa-solid fa-cake-candles"></i> Kutla
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.greetBirthday = function(name, email) {
+    const templates = [
+        `Sayın ${name}, yeni yaşınızın size sağlık, mutluluk ve başarı getirmesini dileriz. Bellona ailesinin değerli bir üyesi olarak doğum gününüzü en içten dileklerimizle kutlarız! 🎂`,
+        `Mutlu Yıllar ${name}! 🎈 Yeni yaşında her şey gönlünce olsun. Bellona ailesi olarak doğum gününü tebrik eder, nice başarılı yıllar dileriz. ✨`,
+        `İyi ki doğdun ${name}! 🎉 Bellona'daki özverili çalışmaların için teşekkür eder, yeni yaşında bol şans ve mutluluk dileriz. 🎊`
+    ];
+    const text = templates[Math.floor(Math.random() * templates.length)];
+    
+    // Simüle edilmiş mail gönderme (Şimdilik kopyala)
+    navigator.clipboard.writeText(text).then(() => {
+        alert(`Kutlama mesajı kopyalandı! Şirket içi mail/mesaj aracılığıyla ${email} adresine gönderebilirsiniz:\n\n"${text}"`);
+    });
+}
+
 
 // =====================
 // PERSONEL LİSTESİ MANTIĞI

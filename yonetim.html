@@ -12,12 +12,10 @@
   <!-- SHARED SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">
-      <div style="background:#007B7B; border-radius:12px; padding:0.5rem 1rem; margin-bottom:0.5rem; display:flex; align-items:center; justify-content:center;">
-        <img src="assets/bellona-logo.svg" alt="Bellona" style="height:36px; width:auto; display:block;" />
+      <div class="logo-box">
+        <img src="assets/bellona-logo.svg" alt="Bellona" style="height:24px; width:auto;" />
       </div>
-      <div style="display:flex; flex-direction:column; line-height:1.2; padding:0 0.3rem;">
-        <span style="font-size:0.75rem; color:#00A3A3; font-weight:800; letter-spacing:2px; text-transform:uppercase;">Çalışanlar Yönetim Sistemi</span>
-      </div>
+      <span class="logo-text">Yönetim Sistemi</span>
     </div>
     <nav class="sidebar-nav">
       <a href="yonetim.html" class="nav-item active">
@@ -34,7 +32,14 @@
       </a>
     </nav>
     <div class="sidebar-footer">
-      <div class="admin-panel-card"><div class="admin-avatar" id="adminAvatar">MA</div><div class="admin-details"><p class="admin-name" id="adminName">Admin</p><p class="admin-role">Yönetici</p></div><button class="logout-btn-minimal" id="logoutBtn"><i class="fa-solid fa-power-off"></i></button></div>
+      <div class="admin-panel-card">
+        <div class="admin-avatar" id="adminAvatar">MA</div>
+        <div class="admin-details">
+          <p class="admin-name" id="adminName">Admin</p>
+          <p class="admin-role">Yönetici</p>
+        </div>
+        <button class="logout-btn-minimal" id="logoutBtn" title="Güvenli Çıkış"><i class="fa-solid fa-power-off"></i></button>
+      </div>
     </div>
   </aside>
 
@@ -42,8 +47,8 @@
   <main class="main-content">
     <header class="header-top">
       <div>
-        <h1>Dashboard & Komuta Merkezi</h1>
-        <p id="currentDate">Sistem durumu ve istatistikleri denetleyin.</p>
+        <h1>Dashboard</h1>
+        <p id="currentDate">Sistem durumu ve personel istatistikleri.</p>
       </div>
       <div style="display:flex; gap:1rem;">
         <a href="yonetim_ekle.html" class="btn-submit-premium" style="width:auto; padding:0.8rem 1.5rem; background:var(--primary);"><i class="fa-solid fa-plus"></i> Yeni Personel</a>
@@ -73,44 +78,44 @@
         <div class="stat-main"><h4 id="statAvgAge">-</h4><p>Ortalama Yaş</p></div>
       </div>
       <div class="stat-card">
-        <div class="stat-head"><div class="stat-icon bg-w"><i class="fa-solid fa-crown"></i></div><span class="stat-trend">En Kıdemli</span></div>
-        <div class="stat-main"><h4 id="statOldestName" style="font-size:1rem;">-</h4><p id="statOldestAge">En Yaşlı Çalışan</p></div>
+        <div class="stat-head"><div class="stat-icon bg-w"><i class="fa-solid fa-crown"></i></div><span class="stat-trend">V.I.P</span></div>
+        <div class="stat-main"><h4 id="statOldestName" style="font-size:1rem;">-</h4><p id="statOldestAge">En Yaşlı Personel</p></div>
       </div>
     </div>
 
-    <!-- QUICK OPERATIONS -->
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem;">
-      <a href="yonetim_personel.html" style="text-decoration:none; background:white; padding:1.5rem; border-radius:16px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:1rem; transition:0.3s;" class="quick-link">
-         <i class="fa-solid fa-users-viewfinder" style="font-size:1.5rem; color:var(--primary);"></i>
-         <div><h4 style="color:#0f172a; font-family:'Outfit';">Personelleri İzle</h4><p style="font-size:0.75rem; color:#64748b;">Tüm detaylı bir döküm al.</p></div>
-      </a>
-      <a href="yonetim_mesajlar.html" style="text-decoration:none; background:white; padding:1.5rem; border-radius:16px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:1rem; transition:0.3s;" class="quick-link">
-         <i class="fa-solid fa-tower-observation" style="font-size:1.5rem; color:var(--secondary);"></i>
-         <div><h4 style="color:#0f172a; font-family:'Outfit';">Mesaj Trafiği</h4><p style="font-size:0.75rem; color:#64748b;">Sistem haberleşmesini denetle.</p></div>
-      </a>
-      <a href="yonetim_ekle.html" style="text-decoration:none; background:white; padding:1.5rem; border-radius:16px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:1rem; transition:0.3s;" class="quick-link">
-         <i class="fa-solid fa-user-plus" style="font-size:1.5rem; color:var(--success);"></i>
-         <div><h4 style="color:#0f172a; font-family:'Outfit';">Hızlı Kayıt</h4><p style="font-size:0.75rem; color:#64748b;">Yeni personel tanımla.</p></div>
-      </a>
-    </div>
-
-    <!-- BAYİ BAZLI PERSONEL DAĞILIMI -->
-    <div class="content-wrapper">
-      <div class="content-header">
-        <h3><i class="fa-solid fa-sitemap"></i> Bayi / Şirket Bazında Personel Dağılımı</h3>
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; margin-top: 2.5rem;">
+      <!-- LEFT: COMPANY BREAKDOWN -->
+      <div class="content-wrapper" style="margin:0;">
+        <div class="content-header">
+          <h3><i class="fa-solid fa-sitemap"></i> Bayi / Şirket Dağılımı</h3>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ŞİRKET / BAYİ</th>
+                <th>PERSONEL</th>
+                <th>ORT. YAŞ</th>
+              </tr>
+            </thead>
+            <tbody id="companyBreakdownTable">
+              <tr><td colspan="3" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Hesaplanıyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ŞİRKET / BAYİ</th>
-              <th>PERSONEL SAYISI</th>
-              <th>ORTALAMA YAŞ</th>
-            </tr>
-          </thead>
-          <tbody id="companyBreakdownTable">
-            <tr><td colspan="4" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Hesaplanıyor...</td></tr>
-          </tbody>
+
+      <!-- RIGHT: BIRTHDAYS -->
+      <div class="content-wrapper" style="margin:0;">
+        <div class="content-header">
+          <h3 style="color:#db2777;"><i class="fa-solid fa-cake-candles"></i> Doğum Günleri</h3>
+        </div>
+        <div id="birthdayList" style="padding:1.5rem;">
+          <p style="color:#94a3b8; font-size:0.85rem; text-align:center;">Taramıyor...</p>
+        </div>
+      </div>
+    </div>
+body>
         </table>
       </div>
     </div>
