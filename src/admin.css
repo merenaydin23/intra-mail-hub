@@ -54,18 +54,32 @@ body {
     overflow-y: auto;
 }
 
-.logo {
+.logo { 
+    display: flex; 
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem; 
+    margin-bottom: 4rem;
+    padding: 1.5rem 1rem;
+    font-family: 'Outfit'; 
+}
+.logo-box {
+    background: #007B7B;
+    border-radius: 14px;
+    padding: 0.6rem 1.2rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
-    padding: 1rem 0.5rem;
-    font-family: 'Outfit';
-    flex-shrink: 0;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0, 123, 123, 0.2);
 }
-.logo i { font-size: 2rem; color: var(--primary-light); }
-.logo div span { font-size: 1.1rem !important; color: #ffffff !important; display: block; font-weight: 800; line-height: 1.2; }
-.logo div > span:last-child { font-size: 0.6rem !important; color: #94a3b8 !important; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+.logo-text {
+    font-size: 0.7rem;
+    color: #5eead4;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding-left: 0.2rem;
+}
 
 .nav-group {
   margin-bottom: 2rem;
@@ -104,7 +118,7 @@ body {
 .nav-item.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 15px 25px -5px rgba(67, 56, 202, 0.4);
+  box-shadow: 0 15px 25px -5px rgba(0, 123, 123, 0.4);
 }
 
 .sidebar-footer {
@@ -113,30 +127,64 @@ body {
 }
 
 .admin-panel-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    padding: 1.2rem;
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.2rem;
     margin-top: auto;
+    transition: 0.3s;
+}
+.admin-panel-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 .admin-avatar {
-    width: 50px;
-    height: 50px;
-    background: var(--primary);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
     color: white !important;
-    border-radius: 14px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    box-shadow: 0 10px 20px rgba(0, 123, 123, 0.3);
 }
 .admin-details { flex: 1; min-width: 0; }
-.admin-name { font-weight: 800; font-size: 0.95rem; color: #ffffff !important; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.admin-role { font-size: 0.8rem; color: #f1f5f9 !important; font-weight: 600; opacity: 0.9; }
+.admin-name { font-weight: 700; font-size: 1.05rem; color: #ffffff !important; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-role { font-size: 0.8rem; color: #94a3b8 !important; font-weight: 600; }
+
+/* Birthday List Specifics */
+.birthday-row {
+    background: white;
+    margin-bottom: 0.8rem;
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 4px solid #f472b6;
+    transition: 0.3s;
+}
+.birthday-row:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+.btn-greet {
+    background: #fdf2f8;
+    color: #db2777;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-greet:hover { background: #db2777; color: white; }
 
 .logout-btn-minimal {
     background: white;
