@@ -77,23 +77,28 @@ async function initDashboard() {
     // Doğum Günü Yaklaşanlar (Önümüzdeki 30 gün)
     renderBirthdays(nonAdmin);
 
-    // Şirket bazında dağılım tablosu
+    // Şirket bazında dağılım tablosu (Normalleştirilmiş)
     const companyMap = {};
     nonAdmin.forEach(u => {
-      const co = u.company || 'Bilinmiyor';
-      if (!companyMap[co]) companyMap[co] = { count: 0, ages: [] };
-      companyMap[co].count++;
+      const rawCo = u.company || 'Bilinmiyor';
+      const key = rawCo.replace(/[-\s]/g, '').toLowerCase(); // Normalleşmiş anahtar
+      
+      if (!companyMap[key]) {
+        companyMap[key] = { prettyName: rawCo, count: 0, ages: [] };
+      }
+      companyMap[key].count++;
       const a = calcAge(u.birthDate);
-      if (a) companyMap[co].ages.push(a);
+      if (a) companyMap[key].ages.push(a);
     });
+
     const breakdownTbody = document.getElementById('companyBreakdownTable');
     if (breakdownTbody) {
       breakdownTbody.innerHTML = Object.entries(companyMap)
         .sort((a,b) => b[1].count - a[1].count)
-        .map(([co, data]) => {
+        .map(([key, data]) => {
           const avgCo = data.ages.length > 0 ? Math.round(data.ages.reduce((s,a)=>s+a,0)/data.ages.length) : '-';
           return `<tr>
-            <td><strong>${co}</strong></td>
+            <td><strong>${data.prettyName}</strong></td>
             <td><strong style="color:var(--primary); font-size:1.2rem;">${data.count}</strong> <span style="color:#64748b; font-size:0.85rem;">personel</span></td>
             <td>${avgCo !== '-' ? `<span style="font-weight:600;">${avgCo}</span> yaş` : '<span style="color:#94a3b8;">-</span>'}</td>
           </tr>`;
@@ -149,7 +154,7 @@ function renderBirthdays(users) {
                     <h5 style="font-family:'Outfit'; color:#0f172a; margin-bottom:2px;">${u.name}</h5>
                     <p style="font-size:0.75rem; color:#94a3b8;">${b.toLocaleDateString('tr-TR', {day:'numeric', month:'long'})} &bull; ${u.company}</p>
                 </div>
-                <button class="btn-greet" onclick="greetBirthday('${u.name}', '${u.email}')">
+                <button class="btn-greet" onclick="greetBirthday('${u.name}', '${u.email}', '${u.company}')">
                     <i class="fa-solid fa-cake-candles"></i> Kutla
                 </button>
             </div>
@@ -157,17 +162,19 @@ function renderBirthdays(users) {
     }).join('');
 }
 
-window.greetBirthday = function(name, email) {
-    const templates = [
-        `Sayın ${name}, yeni yaşınızın size sağlık, mutluluk ve başarı getirmesini dileriz. Bellona ailesinin değerli bir üyesi olarak doğum gününüzü en içten dileklerimizle kutlarız! 🎂`,
-        `Mutlu Yıllar ${name}! 🎈 Yeni yaşında her şey gönlünce olsun. Bellona ailesi olarak doğum gününü tebrik eder, nice başarılı yıllar dileriz. ✨`,
-        `İyi ki doğdun ${name}! 🎉 Bellona'daki özverili çalışmaların için teşekkür eder, yeni yaşında bol şans ve mutluluk dileriz. 🎊`
-    ];
-    const text = templates[Math.floor(Math.random() * templates.length)];
+window.greetBirthday = function(name, email, company) {
+    const text = `Değerli iş ortağımız,
+
+Doğum gününüzü en içten dileklerimizle kutlarız. Yeni yaşınızın size sağlık, mutluluk ve başarı getirmesini temenni ederiz. Birlikte nice başarılı yıllara ulaşmayı diliyor, iş birliğimizin güçlenerek devam etmesini arzu ediyoruz.
+
+Sayın ${company} bayimizin güzide personeli ${name} olarak, yeni yaşınızın tüm hayallerinizi gerçekleştirmesini dileriz. ✨
+
+Saygılarımızla,
+Bellona Ailesi 🎂`;
     
     // Simüle edilmiş mail gönderme (Şimdilik kopyala)
     navigator.clipboard.writeText(text).then(() => {
-        alert(`Kutlama mesajı kopyalandı! Şirket içi mail/mesaj aracılığıyla ${email} adresine gönderebilirsiniz:\n\n"${text}"`);
+        alert(`${name} için özel kurumsal kutlama metni kopyalandı! ✅\n\n${email} adresine gönderebilirsiniz.`);
     });
 }
 
