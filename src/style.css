@@ -38,9 +38,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('/intramail_hub_login_bg_1775289073138.png');
-  background-size: cover;
-  background-position: center;
+  background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2670') no-repeat center center/cover;
   z-index: 1;
 }
 
