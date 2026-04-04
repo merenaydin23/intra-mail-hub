@@ -78,23 +78,21 @@ async function initDashboard() {
     const companyMap = {};
     nonAdmin.forEach(u => {
       const co = u.company || 'Bilinmiyor';
-      if (!companyMap[co]) companyMap[co] = { count: 0, ages: [], category: u.category };
+      if (!companyMap[co]) companyMap[co] = { count: 0, ages: [] };
       companyMap[co].count++;
       const a = calcAge(u.birthDate);
       if (a) companyMap[co].ages.push(a);
     });
     const breakdownTbody = document.getElementById('companyBreakdownTable');
     if (breakdownTbody) {
-      const catLabel = { factory:'Fabrika', regional:'Bölge Bayii', local:'Yerel Bayi', local_employee:'Personel' };
       breakdownTbody.innerHTML = Object.entries(companyMap)
         .sort((a,b) => b[1].count - a[1].count)
         .map(([co, data]) => {
           const avgCo = data.ages.length > 0 ? Math.round(data.ages.reduce((s,a)=>s+a,0)/data.ages.length) : '-';
           return `<tr>
             <td><strong>${co}</strong></td>
-            <td><span class="role-tag" style="background:#f1f5f9;">${catLabel[data.category] || data.category}</span></td>
-            <td><strong style="color:var(--primary); font-size:1.1rem;">${data.count}</strong> personel</td>
-            <td>${avgCo !== '-' ? avgCo + ' yaş' : '-'}</td>
+            <td><strong style="color:var(--primary); font-size:1.2rem;">${data.count}</strong> <span style="color:#64748b; font-size:0.85rem;">personel</span></td>
+            <td>${avgCo !== '-' ? `<span style="font-weight:600;">${avgCo}</span> yaş` : '<span style="color:#94a3b8;">-</span>'}</td>
           </tr>`;
         }).join('');
     }
