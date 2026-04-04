@@ -74,61 +74,98 @@
 
     <!-- DASHBOARD SECTION -->
     <section id="section-dashboard" class="section active">
+      <!-- STATS OVERVIEW -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon bg-blue"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-icon bg-blue">
+            <i class="fa-solid fa-users-gear"></i>
+          </div>
           <div class="stat-content">
             <h4 id="totalUsers">0</h4>
-            <p>Toplam Kullanıcı</p>
+            <p>Toplam Personel</p>
           </div>
-          <div class="stat-trend"><i class="fa-solid fa-arrow-up"></i></div>
+          <div class="stat-trend"><i class="fa-solid fa-circle-check"></i> Aktif Liste</div>
         </div>
-        
+
         <div class="stat-card">
-          <div class="stat-icon bg-green"><i class="fa-solid fa-user-check"></i></div>
+          <div class="stat-icon bg-green">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
           <div class="stat-content">
             <h4 id="activeUsers">0</h4>
-            <p>Aktif Personel</p>
+            <p>Çevrimiçi / Aktif</p>
           </div>
+          <div class="stat-trend"><i class="fa-solid fa-bolt"></i> Anlık Veri</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon bg-indigo"><i class="fa-solid fa-paper-plane"></i></div>
+          <div class="stat-icon bg-indigo">
+            <i class="fa-solid fa-envelope-open-text"></i>
+          </div>
           <div class="stat-content">
             <h4 id="totalMessages">0</h4>
-            <p>Mesaj Trafiği</p>
+            <p>Aylık Mesaj Trafiği</p>
           </div>
+          <div class="stat-trend"><i class="fa-solid fa-arrow-trend-up"></i> %12 Artış</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon bg-red"><i class="fa-solid fa-shield-virus"></i></div>
+          <div class="stat-icon bg-red">
+            <i class="fa-solid fa-shield-virus"></i>
+          </div>
           <div class="stat-content">
             <h4 id="spamMessages">0</h4>
-            <p>Engellenen Spam</p>
+            <p>Engellenen Tehditler</p>
           </div>
+          <div class="stat-trend"><i class="fa-solid fa-shield-halved"></i> Güvende</div>
         </div>
       </div>
 
-      <div class="content-card">
-        <div class="card-header">
-          <h3><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Kullanıcılar</h3>
-          <button class="btn-text" onclick="goToSection('users')">Tümünü Gör</button>
+      <div class="dashboard-inner-grid">
+        <!-- RECENT USERS -->
+        <div class="content-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-user-clock"></i> Son Tanımlanan Personeller</h3>
+            <button class="btn-text" onclick="goToSection('users')">Tümünü Gör <i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Personel Bilgisi</th>
+                  <th>E-posta</th>
+                  <th>Kategori</th>
+                  <th>Erişim</th>
+                </tr>
+              </thead>
+              <tbody id="recentUsersTable">
+                <!-- Veriler admin.js ile gelecek -->
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Ad Soyad</th>
-                <th>Kurumsal Email</th>
-                <th>Departman</th>
-                <th>Rol</th>
-                <th>Durum</th>
-              </tr>
-            </thead>
-            <tbody id="recentUsersTable">
-              <tr><td colspan="5" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>
-            </tbody>
-          </table>
+
+        <!-- QUICK ACTIONS / HELPER -->
+        <div class="helper-card">
+          <h4>Hızlı İşlemler</h4>
+          <div class="action-grid">
+            <button class="quick-btn" onclick="goToAddUser()">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Personel Ekle</span>
+            </button>
+            <button class="quick-btn" onclick="goToSection('messages')">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Duyuru Gönder</span>
+            </button>
+            <button class="quick-btn">
+              <i class="fa-solid fa-file-export"></i>
+              <span>Rapor Al</span>
+            </button>
+            <button class="quick-btn">
+              <i class="fa-solid fa-gear"></i>
+              <span>Ayarlar</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
