@@ -30,13 +30,30 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUserInfo = { uid: user.uid, ...userDoc.data() };
 
+    const roleNames = {
+      admin: 'Sistem Yöneticisi',
+      factory: 'Fabrika',
+      regional: 'Bölge Bayi',
+      local: 'Yerel Bayi',
+      local_employee: 'Yerel Bayi Çalışanı'
+    };
+
     document.getElementById('userName').textContent = currentUserInfo.name;
-    document.getElementById('userRole').textContent = 
-      currentUserInfo.role === 'admin' ? 'Admin' : 
-      currentUserInfo.role === 'manager' ? 'Yönetici' : 'Çalışan';
+    document.getElementById('userRole').textContent = roleNames[currentUserInfo.role] || currentUserInfo.role;
       
     const initials = currentUserInfo.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
+
+    // Admin Shortcut
+    if (currentUserInfo.role === 'admin') {
+      const navItem = document.createElement('a');
+      navItem.href = '/admin.html';
+      navItem.className = 'nav-item';
+      navItem.style.marginTop = 'auto'; // Push to bottom
+      navItem.style.color = 'var(--primary)';
+      navItem.innerHTML = `<i class="fa-solid fa-user-shield"></i> <span>Yönetim Paneli</span>`;
+      document.querySelector('.sidebar-nav').appendChild(navItem);
+    }
 
     loadUsersDropdown();
     listenToMessages();
