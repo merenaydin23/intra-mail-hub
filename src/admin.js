@@ -49,22 +49,29 @@ document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', (e) => {
     e.preventDefault();
     const section = item.dataset.section;
-
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-    item.classList.add('active');
-    document.getElementById(`section-${section}`).classList.add('active');
-
-    const titles = {
-      'dashboard': 'Dashboard',
-      'users': 'Kullanıcılar',
-      'add-user': 'Kullanıcı Ekle',
-      'messages': 'Mesajlar'
-    };
-    document.getElementById('pageTitle').textContent = titles[section] || section;
+    goToSection(section);
   });
 });
+
+function goToSection(section) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+  const navItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+  if (navItem) navItem.classList.add('active');
+  
+  const sectionEl = document.getElementById(`section-${section}`);
+  if (sectionEl) sectionEl.classList.add('active');
+
+  const titles = {
+    'dashboard': 'Dashboard',
+    'users': 'Kullanıcılar',
+    'add-user': 'Kullanıcı Ekle',
+    'messages': 'Mesajlar'
+  };
+  document.getElementById('pageTitle').textContent = titles[section] || section;
+}
+window.goToSection = goToSection;
 
 function goToAddUser() {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -223,11 +230,11 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const name = document.getElementById('newUserName').value.trim();
-  const emailPrefix = document.getElementById('newUserEmailPrefix').value.trim().replace('@nexmail.io', '');
+  const emailPrefix = document.getElementById('newUserEmailPrefix').value.trim().replace('@intramail.corp', '');
   const department = document.getElementById('newUserDepartment').value;
   const role = document.getElementById('newUserRole').value;
   const password = document.getElementById('newUserPassword').value;
-  const email = `${emailPrefix}@nexmail.io`;
+  const email = `${emailPrefix}@intramail.corp`;
 
   const btn = document.getElementById('addUserBtn');
   const msgDiv = document.getElementById('formMessage');
@@ -257,7 +264,7 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     const newUid = data.localId;
 
     // Firestore'a kullanıcı profilini yaz
-    const { setDoc, doc: fsDoc, serverTimestamp } = await import("firebase/firestore");
+    const { setDoc, doc: fsDoc } = await import("firebase/firestore"); // Sadece setDoc ve doc lazım
     await setDoc(fsDoc(db, "users", newUid), {
       name,
       email,
@@ -291,5 +298,11 @@ function showMessage(el, msg, type) {
 }
 
 function roleLabel(role) {
-  return { admin: 'Admin', manager: 'Müdür', employee: 'Çalışan' }[role] || role;
+  return { 
+    admin: 'Sistem Yöneticisi', 
+    factory: 'Fabrika Yöneticisi/Çalışanı', 
+    regional: 'Bölge Bayisi',
+    local: 'Yerel Bayi',
+    local_employee: 'Yerel Bayi Çalışanı'
+  }[role] || role;
 }
