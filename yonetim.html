@@ -138,29 +138,41 @@
       </div>
     </section>
 
-    <!-- SECTION: USERS MANAGEMENT -->
+    <!-- USERS SECTION: MONITORING CENTER -->
     <section id="section-users" class="section">
       <div class="content-wrapper">
         <div class="content-header">
           <div>
-            <h3 style="font-size: 1.2rem; color:#0f172a;">Personel Yönetim Merkezi</h3>
-            <p style="font-size: 0.8rem; color:#64748b; font-weight:500;">Sistemdeki tüm personelleri kategorize edilmiş şekilde yönetin.</p>
+            <h3 style="font-size: 1.4rem; color:#0f172a;"><i class="fa-solid fa-users-viewfinder"></i> Personel İzleme & Yönetim Merkezi</h3>
+            <p style="font-size: 0.9rem; color:#64748b; font-weight:500;">Aktif personelleri takip edin, giriş bilgilerini denetleyin ve bölge bazlı filtreleyin.</p>
           </div>
-          <button class="btn-submit-premium" style="width:auto; margin:0; padding:0.8rem 1.5rem;" onclick="goToAddUser()">
-            <i class="fa-solid fa-user-plus"></i> Yeni Personel Tanımla
+          <button class="btn-submit-premium" style="width:auto; margin:0; padding:0.8rem 1.5rem; background: var(--success);" onclick="loadAllUsers()">
+            <i class="fa-solid fa-rotate"></i> Listeyi Yenile
           </button>
         </div>
 
-        <div class="table-controls" style="margin: 0 1.5rem 1.5rem;">
+        <!-- ADVANCED CONTROLS -->
+        <div class="table-controls" style="margin: 0 1.5rem 1.5rem; flex-wrap: wrap;">
           <div class="user-tabs">
             <button class="tab-btn active" data-filter="all">Tümü</button>
             <button class="tab-btn" data-filter="factory">Fabrika</button>
             <button class="tab-btn" data-filter="regional">Bölge Bayileri</button>
             <button class="tab-btn" data-filter="local">Yerel Bayiler</button>
           </div>
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="userSearchInput" placeholder="Personel ara (Ad veya E-posta)..." />
+          
+          <div class="filter-group" style="display:flex; gap:1rem; align-items:center; flex:1; justify-content: flex-end;">
+            <div class="input-box" style="border-radius:12px; width:200px; background:#f1f5f9; border:none;">
+              <i class="fa-solid fa-map-location-dot" style="left:0.8rem; font-size:0.9rem;"></i>
+              <select id="regionFilter" style="padding: 0.6rem 0.8rem 0.6rem 2.5rem; font-size:0.8rem; border:none; background:transparent;">
+                <option value="all">Tüm Bölgeler</option>
+                <option value="Karavil">Karavil Grup</option>
+                <option value="Bellona">Fabrika (Merkez)</option>
+              </select>
+            </div>
+            <div class="search-box" style="max-width: 250px;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="userSearchInput" placeholder="Personel ara..." />
+            </div>
           </div>
         </div>
 
@@ -169,15 +181,15 @@
             <thead>
               <tr>
                 <th>PERSONEL / ŞİRKET</th>
-                <th>İLETİŞİM / DEPARTMAN</th>
-                <th>ROL</th>
+                <th>SİSTEM E-POSTASI</th>
+                <th>GEÇİCİ ŞİFRE</th>
+                <th>KATEGORİ / BİRİM</th>
                 <th>ERİŞİM</th>
-                <th>TARİH</th>
                 <th>İŞLEMLER</th>
               </tr>
             </thead>
             <tbody id="allUsersTable">
-               <!-- Load from admin.js -->
+               <!-- Veriler Dinamik Olarak admin.js ile yüklenecek -->
             </tbody>
           </table>
         </div>
