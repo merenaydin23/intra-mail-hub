@@ -23,7 +23,7 @@ onAuthStateChanged(auth, async (user) => {
 
   const userData = userDoc.data();
   document.getElementById('adminName').textContent = userData.name;
-  const initials = userData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = getInitials(userData.name);
   document.getElementById('adminAvatar').textContent = initials;
 
   loadDashboard();
@@ -31,14 +31,13 @@ onAuthStateChanged(auth, async (user) => {
   loadAllMessages();
 });
 
-// =====================
-// DASHBOARD VE TARİH
-// =====================
-const dateOptions = { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
-if(document.getElementById('currentDate')) {
-    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('tr-TR', dateOptions);
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 }
 
+// =====================
+// DASHBOARD VERİLERİ
+// =====================
 async function loadDashboard() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
@@ -50,24 +49,31 @@ async function loadDashboard() {
     const tbody = document.getElementById('recentUsersTable');
     if (tbody) {
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Henüz kullanıcı yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Henüz kayıtlı personel bulunamadı.</td></tr>';
         } else {
             tbody.innerHTML = users.slice(0, 8).map(u => `
                 <tr>
-                <td>
-                    <div class="user-info-cell">
-                        <span class="user-name">${u.name}</span>
-                        <span class="company-tag">${u.company || '-'}</span>
-                    </div>
-                </td>
-                <td><span class="user-email">${u.email}</span></td>
-                <td><span class="role-badge role-${u.role}">${roleLabel(u.role)}</span></td>
-                <td>
-                    <div class="status-cell">
-                        <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span>
-                        <span style="font-size:0.8rem; font-weight:600;">${u.isActive ? 'Aktif' : 'Pasif'}</span>
-                    </div>
-                </td>
+                    <td>
+                        <div class="user-nested-cell">
+                            <div class="user-avatar-mini">${getInitials(u.name)}</div>
+                            <div class="user-details">
+                                <h5>${u.name}</h5>
+                                <p>${u.company || 'Bellona Merkez'}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-box">
+                            <span class="info-main">${u.email}</span>
+                        </div>
+                    </td>
+                    <td><span class="role-tag role-${u.role}" style="background:#f1f5f9; color:#475569;">${roleLabel(u.role)}</span></td>
+                    <td>
+                        <div class="status-badge">
+                            <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span>
+                            ${u.isActive ? 'Aktif' : 'Pasif'}
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -84,7 +90,7 @@ async function loadDashboard() {
 }
 
 // =====================
-// KULLANICI LİSTESİ VE TAB SİSTEMİ
+// KULLANICI LİSTESİ (NESTED DESIGN)
 // =====================
 let allUsersData = [];
 let currentFilter = 'all';
@@ -112,20 +118,14 @@ function renderUserTable() {
   const searchQuery = document.getElementById('userSearchInput')?.value.toLowerCase() || '';
 
   const filtered = allUsersData.filter(u => {
-    if (u.email === 'eren@intramail.corp') return false;
-    
-    // Kategori Filtresi
+    if (u.email === 'eren@intramail.corp' || u.role === 'admin') return false;
     const isCategoryMatch = currentFilter === 'all' || u.category === currentFilter;
-    
-    // Arama Filtresi (Ad veya Email)
-    const isSearchMatch = u.name.toLowerCase().includes(searchQuery) || 
-                         u.email.toLowerCase().includes(searchQuery);
-
+    const isSearchMatch = u.name.toLowerCase().includes(searchQuery) || u.email.toLowerCase().includes(searchQuery);
     return isCategoryMatch && isSearchMatch;
   });
 
   if (filtered.length === 0) {
-    table.innerHTML = `<tr><td colspan="6" class="empty-row"><i class="fa-solid fa-folder-open" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Bu kategoride personel bulunamadı.</td></tr>`;
+    table.innerHTML = `<tr><td colspan="6" class="empty-row"><i class="fa-solid fa-folder-open" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Kayıt Bulunamadı.</td></tr>`;
     return;
   }
 
@@ -133,27 +133,30 @@ function renderUserTable() {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>
-        <div class="user-info-cell">
-          <span class="user-name">${u.name}</span>
-          <span class="company-tag">${u.company || '-'}</span>
+        <div class="user-nested-cell">
+          <div class="user-avatar-mini">${getInitials(u.name)}</div>
+          <div class="user-details">
+            <h5>${u.name}</h5>
+            <p>${u.company || '-'} / ${u.category?.toUpperCase() || 'PERSONEL'}</p>
+          </div>
         </div>
       </td>
       <td>
-        <div class="email-dept-cell">
-          <span class="user-email">${u.email}</span>
-          <span class="dept-tag">${u.department || 'Genel'}</span>
+        <div class="info-box">
+          <span class="info-main">${u.email}</span>
+          <span class="info-sub">${u.department || 'Genel'}</span>
         </div>
       </td>
-      <td><span class="role-badge role-${u.role}">${roleLabel(u.role)}</span></td>
+      <td><span class="role-tag role-${u.role}">${roleLabel(u.role)}</span></td>
       <td>
-        <div class="status-cell">
+        <div class="status-badge">
           <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span>
-          ${u.isActive ? 'Aktif' : 'Pasif'}
+          ${u.isActive ? 'Çevrimiçi' : 'Çevrimdışı'}
         </div>
       </td>
-      <td><span class="reg-date">${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</span></td>
-      <td class="actions-cell">
-        <button class="btn-icon delete" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
+      <td><span class="info-sub" style="font-weight:700;">${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</span></td>
+      <td>
+        <button class="btn-action" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </td>
@@ -162,9 +165,10 @@ function renderUserTable() {
   });
 }
 
-// Sekme ve Arama Dinleyicileri
+// Listeners
 document.addEventListener('input', (e) => {
     if (e.target.id === 'userSearchInput') renderUserTable();
+    if (['newUserName', 'newUserCompany', 'newUserDepartment'].includes(e.target.id)) generateCredentials();
 });
 
 document.addEventListener('click', (e) => {
@@ -174,21 +178,42 @@ document.addEventListener('click', (e) => {
       currentFilter = e.target.dataset.filter;
       renderUserTable();
     }
+    if (e.target.dataset.section) {
+        goToSection(e.target.dataset.section);
+    }
 });
 
+function goToSection(section) {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    
+    const navItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+    if(navItem) navItem.classList.add('active');
+    
+    const sectionEl = document.getElementById('section-' + section);
+    if(sectionEl) sectionEl.classList.add('active');
+
+    const titles = { 'dashboard': 'Dashboard', 'users': 'Personel Yönetimi', 'add-user': 'Yeni Hesap Oluştur', 'messages': 'Sistem Mesajları' };
+    document.getElementById('pageTitle').textContent = titles[section] || section;
+}
+window.goToSection = goToSection;
+
+function goToAddUser() {
+    goToSection('add-user');
+}
+window.goToAddUser = goToAddUser;
+
 // =====================
-// DİNAMİK FORM KONTROLÜ
+// DİNAMİK FORM KURALLARI
 // =====================
 const categoryEl = document.getElementById('newUserCategory');
-const companyGroup = document.getElementById('companyGroup');
-const deptGroup = document.getElementById('deptGroup');
-const subRoleEl = document.getElementById('newUserSubRole');
-
 if (categoryEl) {
   categoryEl.addEventListener('change', () => {
     const category = categoryEl.value;
+    const companyGroup = document.getElementById('companyGroup');
+    const deptGroup = document.getElementById('deptGroup');
     const companyLabel = document.getElementById('companyLabel');
-    const subRoleManagerOpt = subRoleEl.querySelector('option[value="manager"]');
+    const subRoleManagerOpt = document.getElementById('managerOption');
 
     document.getElementById('newUserCompany').value = '';
     document.getElementById('newUserDepartment').value = '';
@@ -197,51 +222,43 @@ if (categoryEl) {
       companyGroup.classList.add('hidden');
       deptGroup.classList.remove('hidden');
       document.getElementById('newUserCompany').value = 'Bellona';
-      subRoleManagerOpt.textContent = 'Yönetici / Birim Sorumlusu';
+      if(subRoleManagerOpt) subRoleManagerOpt.textContent = 'Yönetici / Birim Sorumlusu';
     } else if (category === 'regional') {
       companyGroup.classList.add('hidden');
       deptGroup.classList.remove('hidden');
       document.getElementById('newUserCompany').value = 'Karavil';
-      subRoleManagerOpt.textContent = 'Bölge Yöneticisi / Müdür';
+      if(subRoleManagerOpt) subRoleManagerOpt.textContent = 'Bölge Yöneticisi / Müdür';
     } else if (category === 'local') {
       companyGroup.classList.remove('hidden');
       deptGroup.classList.add('hidden');
       companyLabel.textContent = 'Bayi Adı';
-      subRoleManagerOpt.textContent = 'Yönetici / Bayi Sahibi';
+      if(subRoleManagerOpt) subRoleManagerOpt.textContent = 'Yönetici / Bayi Sahibi';
     }
     generateCredentials();
   });
 }
 
 function generateCredentials() {
-  const nameEl = document.getElementById('newUserName');
-  const companyEl = document.getElementById('newUserCompany');
-  const categoryEl = document.getElementById('newUserCategory');
-  const subRoleEl = document.getElementById('newUserSubRole');
-  const deptEl = document.getElementById('newUserDepartment');
-  
-  if (!nameEl || !categoryEl) return;
+  const nameVal = document.getElementById('newUserName')?.value.trim().toLowerCase() || '';
+  const compVal = document.getElementById('newUserCompany')?.value.trim().toLowerCase() || '';
+  const deptVal = document.getElementById('newUserDepartment')?.value.trim().toLowerCase() || '';
+  const category = document.getElementById('newUserCategory')?.value;
+  const subRole = document.getElementById('newUserSubRole')?.value;
 
-  const rawName = nameEl.value.trim().toLowerCase();
-  const rawCompany = companyEl.value.trim().toLowerCase();
-  const rawDept = deptEl.value.trim().toLowerCase();
-  
+  if (!nameVal || !category) return;
+
   const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u',' ':'','-':''};
-  const safeName = rawName.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
-  const safeCompany = rawCompany.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
-  const safeDept = rawDept.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
-
-  const category = categoryEl.value;
-  const subRole = subRoleEl.value;
-  if (!category) return;
+  const sName = nameVal.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
+  const sComp = compVal.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
+  const sDept = deptVal.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
 
   let prefix = '';
   if (category === 'local') {
-    prefix = (subRole === 'manager') ? `manager${safeCompany}${safeCompany}` : `${safeName}${safeCompany}`;
+    prefix = (subRole === 'manager') ? `manager${sComp}${sComp}` : `${sName}${sComp}`;
   } else if (category === 'regional') {
-    prefix = `${safeName}${safeDept}karavil`;
+    prefix = `${sName}${sDept}karavil`;
   } else if (category === 'factory') {
-    prefix = `${safeName}${safeDept}bellona`;
+    prefix = `${sName}${sDept}bellona`;
   }
 
   if (prefix) document.getElementById('newUserEmail').value = `${prefix}@gmail.com.tr`;
@@ -249,20 +266,14 @@ function generateCredentials() {
   const passEl = document.getElementById('newUserPassword');
   if (!passEl.value) {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-    let pass = '';
-    for (let i = 0; i < 10; i++) pass += chars[Math.floor(Math.random() * chars.length)];
-    passEl.value = pass;
+    let p = '';
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    passEl.value = p;
   }
 }
 
-['newUserName', 'newUserCompany', 'newUserDepartment'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('input', generateCredentials);
-});
-if(subRoleEl) subRoleEl.addEventListener('change', generateCredentials);
-
 // =====================
-// KULLANICI KAYIT
+// KAYIT İŞLEMİ
 // =====================
 const addUserForm = document.getElementById('addUserForm');
 if (addUserForm) {
@@ -272,25 +283,24 @@ if (addUserForm) {
         const btn = document.getElementById('addUserBtn');
 
         const userData = {
-            name: document.getElementById('newUserName').value.trim(),
-            tcNo: document.getElementById('newUserTc').value.trim(),
+            name: document.getElementById('newUserName').value,
+            tcNo: document.getElementById('newUserTc').value,
             birthDate: document.getElementById('newUserBirth').value,
             category: document.getElementById('newUserCategory').value,
-            company: document.getElementById('newUserCompany').value.trim(),
-            department: document.getElementById('newUserDepartment').value.trim(),
+            company: document.getElementById('newUserCompany').value,
+            department: document.getElementById('newUserDepartment').value,
             subRole: document.getElementById('newUserSubRole').value,
             email: document.getElementById('newUserEmail').value,
             password: document.getElementById('newUserPassword').value
         };
 
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
 
         try {
             const apiKey = "AIzaSyDR28h-ns4E70SN8QXw5iuCyEjJcFNv0Is";
             const authRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: userData.email, password: userData.password, returnSecureToken: false })
             });
             const authData = await authRes.json();
@@ -301,42 +311,33 @@ if (addUserForm) {
 
             const { setDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
             await setDoc(fsDoc(db, "users", authData.localId), {
-                ...userData,
-                role,
-                isActive: true,
-                createdAt: new Date(),
-                createdBy: auth.currentUser.uid
+                ...userData, role, isActive: true, createdAt: new Date(), createdBy: auth.currentUser.uid
             });
 
-            msgDiv.textContent = "✅ Kullanıcı başarıyla oluşturuldu!";
-            msgDiv.className = "form-status success";
+            msgDiv.textContent = "✅ Hesap Aktif Edildi!";
+            msgDiv.style.background = "#f0fdf4"; msgDiv.style.color = "#16a34a";
             msgDiv.classList.remove('hidden');
             addUserForm.reset();
-            loadAllUsers();
-            loadDashboard();
+            loadAllUsers(); loadDashboard();
         } catch (err) {
-            msgDiv.textContent = "❌ Hata: " + (err.message === 'EMAIL_EXISTS' ? 'Bu e-posta zaten kullanımda!' : err.message);
-            msgDiv.className = "form-status error";
+            msgDiv.textContent = "❌ Hata: " + err.message;
+            msgDiv.style.background = "#fef2f2"; msgDiv.style.color = "#dc2626";
             msgDiv.classList.remove('hidden');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Hesabı Tanımla ve Kaydet';
+            btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Personeli Sisteme Tanımla';
         }
     });
 }
 
-// =====================
-// YARDIMCI FONKSİYONLAR
-// =====================
+// UTILS
 function roleLabel(role) {
-    return { admin: 'Admin', factory: 'Fabrika', regional: 'Bölge', local: 'Yerel Bayi', local_employee: 'Bayi Personeli' }[role] || role;
+    return { admin: 'Sistem Admin', factory: 'Fabrika', regional: 'Bölge', local: 'Bayi Sahibi', local_employee: 'Personel' }[role] || role;
 }
-
 async function deleteUser(id) {
-    if (confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) {
+    if (confirm('DİKKAT: Bu personel kaydını silmek istediğinize emin misiniz?')) {
         await deleteDoc(doc(db, "users", id));
-        loadAllUsers();
-        loadDashboard();
+        loadAllUsers(); loadDashboard();
     }
 }
 window.deleteUser = deleteUser;
@@ -349,27 +350,14 @@ async function loadAllMessages() {
         tbody.innerHTML = msgSnap.docs.map(d => {
             const m = d.data();
             return `<tr>
-                <td><strong>${m.senderName || m.senderId}</strong></td>
-                <td>${m.receiverName || m.receiverId}</td>
-                <td>${m.content?.substring(0, 50)}...</td>
-                <td><span class="role-badge role-${m.isSpam ? 'factory' : 'local'}">${m.isSpam ? 'Spam' : 'Temiz'}</span></td>
+                <td><strong>${m.senderName || 'Bilinmiyor'}</strong></td>
+                <td>${m.receiverName || 'Bilinmiyor'}</td>
+                <td><p style="font-size:0.8rem; color:#64748b;">${m.content?.substring(0, 50)}...</p></td>
+                <td><span class="role-tag" style="background:#f1f5f9;">Sistem İletisi</span></td>
                 <td>${m.timestamp?.toDate ? m.timestamp.toDate().toLocaleDateString('tr-TR') : '-'}</td>
             </tr>`;
         }).join('');
-    } catch (err) { console.error("Messages error:", err); }
+    } catch (err) { console.error("Msg error:", err); }
 }
 
-// Navigasyon
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const section = item.dataset.section;
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        item.classList.add('active');
-        document.getElementById('section-' + section).classList.add('active');
-    });
-});
-function goToAddUser() {
-    document.querySelector('[data-section="add-user"]').click();
-}
-window.goToAddUser = goToAddUser;
+document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = './giris.html'));
