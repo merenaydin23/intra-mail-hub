@@ -301,9 +301,14 @@ function renderUserTable() {
         </td>
 
         <td>
-            <button class="btn-action" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
-                <i class="fa-solid fa-trash-can"></i>
-            </button>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn-action" style="background:#f0fdf4; color:#16a34a;" onclick="openMessageModal('${u.email}', '${u.name}')" title="Mesaj Gönder">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+                <button class="btn-action" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
         </td>
     </tr>
   `}).join('');
@@ -355,6 +360,79 @@ function generateCredentials() {
     const category = document.getElementById('newUserCategory')?.value;
     const subRole = document.getElementById('newUserSubRole')?.value;
     if (!nameVal || !category) return;
+// =====================
+// DİREKT MESAJ MANTIĞI
+// =====================
+let activeChatEmail = '';
+
+window.openMessageModal = function(email, name) {
+    activeChatEmail = email;
+    const modal = document.createElement('div');
+    modal.id = 'directMsgModal';
+    modal.style = `
+        position:fixed; top:0; left:0; width:100%; height:100%; 
+        background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(5px);
+        display:flex; align-items:center; justify-content:center; z-index:9999;
+        font-family:'Inter', sans-serif;
+    `;
+    modal.innerHTML = `
+        <div style="background:white; width:450px; border-radius:24px; padding:2rem; box-shadow:var(--shadow-premium); position:relative;" class="anim-fade-up">
+            <h3 style="margin-bottom:0.5rem; color:#0f172a; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-paper-plane" style="color:var(--primary);"></i> Mesaj Gönder
+            </h3>
+            <p style="color:#64748b; font-size:0.85rem; margin-bottom:1.5rem;">Alıcı: <strong>${name}</strong> (${email})</p>
+            
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.5rem;">MESAJ KONUSU</label>
+                    <input type="text" id="directMsgSubject" placeholder="Örn: Bilgilendirme..." 
+                           style="width:100%; padding:0.8rem; border-radius:12px; border:1px solid #e2e8f0; font-size:0.9rem;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:0.5rem;">MESAJINIZ</label>
+                    <textarea id="directMsgBody" placeholder="Mesajınızı buraya yazın..." 
+                              style="width:100%; height:120px; padding:0.8rem; border-radius:12px; border:1px solid #e2e8f0; font-size:0.9rem; resize:none;"></textarea>
+                </div>
+                <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                    <button onclick="closeDirectModal()" style="flex:1; padding:0.8rem; border-radius:12px; border:1.5px solid #e2e8f0; background:white; font-weight:600; cursor:pointer;">Vazgeç</button>
+                    <button onclick="sendDirectMessage()" style="flex:1; padding:0.8rem; border-radius:12px; background:var(--primary); color:white; font-weight:600; border:none; cursor:pointer;">Gönder</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+window.closeDirectModal = function() {
+    document.getElementById('directMsgModal')?.remove();
+};
+
+window.sendDirectMessage = async function() {
+    const subject = document.getElementById('directMsgSubject').value;
+    const body = document.getElementById('directMsgBody').value;
+    
+    if(!subject || !body) {
+        alert("Lütfen konu ve mesaj alanlarını doldurun.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "messages"), {
+            sender: "admin@bellona.com.tr", // Admin e-postası (dinamikleştirilebilir)
+            receiver: activeChatEmail,
+            subject: subject,
+            content: body,
+            timestamp: serverTimestamp(),
+            isRead: false
+        });
+        
+        alert("Mesaj başarıyla gönderildi! ✅");
+        closeDirectModal();
+    } catch (err) {
+        console.error("Mesaj gönderim hatası:", err);
+        alert("Mesaj gönderilemedi. Hata: " + err.message);
+    }
+};
 
     const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u',' ':'','-':''};
     const sName = nameVal.replace(/[çğıöşü\s\-]/g, m => trMap.hasOwnProperty(m) ? trMap[m] : m);
