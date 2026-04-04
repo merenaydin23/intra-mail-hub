@@ -37,8 +37,10 @@ body {
 /* ==============================
    PRECISION SIDEBAR
 ============================== */
+* { box-sizing: border-box; }
+
 .sidebar {
-    width: 340px; /* GENİŞLETİLDİ */
+    width: 340px !important;
     background: #0f172a;
     color: white;
     height: 100vh;
