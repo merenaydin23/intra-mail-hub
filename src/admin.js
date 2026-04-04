@@ -1,10 +1,9 @@
 import { auth, db } from './firebase/config.js';
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
   collection, getDocs, doc, getDoc, 
   query, orderBy, limit, updateDoc
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =====================
 // AUTH KONTROLÜ
@@ -227,34 +226,91 @@ async function loadAllMessages() {
 // KULLANICI EKLE FORMU
 // =====================
 
-// Otomatik Kimlik ve Şifre Üreticisi
+// =====================
+// DİNAMİK FORM KONTROLÜ
+// =====================
+const categoryEl = document.getElementById('newUserCategory');
+const companyGroup = document.getElementById('companyGroup');
+const deptGroup = document.getElementById('deptGroup');
+const subRoleEl = document.getElementById('newUserSubRole');
+
+if (categoryEl) {
+  categoryEl.addEventListener('change', () => {
+    const category = categoryEl.value;
+    const companyLabel = document.getElementById('companyLabel');
+    
+    // Reset inputs
+    document.getElementById('newUserCompany').value = '';
+    document.getElementById('newUserDepartment').value = '';
+
+    const subRoleManagerOpt = subRoleEl.querySelector('option[value="manager"]');
+
+    if (category === 'factory') {
+      companyGroup.classList.add('hidden');
+      deptGroup.classList.remove('hidden');
+      document.getElementById('newUserCompany').value = 'Bellona';
+      subRoleManagerOpt.textContent = 'Yönetici / Birim Sorumlusu';
+    } else if (category === 'regional') {
+      companyGroup.classList.add('hidden');
+      deptGroup.classList.remove('hidden');
+      document.getElementById('newUserCompany').value = 'Karavil';
+      subRoleManagerOpt.textContent = 'Bölge Yöneticisi / Müdür';
+    } else if (category === 'local') {
+      companyGroup.classList.remove('hidden');
+      deptGroup.classList.add('hidden');
+      companyLabel.textContent = 'Bayi Adı';
+      subRoleManagerOpt.textContent = 'Yönetici / Bayi Sahibi';
+    }
+    generateCredentials();
+  });
+}
+
+// =====================
+// KİMLİK VE ŞİFRE ÜRETİCİ
+// =====================
 function generateCredentials() {
   const nameEl = document.getElementById('newUserName');
   const companyEl = document.getElementById('newUserCompany');
-  const roleEl = document.getElementById('newUserRole');
-  if (!nameEl || !companyEl || !roleEl) return;
+  const categoryEl = document.getElementById('newUserCategory');
+  const subRoleEl = document.getElementById('newUserSubRole');
+  const deptEl = document.getElementById('newUserDepartment');
+  
+  if (!nameEl || !categoryEl) return;
 
-  const name = nameEl.value.trim().toLowerCase().replace(/\s+/g, '');
-  const company = companyEl.value.trim().toLowerCase().replace(/\s+/g, '');
-  const role = roleEl.value;
+  const rawName = nameEl.value.trim().toLowerCase();
+  const rawCompany = companyEl.value.trim().toLowerCase();
+  const rawDept = deptEl.value.trim().toLowerCase();
+  const category = categoryEl.value;
+  const subRole = subRoleEl.value;
 
-  if (!name || !company || !role) return;
+  const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u',' ':'','-':''};
+  const safeName = rawName.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
+  const safeCompany = rawCompany.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
+  const safeDept = rawDept.replace(/[çğıöşü\s\-]/g, m => trMap[m] || m);
 
-  const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'};
-  const safeName = name.replace(/[çğıöşü]/g, m => trMap[m]);
-  const safeCompany = company.replace(/[çğıöşü]/g, m => trMap[m]);
+  if (!category) return;
 
   let emailPrefix = '';
-  if (role === 'local' || role === 'regional' || role === 'factory') {
-    // Kurum hesapları genelde şirket adına olur
-    emailPrefix = safeName + safeCompany; 
-    if (role === 'local' && name.length === 0) emailPrefix = safeCompany; 
-  } else {
-    // Çalışan hesapları
-    emailPrefix = safeName + safeCompany;
+  
+  if (category === 'local') {
+    if (subRole === 'manager') {
+      // Yerel Bayi Yönetici: manager + bayi + bayi
+      emailPrefix = "manager" + safeCompany + safeCompany;
+    } else {
+      // Yerel Bayi Çalışan: ad + soyad + bayi
+      emailPrefix = safeName + safeCompany;
+    }
+  } else if (category === 'regional') {
+    // Bölge Bayi: ad + soyad + departman + karavil
+    emailPrefix = safeName + safeDept + "karavil";
+  } else if (category === 'factory') {
+    // Fabrika: ad + soyad + departman + bellona
+    emailPrefix = safeName + safeDept + "bellona";
   }
 
-  document.getElementById('newUserEmail').value = `${emailPrefix}@intramail.corp`;
+  if (emailPrefix) {
+    document.getElementById('newUserEmail').value = `${emailPrefix}@gmail.com.tr`;
+  }
 
   const passEl = document.getElementById('newUserPassword');
   if (!passEl.value) {
@@ -267,17 +323,22 @@ function generateCredentials() {
 
 document.getElementById('newUserName').addEventListener('input', generateCredentials);
 document.getElementById('newUserCompany').addEventListener('input', generateCredentials);
-document.getElementById('newUserRole').addEventListener('change', generateCredentials);
+document.getElementById('newUserSubRole').addEventListener('change', generateCredentials);
+document.getElementById('newUserDepartment').addEventListener('input', generateCredentials);
 
-// Form gönder
+// =====================
+// KULLANICI KAYIT (AUTH + FIRESTORE)
+// =====================
 document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const name = document.getElementById('newUserName').value.trim();
   const tcNo = document.getElementById('newUserTc').value.trim();
   const birthDate = document.getElementById('newUserBirth').value;
+  const category = document.getElementById('newUserCategory').value;
   const company = document.getElementById('newUserCompany').value.trim();
-  const role = document.getElementById('newUserRole').value;
+  const department = document.getElementById('newUserDepartment').value.trim();
+  const subRole = document.getElementById('newUserSubRole').value;
   
   const email = document.getElementById('newUserEmail').value;
   const password = document.getElementById('newUserPassword').value;
@@ -290,7 +351,6 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   msgDiv.className = 'form-message hidden';
 
   try {
-    // Firebase REST API ile kullanıcı oluştur (admin oturumunu bozmaz)
     const apiKey = "AIzaSyDR28h-ns4E70SN8QXw5iuCyEjJcFNv0Is";
     const res = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
@@ -302,22 +362,25 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     );
 
     const data = await res.json();
-
-    if (data.error) {
-      throw new Error(data.error.message);
-    }
+    if (data.error) throw new Error(data.error.message);
 
     const newUid = data.localId;
 
-    // Firestore'a kullanıcı profilini yaz
-    const { setDoc, doc: fsDoc } = await import("firebase/firestore"); 
+    // Rol Belirleme (Sistemin beklediği roller: admin, factory, regional, local, local_employee)
+    let finalRole = category;
+    if (category === 'local' && subRole === 'employee') finalRole = 'local_employee';
+
+    const { setDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"); 
     await setDoc(fsDoc(db, "users", newUid), {
       name,
       tcNo,
       birthDate,
       company,
+      department,
       email,
-      role,
+      role: finalRole,
+      subRole: subRole,
+      category: category,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -330,15 +393,12 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     loadDashboard();
 
   } catch (err) {
-    const messages = {
-      'EMAIL_EXISTS': 'Bu email zaten kullanımda!',
-      'WEAK_PASSWORD : Password should be at least 6 characters': 'Şifre en az 6 karakter olmalı!',
-    };
+    const messages = { 'EMAIL_EXISTS': 'Bu email zaten kullanımda!' };
     showMessage(msgDiv, `❌ Hata: ${messages[err.message] || err.message}`, 'error');
   }
 
   btn.disabled = false;
-  btn.textContent = 'Kullanıcı Oluştur';
+  btn.textContent = 'Hesabı Tanımla';
 });
 
 function showMessage(el, msg, type) {
@@ -349,7 +409,7 @@ function showMessage(el, msg, type) {
 function roleLabel(role) {
   return { 
     admin: 'Sistem Yöneticisi', 
-    factory: 'Fabrika Yöneticisi/Çalışanı', 
+    factory: 'Fabrika', 
     regional: 'Bölge Bayisi',
     local: 'Yerel Bayi',
     local_employee: 'Yerel Bayi Çalışanı'
