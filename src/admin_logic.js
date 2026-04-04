@@ -182,13 +182,24 @@ async function initPersonel() {
   
   if(document.getElementById('userCountBadge')) document.getElementById('userCountBadge').textContent = allUsersData.length;
 
-  // Şirketleri dinamik olarak dropdown'a doldur
+  // Şirketleri dinamik ve temiz (normalleştirilmiş) olarak dropdown'a doldur
   const companyFilter = document.getElementById('companyFilter');
   if (companyFilter) {
-    const companies = [...new Set(allUsersData.filter(u => u.role !== 'admin' && u.company).map(u => u.company))].sort();
-    companies.forEach(co => {
+    const rawCompanies = allUsersData.filter(u => u.role !== 'admin' && u.company).map(u => u.company);
+    
+    // Normalizasyon: "Ay-Ka" ve "Ay Ka" aynı olsun
+    const normalizedMap = {}; // key: normalizedName, value: prettyName
+    rawCompanies.forEach(co => {
+      const key = co.replace(/[-\s]/g, '').toLowerCase(); // "ayka"
+      if (!normalizedMap[key]) normalizedMap[key] = co;
+    });
+
+    // Eskileri temizle
+    companyFilter.innerHTML = '<option value="all">Tüm Şirketler / Bayiler</option>';
+    
+    Object.values(normalizedMap).sort().forEach(co => {
       const opt = document.createElement('option');
-      opt.value = co;
+      opt.value = co.replace(/[-\s]/g, '').toLowerCase(); // Filtre değeri normal normalize edilmiş olsun
       opt.textContent = co;
       companyFilter.appendChild(opt);
     });
@@ -217,9 +228,16 @@ function renderUserTable() {
 
   const filtered = allUsersData.filter(u => {
     if (u.role === 'admin') return false;
+    
+    const uCoNormalized = u.company ? u.company.replace(/[-\s]/g, '').toLowerCase() : '';
+    
     const isCategory = currentFilter === 'all' || u.category === currentFilter;
-    const isCompany = selectedCompany === 'all' || u.company === selectedCompany;
-    const isSearch = !searchQuery || u.name?.toLowerCase().includes(searchQuery) || u.email?.toLowerCase().includes(searchQuery) || u.tcNo?.includes(searchQuery);
+    const isCompany = selectedCompany === 'all' || uCoNormalized === selectedCompany;
+    const isSearch = !searchQuery || 
+                     u.name?.toLowerCase().includes(searchQuery) || 
+                     u.email?.toLowerCase().includes(searchQuery) || 
+                     u.tcNo?.includes(searchQuery);
+                     
     return isCategory && isCompany && isSearch;
   });
 
