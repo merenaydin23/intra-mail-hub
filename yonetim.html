@@ -3,308 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bellona | Akıllı Yönetim Portalı</title>
+  <title>Bellona | Admin Ana Menü</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="src/admin.css">
+  <style>
+    body {
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      padding: 2rem;
+    }
+    .landing-container {
+      max-width: 1200px;
+      width: 100%;
+      text-align: center;
+    }
+    .landing-header {
+      margin-bottom: 4rem;
+      animation: fadeInDown 0.8s ease-out;
+    }
+    .landing-header h1 {
+      font-family: 'Outfit';
+      font-size: 3.5rem;
+      color: white;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 1rem;
+    }
+    .landing-header p {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+      animation: fadeInUp 1s ease-out;
+    }
+    .branch-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-xl);
+      padding: 3rem 2rem;
+      text-decoration: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .branch-card:hover {
+      background: var(--primary);
+      border-color: var(--primary-light);
+      transform: translateY(-15px) scale(1.02);
+      box-shadow: 0 40px 80px -20px rgba(67, 56, 202, 0.5);
+    }
+    .branch-card i {
+      font-size: 4rem;
+      color: var(--primary-light);
+      transition: all 0.4s;
+    }
+    .branch-card:hover i {
+      color: white;
+      transform: scale(1.2);
+    }
+    .branch-card h3 {
+      font-family: 'Outfit';
+      font-size: 1.8rem;
+      color: white;
+      font-weight: 800;
+    }
+    .branch-card p {
+      color: #94a3b8;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+    .branch-card:hover p { color: rgba(255,255,255,0.8); }
+
+    .logout-corner {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- LEFT SIDEBAR -->
-  <aside class="sidebar">
-    <div class="logo">
-      <i class="fa-solid fa-microchip"></i>
-      <span>Fabrika<strong>Yönetimi</strong></span>
+  <div class="landing-container">
+    <div class="landing-header">
+      <h1>Sistem Yönetim Merkezi</h1>
+      <p>Lütfen yönetmek istediğiniz operasyon dalını seçin.</p>
     </div>
 
-    <nav class="sidebar-nav">
-      <div class="nav-group">
-        <p class="nav-label">ANA MENÜ</p>
-        <a href="#" class="nav-item active" data-section="dashboard">
-          <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
-        </a>
-        <a href="#" class="nav-item" data-section="users">
-          <i class="fa-solid fa-users-viewfinder"></i> <span>Kullanıcılar</span>
-        </a>
-      </div>
+    <div class="branch-grid">
+      <!-- DAL 1: DASHBOARD -->
+      <a href="yonetim_dashboard.html" class="branch-card">
+        <i class="fa-solid fa-chart-line"></i>
+        <h3>Dashboard</h3>
+        <p>İstatistikler ve Genel Sistem Durumu</p>
+      </a>
 
-      <div class="nav-group">
-        <p class="nav-label">OPERASYON</p>
-        <a href="#" class="nav-item" data-section="add-user" onclick="goToAddUser()">
-          <i class="fa-solid fa-user-plus"></i> <span>Yeni Kullanıcı</span>
-        </a>
-        <a href="#" class="nav-item" data-section="messages">
-          <i class="fa-solid fa-envelope-open-text"></i> <span>Tüm Mesajlar</span>
-        </a>
-      </div>
-    </nav>
+      <!-- DAL 2: PERSONEL LİSTESİ -->
+      <a href="yonetim_personel.html" class="branch-card">
+        <i class="fa-solid fa-id-card-clip"></i>
+        <h3>Personel Yönetimi</h3>
+        <p>TC, Doğum Tarihi ve Şifre Kontrol Merkezi</p>
+      </a>
 
-    <div class="sidebar-footer">
-      <div class="admin-panel-card">
-        <div class="admin-avatar" id="adminAvatar">MA</div>
-        <div class="admin-details">
-          <p class="admin-name" id="adminName">Yükleniyor...</p>
-          <p class="admin-role">Sistem Yöneticisi</p>
-        </div>
-        <button class="logout-btn-minimal" id="logoutBtn" title="Çıkış Yap">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
-      </div>
+      <!-- DAL 3: YENİ PERSONEL -->
+      <a href="yonetim_ekle.html" class="branch-card">
+        <i class="fa-solid fa-user-plus"></i>
+        <h3>Yeni Personel Kaydı</h3>
+        <p>Sisteme Yeni Kurumsal Hesap Tanımlama</p>
+      </a>
+
+      <!-- DAL 4: MESAJLAR -->
+      <a href="yonetim_mesajlar.html" class="branch-card">
+        <i class="fa-solid fa-envelope-open-text"></i>
+        <h3>Sistem Mesajları</h3>
+        <p>B2B ve Şube İçi Haberleşme Arşivi</p>
+      </a>
     </div>
-  </aside>
+  </div>
 
-  <!-- MAIN VIEWPORT -->
-  <main class="main-content">
-    
-    <header class="header-top">
-      <div>
-        <h1 id="pageTitle">Dashboard</h1>
-        <p id="currentDate">4 Nisan 2026 Cumartesi</p>
-      </div>
-      <div class="header-actions">
-        <span class="status-badge" style="background:#f0fdf4; color:#16a34a; border: 1px solid #dcfce7;">
-          <i class="fa-solid fa-circle-check"></i> Sistem Çevrimiçi
-        </span>
-      </div>
-    </header>
+  <div class="logout-corner">
+    <button class="btn-submit-premium" id="logoutBtn" style="background:var(--danger); box-shadow:none; padding:1rem 2rem;">
+      <i class="fa-solid fa-power-off"></i> Güvenli Çıkış
+    </button>
+  </div>
 
-    <!-- SECTION: DASHBOARD -->
-    <section id="section-dashboard" class="section active">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-head">
-            <div class="stat-icon bg-p"><i class="fa-solid fa-user-gear"></i></div>
-            <i class="fa-solid fa-ellipsis-vertical" style="color:#cbd5e1;"></i>
-          </div>
-          <div class="stat-main">
-            <h4 id="totalUsers">0</h4>
-            <p>Toplam Personel</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-head">
-            <div class="stat-icon bg-s"><i class="fa-solid fa-user-check"></i></div>
-            <i class="fa-solid fa-circle" style="color:#10b981; font-size: 0.5rem; animation: pulse 2s infinite;"></i>
-          </div>
-          <div class="stat-main">
-            <h4 id="activeUsers">0</h4>
-            <p>Aktif / Online</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-head">
-            <div class="stat-icon bg-w"><i class="fa-solid fa-paper-plane"></i></div>
-            <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i>
-          </div>
-          <div class="stat-main">
-            <h4 id="totalMessages">0</h4>
-            <p>Mesaj Trafiği</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-head">
-            <div class="stat-icon bg-d"><i class="fa-solid fa-shield-halved"></i></div>
-            <i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i>
-          </div>
-          <div class="stat-main">
-            <h4 id="spamMessages">0</h4>
-            <p>Engellenen Spam</p>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top: 2.5rem;" class="content-wrapper">
-        <div class="content-header">
-          <h3 style="font-size: 1.1rem; color: #0f172a;"><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Personeller</h3>
-          <button class="tab-btn" style="background:#f1f5f9; color:var(--primary);" onclick="goToSection('users')">Tümünü Yönet</button>
-        </div>
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>PERSONEL BİLGİSİ</th>
-                <th>İLETİŞİM</th>
-                <th>KATEGORİ / ROL</th>
-                <th>ERİŞİM DURUMU</th>
-              </tr>
-            </thead>
-            <tbody id="recentUsersTable">
-              <!-- Load from admin.js -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- USERS SECTION: MONITORING CENTER -->
-    <section id="section-users" class="section">
-      <div class="content-wrapper">
-        <div class="content-header">
-          <div>
-            <h3 style="font-size: 1.4rem; color:#0f172a;"><i class="fa-solid fa-users-viewfinder"></i> Personel İzleme & Yönetim Merkezi</h3>
-            <p style="font-size: 0.9rem; color:#64748b; font-weight:500;">Aktif personelleri takip edin, giriş bilgilerini denetleyin ve bölge bazlı filtreleyin.</p>
-          </div>
-          <button class="btn-submit-premium" style="width:auto; margin:0; padding:0.8rem 1.5rem; background: var(--success);" onclick="loadAllUsers()">
-            <i class="fa-solid fa-rotate"></i> Listeyi Yenile
-          </button>
-        </div>
-
-        <!-- ADVANCED CONTROLS -->
-        <div class="table-controls" style="margin: 0 1.5rem 1.5rem; flex-wrap: wrap;">
-          <div class="user-tabs">
-            <button class="tab-btn active" data-filter="all">Tümü</button>
-            <button class="tab-btn" data-filter="factory">Fabrika</button>
-            <button class="tab-btn" data-filter="regional">Bölge Bayileri</button>
-            <button class="tab-btn" data-filter="local">Yerel Bayiler</button>
-          </div>
-          
-          <div class="filter-group" style="display:flex; gap:1rem; align-items:center; flex:1; justify-content: flex-end;">
-            <div class="input-box" style="border-radius:12px; width:200px; background:#f1f5f9; border:none;">
-              <i class="fa-solid fa-map-location-dot" style="left:0.8rem; font-size:0.9rem;"></i>
-              <select id="regionFilter" style="padding: 0.6rem 0.8rem 0.6rem 2.5rem; font-size:0.8rem; border:none; background:transparent;">
-                <option value="all">Tüm Bölgeler</option>
-                <option value="Karavil">Karavil Grup</option>
-                <option value="Bellona">Fabrika (Merkez)</option>
-              </select>
-            </div>
-            <div class="search-box" style="max-width: 250px;">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="userSearchInput" placeholder="Personel ara..." />
-            </div>
-          </div>
-        </div>
-
-        <div class="table-container" style="padding: 0 1.5rem 1.5rem;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>PERSONEL / ŞİRKET</th>
-                <th>SİSTEM E-POSTASI</th>
-                <th>GEÇİCİ ŞİFRE</th>
-                <th>KATEGORİ / BİRİM</th>
-                <th>ERİŞİM</th>
-                <th>İŞLEMLER</th>
-              </tr>
-            </thead>
-            <tbody id="allUsersTable">
-               <!-- Veriler Dinamik Olarak admin.js ile yüklenecek -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: ADD USER (PREMIUM FORM) -->
-    <section id="section-add-user" class="section">
-      <div class="form-panel">
-        <div class="content-wrapper" style="padding: 3rem;">
-          <h2 style="font-family:'Outfit'; font-size:1.8rem; margin-bottom:0.5rem;">Yeni Personel Hesabı</h2>
-          <p style="color:#64748b; margin-bottom:2.5rem; font-weight:500;">Personel bilgilerini girerek sisteme kurumsal erişim tanımlayın.</p>
-
-          <form id="addUserForm">
-            <div class="form-section-head"><i class="fa-solid fa-address-card"></i> Temel Bilgiler</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Ad Soyad</label>
-                <div class="input-box"><i class="fa-solid fa-user"></i><input type="text" id="newUserName" placeholder="Örn: Meren Aydın" required /></div>
-              </div>
-              <div class="form-group">
-                <label>T.C. Kimlik No</label>
-                <div class="input-box"><i class="fa-solid fa-id-card"></i><input type="text" id="newUserTc" placeholder="11 Haneli TC" pattern="[0-9]{11}" maxlength="11" required /></div>
-              </div>
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Doğum Tarihi</label>
-                <div class="input-box"><i class="fa-solid fa-clock"></i><input type="date" id="newUserBirth" required /></div>
-              </div>
-              <div class="form-group">
-                <label>Personel Kategorisi</label>
-                <div class="input-box"><i class="fa-solid fa-layer-group"></i>
-                  <select id="newUserCategory" required>
-                    <option value="">Seçiniz...</option>
-                    <option value="factory">Fabrika (Bellona)</option>
-                    <option value="regional">Bölge Bayisi (Karavil)</option>
-                    <option value="local">Yerel Bayi</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-section-head"><i class="fa-solid fa-building"></i> Şirket & Görev</div>
-            <div class="form-grid">
-              <div class="form-group" id="companyGroup">
-                <label id="companyLabel">Şirket Adı</label>
-                <div class="input-box"><i class="fa-solid fa-building-user"></i><input type="text" id="newUserCompany" /></div>
-              </div>
-              <div class="form-group" id="deptGroup">
-                <label>Departman</label>
-                <div class="input-box"><i class="fa-solid fa-briefcase"></i><input type="text" id="newUserDepartment" /></div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-               <label>Ünvan</label>
-               <div class="input-box"><i class="fa-solid fa-user-tie"></i>
-                <select id="newUserSubRole">
-                  <option value="employee">Çalışan / Personel</option>
-                  <option value="manager" id="managerOption">Yönetici / Ortak</option>
-                </select>
-               </div>
-            </div>
-
-            <div class="form-section-head"><i class="fa-solid fa-key"></i> Sistem Erişimi</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Kurumsal E-posta</label>
-                <div class="input-box" style="background:#f1f5f9;"><i class="fa-solid fa-at"></i><input type="text" id="newUserEmail" readonly placeholder="Otomatik Üretilecek" /></div>
-              </div>
-              <div class="form-group">
-                <label>Geçici Şifre</label>
-                <div class="input-box" style="background:#f1f5f9;"><i class="fa-solid fa-lock"></i><input type="text" id="newUserPassword" readonly placeholder="Otomatik" /></div>
-              </div>
-            </div>
-
-            <div id="formMessage" class="hidden" style="margin: 1.5rem 0; padding:1.2rem; border-radius:14px; font-weight:600; font-size:0.85rem;"></div>
-
-            <button type="submit" class="btn-submit-premium" id="addUserBtn">
-              <i class="fa-solid fa-user-check"></i> Personeli Sisteme Tanımla
-            </button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: MESSAGES -->
-    <section id="section-messages" class="section">
-       <div class="content-wrapper">
-          <div class="content-header">
-            <h3><i class="fa-solid fa-message"></i> Mesaj Trafiği İzleme</h3>
-          </div>
-          <div class="table-container" style="padding: 1.5rem;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>GÖNDEREN</th>
-                  <th>ALICI</th>
-                  <th>İÇERİK ÖZETİ</th>
-                  <th>DURUM</th>
-                  <th>TARİH</th>
-                </tr>
-              </thead>
-              <tbody id="allMessagesTable">
-                <!-- Data -->
-              </tbody>
-            </table>
-          </div>
-       </div>
-    </section>
-
-  </main>
-
-  <script src="src/admin.js" type="module"></script>
+  <script src="src/admin_logic.js" type="module"></script>
 </body>
 </html>
