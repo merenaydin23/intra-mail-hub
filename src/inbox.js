@@ -1,10 +1,12 @@
-import { auth, db } from './firebase/config.js';
+import { auth, db, storage } from './firebase/config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { 
   collection, getDocs, doc, getDoc, 
   query, orderBy, addDoc, serverTimestamp, onSnapshot,
   updateDoc, setDoc, deleteDoc
 } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 let currentUserInfo = null;
 let currentFolder = 'inbox'; // inbox, sent, spam, archive, trash
@@ -16,7 +18,7 @@ let currentViewMsgId = null;
 // =====================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = '/index.html';
+    window.location.href = './giris.html';
     return;
   }
 
@@ -47,7 +49,7 @@ onAuthStateChanged(auth, async (user) => {
     // Admin Shortcut
     if (currentUserInfo.role === 'admin') {
       const navItem = document.createElement('a');
-      navItem.href = '/admin.html';
+      navItem.href = './yonetim.html';
       navItem.className = 'nav-item';
       navItem.style.marginTop = 'auto'; // Push to bottom
       navItem.style.color = 'var(--primary)';
@@ -94,7 +96,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await signOut(auth);
-  window.location.href = '/index.html';
+  window.location.href = './giris.html';
 });
 
 // =====================
@@ -246,7 +248,23 @@ function showDetail(msg, displayName) {
     bodyContent = `[⚠️ DİKKAT: Bu mesaj sistem tarafından spam (Skor: ${msg.spamScore}) olarak işaretlenmiştir!]\n\n` + bodyContent;
   }
   
+  // Attachments display
+  if(msg.fileUrl) {
+    bodyContent += `\n\n📎 Ekli Dosya: `;
+  }
+
   document.getElementById('detailBody').textContent = bodyContent;
+
+  if (msg.fileUrl) {
+    const link = document.createElement('a');
+    link.href = msg.fileUrl;
+    link.target = "_blank";
+    link.textContent = "Buraya tıklayarak dosyayı görüntüleyin/indirin";
+    link.style.color = "var(--primary)";
+    link.style.display = "block";
+    link.style.marginTop = "10px";
+    document.getElementById('detailBody').appendChild(link);
+  }
 
   // AI Özet Kutusunu Resetle
   document.getElementById('aiSummaryBox').classList.add('hidden');
@@ -383,11 +401,28 @@ async function loadUsersDropdown() {
   usersSnap.docs.forEach(d => {
     if (d.id !== currentUserInfo?.uid) { 
       const u = d.data();
-      const option = document.createElement('option');
-      option.value = d.id;
-      const roleLabel = roleNames[u.role] || u.role;
-      option.textContent = `${u.name} [${roleLabel}] - ${u.email}`;
-      select.appendChild(option);
+      let canMessage = false;
+
+      // Hiyerarşik Kural: Kim, Kime Mesaj Atabilir?
+      if (currentUserInfo.role === 'admin') {
+        canMessage = true; // Admin herkese atar
+      } else if (currentUserInfo.role === 'factory') {
+        if (u.role === 'regional' || u.role === 'admin') canMessage = true; // Fabrika -> Bölge ve Admin
+      } else if (currentUserInfo.role === 'regional') {
+        if (u.role === 'factory' || u.role === 'local') canMessage = true; // Bölge -> Fabrika ve Yerel
+      } else if (currentUserInfo.role === 'local') {
+        if (u.role === 'regional' || u.role === 'local_employee') canMessage = true; // Yerel -> Bölge ve Çalışan
+      } else if (currentUserInfo.role === 'local_employee') {
+        if (u.role === 'local') canMessage = true; // Personel -> SADECE Yerel Bayi'ye
+      }
+
+      if (canMessage) {
+        const option = document.createElement('option');
+        option.value = d.id;
+        const roleLabel = roleNames[u.role] || u.role;
+        option.textContent = `${u.name || u.company} [${roleLabel}] - ${u.email}`;
+        select.appendChild(option);
+      }
     }
   });
 }
@@ -449,7 +484,27 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
     console.error("AI Analiz Hatası (Hata göz ardı ediliyor):", err);
   }
 
-  btn.textContent = 'Gönderiliyor...';
+  btn.textContent = 'Dosya Denetleniyor...';
+  
+  let fileUrl = null;
+  const fileInput = document.getElementById('fileInput');
+  if (fileInput && fileInput.files.length > 0) {
+    btn.textContent = 'Dosya Yükleniyor (Storage)...';
+    try {
+      const file = fileInput.files[0];
+      const storageRef = ref(storage, 'attachments/' + Date.now() + '_' + file.name);
+      const snapshot = await uploadBytes(storageRef, file);
+      fileUrl = await getDownloadURL(snapshot.ref);
+    } catch (e) {
+      console.error("Dosya yükleme hatası:", e);
+      showMessage("Dosya (Resim/PDF) yüklenirken hata oluştu!", "error");
+      btn.disabled = false;
+      btn.textContent = 'Gönder';
+      return; // Stop sending message if file upload fails
+    }
+  }
+
+  btn.textContent = 'Mesaj İletiliyor...';
 
   try {
     await addDoc(collection(db, "messages"), {
@@ -462,6 +517,7 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
       spamScore: aiSpamScore,
       aiAnalyzed: true,
       suggestions: aiSuggestions,
+      fileUrl: fileUrl, // <== STORAGE URL EKLENDİ
       attachments: [],
       timestamp: serverTimestamp(),
       isArchived: false,
@@ -488,6 +544,9 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
 
     showMessage("Mesaj başarıyla gönderildi!", "success");
     document.getElementById('messageBodyInput').value = '';
+    if (document.getElementById('fileInput')) {
+      document.getElementById('fileInput').value = '';
+    }
     
     setTimeout(() => {
       composeArea.classList.add('hidden');
