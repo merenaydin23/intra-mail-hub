@@ -1,11 +1,11 @@
 import { auth, db, storage } from './firebase/config.js';
-import { signOut, onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
   collection, getDocs, doc, getDoc, 
   query, orderBy, addDoc, serverTimestamp, onSnapshot,
   updateDoc, setDoc, deleteDoc
-} from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 
 let currentUserInfo = null;
@@ -248,22 +248,33 @@ function showDetail(msg, displayName) {
     bodyContent = `[⚠️ DİKKAT: Bu mesaj sistem tarafından spam (Skor: ${msg.spamScore}) olarak işaretlenmiştir!]\n\n` + bodyContent;
   }
   
-  // Attachments display
-  if(msg.fileUrl) {
-    bodyContent += `\n\n📎 Ekli Dosya: `;
-  }
-
   document.getElementById('detailBody').textContent = bodyContent;
 
-  if (msg.fileUrl) {
-    const link = document.createElement('a');
-    link.href = msg.fileUrl;
-    link.target = "_blank";
-    link.textContent = "Buraya tıklayarak dosyayı görüntüleyin/indirin";
-    link.style.color = "var(--primary)";
-    link.style.display = "block";
-    link.style.marginTop = "10px";
-    document.getElementById('detailBody').appendChild(link);
+  const attachmentsArea = document.getElementById('attachmentsArea');
+  const attachmentsList = document.getElementById('attachmentsList');
+  if (attachmentsList) attachmentsList.innerHTML = ''; 
+
+  if (msg.fileUrl && attachmentsArea && attachmentsList) {
+    attachmentsArea.classList.remove('hidden');
+    
+    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(msg.fileUrl);
+    const fileName = msg.fileUrl.split('/').pop().split('_').pop().split('?')[0]; 
+    
+    const card = document.createElement('a');
+    card.href = msg.fileUrl;
+    card.target = "_blank";
+    card.className = "attachment-card";
+    
+    card.innerHTML = `
+        <div class="at-preview">
+            ${isImage ? `<img src="${msg.fileUrl}" alt="attachment">` : `<i class="fa-solid fa-file-pdf"></i>`}
+        </div>
+        <div class="at-info" title="${fileName}">${fileName}</div>
+    `;
+    
+    attachmentsList.appendChild(card);
+  } else if (attachmentsArea) {
+    attachmentsArea.classList.add('hidden');
   }
 
   // AI Özet Kutusunu Resetle

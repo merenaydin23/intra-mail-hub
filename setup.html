@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bellona Hub | İlk Kurulum</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; }
+        h2 { color: #4f46e5; margin-top: 0; }
+        input, button { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { background: #4f46e5; color: white; border: none; cursor: pointer; font-weight: bold; }
+        #log { font-size: 0.8rem; color: #666; margin-top: 1rem; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🚀 Sistem Kurulumu</h2>
+        <p>Bellona projesi için ilk Admin kullanıcısını oluşturun.</p>
+        <input type="text" id="name" placeholder="Ad Soyad" value="Meren Aydın">
+        <input type="email" id="email" placeholder="Admin E-posta">
+        <input type="password" id="password" placeholder="Şifre">
+        <button id="setupBtn">Sistemi Kur ve Admin Oluştur</button>
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Senin bellona config bilgilerin
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
+            authDomain: "bellona-71bee.firebaseapp.com",
+            projectId: "bellona-71bee",
+            storageBucket: "bellona-71bee.firebasestorage.app",
+            messagingSenderId: "622122795654",
+            appId: "1:622122795654:web:9a42d0026d5df595f68707"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        document.getElementById('setupBtn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            const log = document.getElementById('log');
+
+            if(!email || !password) return alert("Bilgileri doldur cano!");
+
+            log.textContent = "Kurulum başlıyor...";
+            try {
+                // 1. Auth Kullanıcısı Oluştur
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                log.textContent += "\n✅ Auth kaydı yapıldı (UID: " + user.uid + ")";
+
+                // 2. Firestore'a Admin Verisini Yaz
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name,
+                    email: email,
+                    role: "admin",
+                    isActive: true,
+                    company: "Bellona Kurumsal",
+                    createdAt: new Date()
+                });
+                log.textContent += "\n✅ Firestore 'users' koleksiyonu ve ilk admin oluşturuldu!";
+                log.textContent += "\n\n🚀 ŞİMDİ GİRİŞ YAPABİLİRSİN!";
+                
+            } catch (error) {
+                log.textContent += "\n❌ Hata: " + error.message;
+            }
+        };
+    </script>
+</body>
+</html>

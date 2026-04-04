@@ -1,17 +1,17 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDR28h-ns4E70SN8QXw5iuCyEjJcFNv0Is",
-  authDomain: "intra-mail-hub.firebaseapp.com",
-  projectId: "intra-mail-hub",
-  storageBucket: "intra-mail-hub.firebasestorage.app",
-  messagingSenderId: "1082646812541",
-  appId: "1:1082646812541:web:99d7fd4d0adb8a18281e14",
-  measurementId: "G-QH2SG4N9D6"
+  apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
+  authDomain: "bellona-71bee.firebaseapp.com",
+  projectId: "bellona-71bee",
+  storageBucket: "bellona-71bee.firebasestorage.app",
+  messagingSenderId: "622122795654",
+  appId: "1:622122795654:web:9a42d0026d5df595f68707",
+  measurementId: "G-PQEHCR2RKW"
 };
 
 // Initialize Firebase
