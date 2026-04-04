@@ -24,86 +24,114 @@ const getCategoryLabel = (cat) => {
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href = './giris.html'; return; }
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (!userDoc.exists() || userDoc.data().role !== 'admin') {
-    alert("Bu sayfaya erişim yetkiniz yok!");
-    window.location.href = './giris.html';
-    return;
-  }
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+      alert("Bu sayfaya erişim yetkiniz yok!");
+      window.location.href = './giris.html';
+      return;
+    }
 
-  const userData = userDoc.data();
-  if(document.getElementById('adminName')) document.getElementById('adminName').textContent = userData.name;
-  if(document.getElementById('adminAvatar')) document.getElementById('adminAvatar').textContent = getInitials(userData.name);
+    const userData = userDoc.data();
+    if(document.getElementById('adminName')) document.getElementById('adminName').textContent = userData.name;
+    const initials = userData.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+    if(document.getElementById('adminAvatar')) document.getElementById('adminAvatar').textContent = initials;
 
-  // Sayfa bazlı tetikleyiciler
-  const path = window.location.pathname;
-  if (path.includes('yonetim.html')) initDashboard();
-  if (path.includes('yonetim_personel')) initPersonel();
-  if (path.includes('yonetim_ekle')) initEkle();
-  if (path.includes('yonetim_mesajlar')) loadAllMessages();
+    const path = window.location.pathname;
+    if (path.includes('yonetim.html')) initDashboard();
+    if (path.includes('yonetim_personel')) initPersonel();
+    if (path.includes('yonetim_ekle')) initEkle();
+  } catch(e) { console.error("Auth error:", e); }
 });
 
-function getInitials(name) { return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD'; }
-
 // =====================
-// DASHBOARD MANTIĞI
+// DASHBOARD OPTİMİZASYONU
 // =====================
 async function initDashboard() {
   try {
-    const snap = await getDocs(collection(db, "users"));
+    // Tek seferde veriyi çek
+    const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
     const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const nonAdmin = users.filter(u => u.role !== 'admin');
 
-    const calcAge = (birthDate) => {
-      if (!birthDate) return null;
-      const today = new Date();
-      const bd = new Date(birthDate);
-      let age = today.getFullYear() - bd.getFullYear();
-      if (today < new Date(today.getFullYear(), bd.getMonth(), bd.getDate())) age--;
-      return age;
+    // HIZLI HESAPLAMA (Single Pass)
+    const stats = {
+        regMgr: 0,
+        dealers: new Set(),
+        empl: 0,
+        ages: [],
+        oldest: {name:'-', age:0},
+        coMap: {}
     };
 
-    // Dashboard Kartları
-    const oldest = nonAdmin.map(u=>({...u, age:calcAge(u.birthDate)})).filter(u=>u.age).reduce((a,b)=>a.age>b.age?a:b, {name:'-', age:0});
-    const avgAgeValue = Math.round(nonAdmin.map(u=>calcAge(u.birthDate)).filter(a=>a).reduce((s,a)=>s+a,0) / nonAdmin.length) || 0;
-
-    if(document.getElementById('statAvgAge')) document.getElementById('statAvgAge').textContent = avgAgeValue;
-    if(document.getElementById('statOldestName')) document.getElementById('statOldestName').textContent = oldest.name;
-    if(document.getElementById('statOldestAge')) document.getElementById('statOldestAge').innerHTML = `En Yaşlı Personel &bull; ${oldest.age} yaş`;
-
-    renderBirthdays(nonAdmin);
-
-    // Dağılım Tablosu (Normalleştirilmiş)
-    const companyMap = {};
+    const today = new Date();
     nonAdmin.forEach(u => {
-      const key = (u.company || 'Bellona').replace(/[-\s]/g, '').toLowerCase();
-      if(!companyMap[key]) companyMap[key] = { pretty: u.company || 'Bellona', count: 0, ages: [] };
-      companyMap[key].count++;
-      const a = calcAge(u.birthDate);
-      if(a) companyMap[key].ages.push(a);
+        // İstatistik toplama
+        if (u.category === 'regional' && u.subRole === 'manager') stats.regMgr++;
+        if (u.category === 'local') {
+            if(u.company) stats.dealers.add(u.company);
+            if(u.subRole === 'employee') stats.empl++;
+        }
+
+        // Yaş hesaplama
+        if (u.birthDate) {
+            const bd = new Date(u.birthDate);
+            let age = today.getFullYear() - bd.getFullYear();
+            if (today < new Date(today.getFullYear(), bd.getMonth(), bd.getDate())) age--;
+            if (age > 0) {
+                stats.ages.push(age);
+                if (age > stats.oldest.age) stats.oldest = {name: u.name, age: age};
+            }
+        }
+
+        // Şirket Dağılımı
+        const coKey = (u.company || 'Bilinmiyor').replace(/[-\s]/g, '').toLowerCase();
+        if (!stats.coMap[coKey]) stats.coMap[coKey] = { pretty: u.company || 'Bilinmiyor', count: 0, ageSum: 0, ageCount: 0 };
+        stats.coMap[coKey].count++;
+        const uAge = u.birthDate ? (today.getFullYear() - new Date(u.birthDate).getFullYear()) : 0;
+        if(uAge > 0) { stats.coMap[coKey].ageSum += uAge; stats.coMap[coKey].ageCount++; }
     });
 
+    // UI'ya Bas
+    if(document.getElementById('statRegionalManagers')) document.getElementById('statRegionalManagers').textContent = stats.regMgr;
+    if(document.getElementById('statTotalDealers')) document.getElementById('statTotalDealers').textContent = stats.dealers.size;
+    if(document.getElementById('statDealerEmployees')) document.getElementById('statDealerEmployees').textContent = stats.empl;
+    if(document.getElementById('statTotalUsers')) document.getElementById('statTotalUsers').textContent = users.length;
+    
+    if(document.getElementById('statAvgAge')) {
+        const avgGlobal = stats.ages.length ? Math.round(stats.ages.reduce((a,b)=>a+b,0)/stats.ages.length) : 0;
+        document.getElementById('statAvgAge').textContent = avgGlobal;
+    }
+    if(document.getElementById('statOldestName')) document.getElementById('statOldestName').textContent = stats.oldest.name;
+    if(document.getElementById('statOldestAge')) document.getElementById('statOldestAge').innerHTML = `En Yaşlı Personel &bull; ${stats.oldest.age} yaş`;
+
+    // Dağılım Tablosu
     const breakdownTbody = document.getElementById('companyBreakdownTable');
-    if(breakdownTbody) {
-        breakdownTbody.innerHTML = Object.values(companyMap).sort((a,b)=>b.count-a.count).map(data => {
-            const avg = data.ages.length ? Math.round(data.ages.reduce((s,a)=>s+a,0)/data.ages.length) : '-';
-            return `<tr><td><strong>${data.pretty}</strong></td><td><strong>${data.count}</strong> personel</td><td>${avg} yaş</td></tr>`;
-        }).join('');
+    if (breakdownTbody) {
+        breakdownTbody.innerHTML = Object.values(stats.coMap).sort((a,b)=>b.count - a.count).map(c => `
+            <tr>
+                <td><strong>${c.pretty}</strong></td>
+                <td><strong>${c.count}</strong> personel</td>
+                <td>${c.ageCount ? Math.round(c.ageSum/c.ageCount) : '-'} yaş</td>
+            </tr>
+        `).join('');
     }
 
-    // Son Operasyonlar
+    // Son Operasyonlar (Sadece ilk 6 yeterli dashboard için)
     const recentTbody = document.getElementById('recentUsersTable');
-    if(recentTbody) {
-        recentTbody.innerHTML = users.slice(0,10).map(u => `
+    if (recentTbody) {
+        recentTbody.innerHTML = users.slice(0, 6).map(u => `
             <tr>
                 <td><strong>${u.name}</strong><br/><small>${u.company || '-'}</small></td>
-                <td><span class="role-tag">${getCategoryLabel(u.category).toUpperCase()}</span></td>
-                <td><div class="status-badge ${u.isActive?'active':'passive'}"><span class="status-dot"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
+                <td><span class="role-tag" style="background:#f1f5f9; color:var(--primary); font-size:0.7rem; font-weight:800;">${getCategoryLabel(u.category).toUpperCase()}</span></td>
+                <td><div class="status-badge" style="${u.isActive ? 'background:#ecfdf5; color:#059669;' : 'background:#f1f5f9; color:#64748b;'}"><span class="status-dot ${u.isActive?'active':'passive'}"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
                 <td>${u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('tr-TR') : '-'}</td>
             </tr>
         `).join('');
     }
-  } catch(e) { console.error(e); }
+
+    renderBirthdays(nonAdmin);
+  } catch (err) { console.error("Dashboard error:", err); }
 }
 
 function renderBirthdays(users) {
@@ -115,34 +143,35 @@ function renderBirthdays(users) {
         const b = new Date(u.birthDate);
         const bThis = new Date(today.getFullYear(), b.getMonth(), b.getDate());
         const bNext = new Date(today.getFullYear()+1, b.getMonth(), b.getDate());
-        const d1 = (bThis - today) / 86400000;
-        const d2 = (bNext - today) / 86400000;
+        const d1 = (bThis-today)/86400000;
+        const d2 = (bNext-today)/86400000;
         return (d1>=0 && d1<=30) || (d2>=0 && d2<=30);
     }).sort((a,b) => new Date(a.birthDate).getMonth() - new Date(b.birthDate).getMonth());
 
     list.innerHTML = upcoming.map(u => `
         <div class="birthday-row">
-            <div><strong>${u.name}</strong><p>${u.company}</p></div>
+            <div style="flex:1;"><strong>${u.name}</strong><p style="font-size:0.75rem; color:#64748b;">${u.company}</p></div>
             <button class="btn-greet" onclick="greetBirthday('${u.name}','${u.email}','${u.company}')">Kutla</button>
         </div>
-    `).join('') || '<p>Yaklaşan doğum günü yok.</p>';
+    `).join('') || '<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">Yakın zamanda doğum günü yok.</p>';
 }
 
 window.greetBirthday = (name, email, company) => {
-    const text = `Değerli iş ortağımız,\n\nDoğum gününüzü en içten dileklerimizle kutlarız...\n\nSayın ${company} bayimizin güzide personeli ${name} olarak...`;
-    navigator.clipboard.writeText(text).then(() => alert("Kutlama metni kopyalandı! ✅"));
+    const text = `Değerli iş ortağımız,\n\nDoğum gününüzü kutlarız! 🎉 Sayın ${company} bayimizin personeli ${name} olarak nice yıllara...`;
+    navigator.clipboard.writeText(text).then(() => alert("Mesaj kopyalandı! ✅"));
 };
 
 // =====================
-// PERSONEL LİSTESİ
+// PERSONEL SAYFASI
 // =====================
 async function initPersonel() {
-    const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
-    allUsersData = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    
-    document.getElementById('userSearchInput')?.addEventListener('input', renderUserTable);
-    document.getElementById('companyFilter')?.addEventListener('change', renderUserTable);
-    renderUserTable();
+    try {
+        const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
+        allUsersData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+        renderUserTable();
+        document.getElementById('userSearchInput')?.addEventListener('input', renderUserTable);
+        document.getElementById('companyFilter')?.addEventListener('change', renderUserTable);
+    } catch(e) { console.error(e); }
 }
 
 function renderUserTable() {
@@ -154,62 +183,46 @@ function renderUserTable() {
     const filtered = allUsersData.filter(u => {
         if(u.role==='admin') return false;
         const coMatch = coFilter==='all' || u.company?.replace(/[-\s]/g,'').toLowerCase() === coFilter;
-        const searchMatch = !search || u.name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search);
-        return coMatch && searchMatch;
+        return coMatch && (!search || u.name?.toLowerCase().includes(search));
     }).sort((a,b) => (b.subRole==='manager'?1:0) - (a.subRole==='manager'?1:0));
 
     table.innerHTML = filtered.map(u => {
         const initials = u.name?.split(' ').map(n=>n[0]).join('').toUpperCase() || 'U';
         return `
-            <tr class="anim-fade-up">
-                <td><div style="display:flex; align-items:center; gap:10px;"><div class="avatar-mini">${initials}</div><div><strong>${u.name}</strong><br/><small>${u.company}</small></div></div></td>
-                <td>${u.email}<br/><small>PW: ${u.password}</small></td>
-                <td>TC: ${u.tcNo}<br/><small>DT: ${u.birthDate}</small></td>
-                <td><span class="tag">${getCategoryLabel(u.category).toUpperCase()}</span><br/><small>${u.subRole==='manager'?'BAYİ SAHİBİ':'PERSONEL'}</small></td>
-                <td><div class="status-badge ${u.isActive?'active':'passive'}"><span></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
-                <td><button onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
+            <tr>
+                <td><div style="display:flex; align-items:center; gap:10px;"><div class="avatar-mini-box" style="width:35px;height:35px;background:#4f46e5;color:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.8rem;">${initials}</div><div><strong>${u.name}</strong><br/><small>${u.company}</small></div></div></td>
+                <td><small>${u.email}</small><br/><b>PW: ${u.password}</b></td>
+                <td><small>TC: ${u.tcNo}</small><br/><small>DT: ${u.birthDate}</small></td>
+                <td><span style="font-size:0.7rem; font-weight:800; background:#f1f5f9; padding:4px 8px; border-radius:4px;">${getCategoryLabel(u.category).toUpperCase()}</span><br/><small>${u.subRole==='manager'?'BAYİ SAHİBİ':'PERSONEL'}</small></td>
+                <td><div class="status-badge ${u.isActive?'active':'passive'}" style="padding:4px 10px; font-size:0.75rem;"><span class="status-dot"></span> ${u.isActive?'Aktif':'Pasif'}</div></td>
+                <td><button class="btn-action" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
             </tr>
         `;
     }).join('');
 }
 
 // =====================
-// YENİ EKLEME MANTIĞI
+// EKLEME SAYFASI
 // =====================
 function initEkle() {
     const form = document.getElementById('addUserForm');
-    const catSel = document.getElementById('newUserCategory');
-    const roleSel = document.getElementById('newUserSubRole');
-
     const toggleFields = () => {
-        const cat = catSel.value;
-        const role = roleSel.value;
+        const cat = document.getElementById('newUserCategory').value;
         const compGroup = document.getElementById('companyGroup');
         const deptGroup = document.getElementById('deptGroup');
-
         if(cat === 'factory') {
             document.getElementById('newUserCompany').value = 'Bellona Merkez';
             if(compGroup) compGroup.style.display = 'none';
-            if(role === 'manager') {
-                document.getElementById('newUserDepartment').value = 'Genel Yönetim';
-                if(deptGroup) deptGroup.style.display = 'none';
-            } else {
-                if(deptGroup) deptGroup.style.display = 'block';
-            }
         } else {
             if(compGroup) compGroup.style.display = 'block';
-            if(deptGroup) deptGroup.style.display = 'block';
         }
     };
-
-    catSel?.addEventListener('change', toggleFields);
-    roleSel?.addEventListener('change', toggleFields);
+    document.getElementById('newUserCategory')?.addEventListener('change', toggleFields);
     form?.addEventListener('submit', handleAddUser);
 }
 
 async function handleAddUser(e) {
     e.preventDefault();
-    const btn = document.getElementById('addUserBtn');
     const data = {
         name: document.getElementById('newUserName').value,
         tcNo: document.getElementById('newUserTc').value,
@@ -224,13 +237,11 @@ async function handleAddUser(e) {
     };
     try {
         await addDoc(collection(db, "users"), data);
-        alert("Başarılı! ✅"); e.target.reset();
+        alert("Personel Eklendi! ✅"); e.target.reset();
     } catch(err) { alert(err.message); }
 }
 
 window.deleteUser = async (id) => {
-    if(confirm('Silmek istediğine emin misin?')) {
-        await deleteDoc(doc(db, "users", id));
-        location.reload();
-    }
+    if(!confirm('Emin misiniz?')) return;
+    try { await deleteDoc(doc(db, "users", id)); location.reload(); } catch(e) { alert(e.message); }
 };
