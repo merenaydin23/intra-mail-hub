@@ -5,10 +5,10 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 // GEÇİCİ ADMİN OLUŞTURUCU (Sayfa yüklenince 1 defa otomatik çalışır)
 async function createAdminEren() {
   try {
-    const cred = await createUserWithEmailAndPassword(auth, "eren@nexmail.io", "123456");
+    const cred = await createUserWithEmailAndPassword(auth, "eren@intramail.corp", "123456");
     await setDoc(doc(db, "users", cred.user.uid), {
       name: "Eren Aydın",
-      email: "eren@nexmail.io",
+      email: "eren@intramail.corp",
       role: "admin",
       department: "Yönetim",
       isActive: true,
@@ -23,7 +23,7 @@ async function createAdminEren() {
     }
   }
 }
-createAdminEren();
+// createAdminEren(); // Admin zaten oluştursa yoruma alabiliriz ya da her seferinde kontrol edebilir.
 
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
@@ -41,9 +41,9 @@ loginForm.addEventListener('submit', async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Uzantı kontrolü (@nexmail.io)
-    if (!email.endsWith('@nexmail.io')) {
-      throw new Error("Sadece @nexmail.io uzantılı hesaplar giriş yapabilir.");
+    // Uzantı kontrolü (@intramail.corp)
+    if (!email.endsWith('@intramail.corp')) {
+      throw new Error("Sadece @intramail.corp uzantılı hesaplar giriş yapabilir.");
     }
 
     // Firestore'dan rol ve departman kontrolü
@@ -59,12 +59,10 @@ loginForm.addEventListener('submit', async (e) => {
 
       messageDiv.innerHTML = `Hoş geldin ${userData.name}! Yönlendiriliyorsunuz...`;
       
-      // Rol bazlı yönlendirme
+      // Rol bazlı yönlendirme (Sadece Admin yetkilidir)
       setTimeout(() => {
         if (userData.role === 'admin') {
           window.location.href = '/admin.html';
-        } else if (userData.role === 'manager') {
-          window.location.href = '/manager.html';
         } else {
           window.location.href = '/inbox.html';
         }
