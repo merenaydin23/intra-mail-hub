@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bellona | Personel Ekle</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="src/admin.css">
+</head>
+<body>
+
+  <!-- SHARED SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><i class="fa-solid fa-microchip"></i><span>Fabrika<strong>Yönetimi</strong></span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group"><p class="nav-label">KONTROL PANELİ</p>
+        <a href="yonetim_dashboard.html" class="nav-item"><i class="fa-solid fa-chart-line"></i><span>Genel Bakış</span></a>
+        <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-id-card-clip"></i><span>Tüm Personeller</span></a>
+      </div>
+      <div class="nav-group"><p class="nav-label">YENİ İŞLEMLER</p>
+        <a href="yonetim_ekle.html" class="nav-item active"><i class="fa-solid fa-user-plus"></i><span>Personel Ekle</span></a>
+        <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i><span>Sistem Mesajları</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-panel-card"><div class="admin-avatar" id="adminAvatar">MA</div><div class="admin-details"><p class="admin-name" id="adminName">Admin</p><p class="admin-role">Yönetici</p></div><button class="logout-btn-minimal" id="logoutBtn" title="Güvenli Çıkış"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="main-content">
+    <header class="header-top">
+      <div>
+        <h1>Yeni Personel Tanımla</h1>
+        <p>Bellona kurumsal ağına yeni bir personel hesabı ekleyin.</p>
+      </div>
+    </header>
+
+    <div class="form-panel">
+      <div class="content-wrapper" style="padding: 3rem;">
+        <h2 style="font-family:'Outfit'; font-size:1.8rem; margin-bottom:2rem;">Onboarding / Personel Kaydı</h2>
+
+        <form id="addUserForm">
+          <div class="form-section-head"><i class="fa-solid fa-id-badge"></i> Temel Bilgiler</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Ad Soyad</label>
+              <div class="input-box"><i class="fa-solid fa-user"></i><input type="text" id="newUserName" placeholder="Ad Soyad Giriniz" required /></div>
+            </div>
+            <div class="form-group">
+              <label>T.C. Kimlik No</label>
+              <div class="input-box"><i class="fa-solid fa-id-card"></i><input type="text" id="newUserTc" placeholder="11 Haneli TC" pattern="[0-9]{11}" maxlength="11" required /></div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Doğum Tarihi</label>
+              <div class="input-box"><i class="fa-solid fa-calendar-star"></i><input type="date" id="newUserBirth" required /></div>
+            </div>
+            <div class="form-group">
+              <label>Hizmet Kategorisi</label>
+              <div class="input-box"><i class="fa-solid fa-layer-group"></i>
+                <select id="newUserCategory" required>
+                  <option value="">Seçiniz...</option>
+                  <option value="factory">Fabrika (Merkez)</option>
+                  <option value="regional">Bölge Bayisi (Şube)</option>
+                  <option value="local">Yerel Bayi</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-head"><i class="fa-solid fa-building-circle-check"></i> Atama Bilgileri</div>
+          <div class="form-grid">
+            <div class="form-group" id="companyGroup">
+              <label id="companyLabel">Şirket / Bayi Adı</label>
+              <div class="input-box"><i class="fa-solid fa-building"></i><input type="text" id="newUserCompany" placeholder="Şirket Adı" /></div>
+            </div>
+            <div class="form-group" id="deptGroup">
+              <label>Departman / Görev</label>
+              <div class="input-box"><i class="fa-solid fa-briefcase"></i><input type="text" id="newUserDepartment" placeholder="Örn: Muhasebe" /></div>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 2rem;">
+             <label>Ünvan & Yetki Seviyesi</label>
+             <div class="input-box"><i class="fa-solid fa-user-shield"></i>
+              <select id="newUserSubRole">
+                <option value="employee">Operasyonel Personel (Çalışan)</option>
+                <option value="manager" id="managerOption">Yönetici / Bayi Sahibi</option>
+              </select>
+             </div>
+          </div>
+
+          <div class="form-section-head"><i class="fa-solid fa-lock-open"></i> Sistem Giriş Verileri</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Kurumsal E-posta</label>
+              <div class="input-box" style="background:#f1f5f9;"><i class="fa-solid fa-at"></i><input type="text" id="newUserEmail" readonly placeholder="Otomatik Üretilecek" /></div>
+            </div>
+            <div class="form-group">
+              <label>Geçici Şifre</label>
+              <div class="input-box" style="background:#f1f5f9;"><i class="fa-solid fa-key"></i><input type="text" id="newUserPassword" readonly placeholder="Otomatik" /></div>
+            </div>
+          </div>
+
+          <div id="formMessage" class="hidden" style="margin: 1.5rem 0; padding:1.2rem; border-radius:14px; font-weight:600; font-size:0.85rem;"></div>
+
+          <button type="submit" class="btn-submit-premium" id="addUserBtn">
+            <i class="fa-solid fa-check-circle"></i> Personel Kaydını Tamamla
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="src/admin_logic.js" type="module"></script>
+</body>
+</html>

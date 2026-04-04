@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bellona | Tüm Personeller</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="src/admin.css">
+</head>
+<body>
+
+  <!-- SHARED SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><i class="fa-solid fa-microchip"></i><span>Fabrika<strong>Yönetimi</strong></span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group"><p class="nav-label">KONTROL PANELİ</p>
+        <a href="yonetim_dashboard.html" class="nav-item"><i class="fa-solid fa-chart-line"></i><span>Genel Bakış</span></a>
+        <a href="yonetim_personel.html" class="nav-item active"><i class="fa-solid fa-id-card-clip"></i><span>Tüm Personeller</span></a>
+      </div>
+      <div class="nav-group"><p class="nav-label">YENİ İŞLEMLER</p>
+        <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i><span>Personel Ekle</span></a>
+        <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i><span>Sistem Mesajları</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-panel-card"><div class="admin-avatar" id="adminAvatar">MA</div><div class="admin-details"><p class="admin-name" id="adminName">Admin</p><p class="admin-role">Yönetici</p></div><button class="logout-btn-minimal" id="logoutBtn" title="Güvenli Çıkış"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="main-content">
+    <header class="header-top">
+      <div>
+        <h1>Tüm Personeller</h1>
+        <p>Sistemde kayıtlı toplam <strong id="userCountBadge">0</strong> aktif personel bulunmaktadır.</p>
+      </div>
+      <div class="filter-controls" style="display:flex; gap:1rem;">
+         <button class="btn-submit-premium" style="width:auto; margin:0; padding:0.8rem 1.5rem; background: var(--success);" onclick="window.location.reload()">
+           <i class="fa-solid fa-rotate"></i> Listeyi Yenile
+         </button>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="table-controls" style="padding: 1.2rem; border-bottom: 2px solid #f1f5f9; background: #fcfcfd;">
+        <div class="user-tabs" style="background:transparent; padding:0;">
+          <button class="tab-btn active" data-filter="all">Tümü</button>
+          <button class="tab-btn" data-filter="factory">Fabrika</button>
+          <button class="tab-btn" data-filter="regional">Bölge Bayileri</button>
+          <button class="tab-btn" data-filter="local">Yerel Bayiler</button>
+        </div>
+        
+        <div class="filter-group" style="display:flex; gap:1rem; align-items:center; flex:1; justify-content: flex-end;">
+          <div class="input-box" style="border-radius:12px; width:220px; background:#f1f5f9; border:none;">
+            <i class="fa-solid fa-map-location-dot" style="left:0.8rem; font-size:0.9rem;"></i>
+            <select id="regionFilter" style="padding: 0.6rem 0.8rem 0.6rem 2.5rem; font-size:0.8rem; border:none; background:transparent;">
+              <option value="all">Tüm Şirketler/Bölgeler</option>
+              <option value="Karavil">Karavil Grup</option>
+              <option value="Bellona">Fabrika (Merkez)</option>
+            </select>
+          </div>
+          <div class="search-box" style="max-width: 300px;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="userSearchInput" placeholder="Personel ara (Ad, E-posta, TC)..." />
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container" style="padding: 0.5rem 1rem 1rem;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>PERSONEL / ŞİRKET</th>
+              <th>ERİŞİM BİLGİLERİ (E-posta / Şifre)</th>
+              <th>KİŞİSEL DETAYLAR (TC / Doğum T.)</th>
+              <th>KATEGORİ / BİRİM</th>
+              <th>ERİŞİM</th>
+              <th>İŞLEMLER</th>
+            </tr>
+          </thead>
+          <tbody id="allUsersTable">
+             <!-- Dinamik Veriler admin_logic.js ile yüklenecek -->
+             <tr><td colspan="6" class="loader-row"><i class="fa-solid fa-spinner fa-spin"></i> Personel veritabanı taranıyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="src/admin_logic.js" type="module"></script>
+</body>
+</html>
