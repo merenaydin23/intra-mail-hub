@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntraMail Hub | Bölge Bayi Portalı</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./src/inbox.css">
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>Bölge <strong>Bayisi</strong></span>
+      </div>
+    </div>
+
+    <button class="compose-btn" id="composeBtn">
+      <i class="fa-solid fa-pen-nib"></i> Yeni Mesaj
+    </button>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-folder="inbox">
+        <i class="fa-solid fa-inbox"></i>
+        <span>Gelen Kutusu</span>
+        <span class="badge" id="unreadCount">0</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="sent">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Gönderilenler</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="spam">
+        <i class="fa-solid fa-shield-virus"></i>
+        <span>Spam Klasörü</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="archive">
+        <i class="fa-solid fa-box-archive"></i>
+        <span>Arşiv</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="trash">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>Çöp Kutusu</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="userAvatar">--</div>
+        <div class="user-details">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-role" id="userRole">--</div>
+        </div>
+        <button class="logout-sm" id="logoutBtn" title="Çıkış Yap">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- LIST COLUMN -->
+  <div class="message-list-col">
+    <header class="list-header">
+      <h2 id="currentFolderName">Gelen Kutusu</h2>
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Mesajlarda ara..." />
+      </div>
+    </header>
+    <div class="message-list" id="messageList">
+      <div class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Yükleniyor...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL COLUMN -->
+  <main class="message-detail-col">
+    <!-- Background Watermark -->
+    <div class="bg-watermark"><i class="fa-solid fa-envelope-open-text"></i></div>
+
+    <!-- Empty State -->
+    <div class="detail-empty-state" id="detailEmptyState">
+      <div class="empty-content">
+        <i class="fa-solid fa-inbox"></i>
+        <h3>Bir mesaj seçin</h3>
+        <p>Okumak istediğiniz mesajı sol listeden seçebilirsiniz.</p>
+      </div>
+    </div>
+
+    <!-- Message Content -->
+    <div class="message-content hidden" id="messageContent">
+      <header class="content-header">
+        <div class="header-main">
+          <h3 class="subject" id="detailSubject">Konu...</h3>
+          <div class="header-tags">
+            <span class="tag tag-ai" id="aiTag"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Analiz</span>
+          </div>
+        </div>
+        
+        <div class="meta-row">
+          <div class="sender-info">
+            <div class="avatar" id="detailAvatar">A</div>
+            <div class="sender-text">
+              <div class="name" id="detailSenderName">Gönderen Adı</div>
+              <div class="email-row">
+                <span id="detailSenderEmail">email@intramail.corp</span>
+                <span class="to-label">alısı: ben</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <span class="date" id="detailDate">Tarih</span>
+            <div class="btn-group">
+              <button id="btnSummarize" class="btn-action btn-ai-summary" title="Yapay Zeka ile Özetle">
+                <i class="fa-solid fa-bolt-lightning"></i> Özetle
+              </button>
+              <button id="btnArchive" class="btn-action" title="Arşivle">
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
+              <button id="btnTrash" class="btn-action btn-danger" title="Sil">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div class="detail-body-wrapper">
+        <div class="body" id="detailBody">
+          Mesaj içeriği burada görünecek...
+        </div>
+        <div id="aiSummaryBox" class="ai-summary-box hidden">
+          <div class="summary-header">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>AI Özeti</strong>
+            <button class="close-summary" id="closeSummary">✕</button>
+          </div>
+          <div class="summary-content" id="aiSummaryContent">Analiz ediliyor...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compose Area -->
+    <div class="compose-area hidden" id="composeArea">
+      <header class="compose-header">
+        <div class="header-title">
+          <i class="fa-solid fa-pen-nib"></i>
+          <h3>Yeni Mesaj</h3>
+        </div>
+        <div class="header-tools">
+          <button class="tool-btn" id="minimizeCompose"><i class="fa-solid fa-minus"></i></button>
+          <button class="close-btn" id="closeComposeBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </header>
+      <form class="compose-form" id="composeForm">
+        <div class="form-body">
+          <div class="form-group">
+            <label><i class="fa-solid fa-user-plus"></i> Kime</label>
+            <select id="receiverSelect" required>
+              <option value="">Kurumsal alıcı seçiniz...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-heading"></i> Konu</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="subjectInput" placeholder="Mesaj konusu..." style="flex:1; padding:0.75rem; border:1px solid var(--border); border-radius:10px; outline:none;" />
+              <button type="button" class="btn-ai" id="btnSuggestSubject" title="AI ile Başlık Öner">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Öner
+              </button>
+            </div>
+          </div>
+          <div class="form-group flex-1">
+            <label><i class="fa-solid fa-message"></i> Mesajınız</label>
+            <textarea id="messageBodyInput" placeholder="Mesajınızı buraya yazın..." required></textarea>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <div class="ai-panel">
+            <div class="ai-status" id="composeStatus"></div>
+            <div class="ai-controls">
+              <button type="button" class="btn-ai" id="aiSuggestBtn" title="Metni resmileştir">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Akıllı Düzenle
+              </button>
+            </div>
+          </div>
+          <div class="submit-row">
+            <button type="submit" class="btn-primary" id="sendBtn">
+              <span>Gönder</span> <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="./src/inbox.js"></script>
+</body>
+</html>
+
