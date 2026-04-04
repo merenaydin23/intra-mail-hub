@@ -211,7 +211,7 @@ function showDetail(msg, displayName) {
   document.getElementById('detailEmptyState').classList.add('hidden');
   document.getElementById('messageContent').classList.remove('hidden');
 
-  document.getElementById('detailSubject').textContent = "Konusuz Mesaj"; 
+  document.getElementById('detailSubject').textContent = msg.subject || "Kurumsal Mesaj"; 
   document.getElementById('detailSenderName').textContent = displayName;
   
   const initials = displayName.replace("Kime: ", "").split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -231,6 +231,18 @@ function showDetail(msg, displayName) {
   
   document.getElementById('detailBody').textContent = bodyContent;
 
+  // AI Özet Kutusunu Resetle
+  document.getElementById('aiSummaryBox').classList.add('hidden');
+  document.getElementById('aiSummaryContent').textContent = "Analiz ediliyor...";
+
+  // AI Etiketi Gösterimi
+  const aiTag = document.getElementById('aiTag');
+  if (msg.aiAnalyzed) {
+    aiTag.classList.remove('hidden');
+  } else {
+    aiTag.classList.add('hidden');
+  }
+
   // Akıllı Yanıt Önerilerini Oluştur
   const existingSuggestions = document.getElementById('renderedAiSuggestions');
   if (existingSuggestions) existingSuggestions.remove();
@@ -238,22 +250,22 @@ function showDetail(msg, displayName) {
   if (msg.suggestions && msg.suggestions.length > 0 && msg.senderId !== currentUserInfo.uid) {
     const suggContainer = document.createElement('div');
     suggContainer.id = 'renderedAiSuggestions';
-    suggContainer.style.cssText = "margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;";
+    suggContainer.style.cssText = "margin-top:24px; border-top:1px solid var(--border); padding-top:1.5rem;";
     
     const label = document.createElement('span');
-    label.style.cssText = "font-weight:600; font-size:12px; color:#6b7280; display:block; margin-bottom:8px;";
-    label.textContent = "✨ Akıllı Yanıt Önerileri";
+    label.style.cssText = "font-weight:600; font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em;";
+    label.innerHTML = "<i class='fa-solid fa-wand-magic-sparkles'></i> Akıllı Yanıt Önerileri";
     suggContainer.appendChild(label);
 
     const btnWrapper = document.createElement('div');
-    btnWrapper.style.cssText = "display:flex; gap:10px; flex-wrap:wrap;";
+    btnWrapper.style.cssText = "display:flex; gap:12px; flex-wrap:wrap;";
 
     msg.suggestions.forEach(s => {
       const btn = document.createElement('button');
-      btn.style.cssText = "background:#EEF2FF; color:#4F46E5; border:1px solid #C7D2FE; padding:8px 12px; border-radius:15px; font-size:13px; cursor:pointer;";
+      btn.style.cssText = "background:var(--primary-soft); color:var(--primary); border:1px solid #C7D2FE; padding:10px 16px; border-radius:12px; font-size:0.875rem; cursor:pointer; font-weight:500; transition:all 0.2s;";
       btn.textContent = s;
-      btn.onmouseover = () => btn.style.background = "#E0E7FF";
-      btn.onmouseout = () => btn.style.background = "#EEF2FF";
+      btn.onmouseover = () => { btn.style.background = "#E0E7FF"; btn.style.transform = "translateY(-1px)"; };
+      btn.onmouseout = () => { btn.style.background = "var(--primary-soft)"; btn.style.transform = "translateY(0)"; };
       btn.onclick = () => {
         document.getElementById('composeArea').classList.remove('hidden');
         document.getElementById('receiverSelect').value = msg.senderId;
@@ -297,16 +309,67 @@ document.getElementById('closeComposeBtn').addEventListener('click', () => {
   composeArea.classList.add('hidden');
 });
 
+document.getElementById('minimizeCompose').addEventListener('click', () => {
+  if (composeArea.style.height === '45px') {
+    composeArea.style.height = '600px';
+  } else {
+    composeArea.style.height = '45px';
+  }
+});
+
+// =====================
+// AI ÖZETLEME (SUMMARIZER)
+// =====================
+document.getElementById('btnSummarize').addEventListener('click', async () => {
+  const content = document.getElementById('detailBody').textContent;
+  const summaryBox = document.getElementById('aiSummaryBox');
+  const summaryContent = document.getElementById('aiSummaryContent');
+  
+  summaryBox.classList.remove('hidden');
+  summaryContent.textContent = "Mesaj analiz ediliyor ve özetleniyor...";
+
+  try {
+    const aiKey = "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8";
+    const prompt = `Aşağıdaki iş mesajını çok kısa (maksimum 2-3 cümle) ve özet bir şekilde, en önemli noktaları vurgulayarak özetle:\n\n"${content}"`;
+    
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${aiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    
+    const data = await res.json();
+    if (data.candidates && data.candidates[0].content.parts[0].text) {
+      summaryContent.textContent = data.candidates[0].content.parts[0].text.trim();
+    }
+  } catch(err) {
+    summaryContent.textContent = "Özet çıkarılamadı. Lütfen tekrar deneyin.";
+  }
+});
+
+document.getElementById('closeSummary').addEventListener('click', () => {
+  document.getElementById('aiSummaryBox').classList.add('hidden');
+});
+
 async function loadUsersDropdown() {
   const usersSnap = await getDocs(collection(db, "users"));
   const select = document.getElementById('receiverSelect');
   
+  const roleNames = {
+    admin: 'Sistem Yöneticisi',
+    factory: 'Fabrika',
+    regional: 'Bölge Bayi',
+    local: 'Yerel Bayi',
+    local_employee: 'Yerel Bayi Çalışanı'
+  };
+
   usersSnap.docs.forEach(d => {
     if (d.id !== currentUserInfo?.uid) { 
       const u = d.data();
       const option = document.createElement('option');
       option.value = d.id;
-      option.textContent = `${u.name} (${u.department} - ${u.email})`;
+      const roleLabel = roleNames[u.role] || u.role;
+      option.textContent = `${u.name} [${roleLabel}] - ${u.email}`;
       select.appendChild(option);
     }
   });
@@ -317,6 +380,7 @@ document.getElementById('composeForm').addEventListener('submit', async (e) => {
   
   const receiverId = document.getElementById('receiverSelect').value;
   const content = document.getElementById('messageBodyInput').value;
+  const subject = document.getElementById('subjectInput').value || "Konusuz Kurumsal Mesaj";
   const btn = document.getElementById('sendBtn');
 
   if (!receiverId) {
@@ -375,6 +439,7 @@ Yalnızca aşağıdaki strict JSON formatında cevap ver, başka hiçbir kelime 
       senderId: currentUserInfo.uid,
       receiverId: receiverId,
       content: content,
+      subject: subject,
       translatedContent: aiTranslated,
       isSpam: aiIsSpam,
       spamScore: aiSpamScore,
@@ -463,5 +528,42 @@ if (aiSuggestBtn) {
 
     aiSuggestBtn.textContent = "✨ Akıllı Öneri";
     aiSuggestBtn.disabled = false;
+  });
+}
+
+// BAŞLIK ÖNER (NEW FEATURE)
+const btnSuggestSubject = document.getElementById('btnSuggestSubject');
+if (btnSuggestSubject) {
+  btnSuggestSubject.addEventListener('click', async () => {
+    const body = document.getElementById('messageBodyInput').value;
+    if (!body) {
+      showMessage("Önce mesaj içeriğini yazmalısınız.", "error");
+      return;
+    }
+    
+    btnSuggestSubject.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    btnSuggestSubject.disabled = true;
+
+    try {
+      const aiKey = "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8";
+      const prompt = `Aşağıdaki iş mesajı için 3-5 kelimelik, profesyonel bir konu başlığı öner (SADECE BAŞLIĞI YAZ):\n\n"${body}"`;
+      
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${aiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      
+      const data = await res.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        document.getElementById('subjectInput').value = data.candidates[0].content.parts[0].text.trim().replace(/"/g, '');
+        showMessage("AI tarafından bir konu başlığı önerildi.", "success");
+      }
+    } catch(err) {
+      showMessage("AI başlık öneremedi.", "error");
+    }
+
+    btnSuggestSubject.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Öner';
+    btnSuggestSubject.disabled = false;
   });
 }
