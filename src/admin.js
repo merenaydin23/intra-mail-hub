@@ -11,7 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 // =====================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = '/index.html';
+    window.location.href = './giris.html';
     return;
   }
 
@@ -19,7 +19,7 @@ onAuthStateChanged(auth, async (user) => {
   const userDoc = await getDoc(doc(db, "users", user.uid));
   if (!userDoc.exists() || userDoc.data().role !== 'admin') {
     alert("Bu sayfaya erişim yetkiniz yok!");
-    window.location.href = '/index.html';
+    window.location.href = './giris.html';
     return;
   }
 
@@ -87,7 +87,7 @@ window.goToAddUser = goToAddUser;
 // =====================
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await signOut(auth);
-  window.location.href = '/index.html';
+  window.location.href = './giris.html';
 });
 
 // =====================
@@ -227,25 +227,60 @@ async function loadAllMessages() {
 // KULLANICI EKLE FORMU
 // =====================
 
-// Otomatik şifre üret
-document.getElementById('generatePassBtn').addEventListener('click', () => {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-  let pass = '';
-  for (let i = 0; i < 10; i++) pass += chars[Math.floor(Math.random() * chars.length)];
-  document.getElementById('newUserPassword').type = 'text';
-  document.getElementById('newUserPassword').value = pass;
-});
+// Otomatik Kimlik ve Şifre Üreticisi
+function generateCredentials() {
+  const nameEl = document.getElementById('newUserName');
+  const companyEl = document.getElementById('newUserCompany');
+  const roleEl = document.getElementById('newUserRole');
+  if (!nameEl || !companyEl || !roleEl) return;
+
+  const name = nameEl.value.trim().toLowerCase().replace(/\s+/g, '');
+  const company = companyEl.value.trim().toLowerCase().replace(/\s+/g, '');
+  const role = roleEl.value;
+
+  if (!name || !company || !role) return;
+
+  const trMap = {'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u'};
+  const safeName = name.replace(/[çğıöşü]/g, m => trMap[m]);
+  const safeCompany = company.replace(/[çğıöşü]/g, m => trMap[m]);
+
+  let emailPrefix = '';
+  if (role === 'local' || role === 'regional' || role === 'factory') {
+    // Kurum hesapları genelde şirket adına olur
+    emailPrefix = safeName + safeCompany; 
+    if (role === 'local' && name.length === 0) emailPrefix = safeCompany; 
+  } else {
+    // Çalışan hesapları
+    emailPrefix = safeName + safeCompany;
+  }
+
+  document.getElementById('newUserEmail').value = `${emailPrefix}@intramail.corp`;
+
+  const passEl = document.getElementById('newUserPassword');
+  if (!passEl.value) {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+    let pass = '';
+    for (let i = 0; i < 10; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+    passEl.value = pass;
+  }
+}
+
+document.getElementById('newUserName').addEventListener('input', generateCredentials);
+document.getElementById('newUserCompany').addEventListener('input', generateCredentials);
+document.getElementById('newUserRole').addEventListener('change', generateCredentials);
 
 // Form gönder
 document.getElementById('addUserForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const name = document.getElementById('newUserName').value.trim();
-  const emailPrefix = document.getElementById('newUserEmailPrefix').value.trim().replace('@intramail.corp', '');
-  const department = document.getElementById('newUserDepartment').value;
+  const tcNo = document.getElementById('newUserTc').value.trim();
+  const birthDate = document.getElementById('newUserBirth').value;
+  const company = document.getElementById('newUserCompany').value.trim();
   const role = document.getElementById('newUserRole').value;
+  
+  const email = document.getElementById('newUserEmail').value;
   const password = document.getElementById('newUserPassword').value;
-  const email = `${emailPrefix}@intramail.corp`;
 
   const btn = document.getElementById('addUserBtn');
   const msgDiv = document.getElementById('formMessage');
@@ -275,14 +310,17 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     const newUid = data.localId;
 
     // Firestore'a kullanıcı profilini yaz
-    const { setDoc, doc: fsDoc } = await import("firebase/firestore"); // Sadece setDoc ve doc lazım
+    const { setDoc, doc: fsDoc } = await import("firebase/firestore"); 
     await setDoc(fsDoc(db, "users", newUid), {
       name,
+      tcNo,
+      birthDate,
+      company,
       email,
       role,
-      department,
       isActive: true,
       createdAt: new Date(),
+      updatedAt: new Date(),
       createdBy: auth.currentUser.uid
     });
 

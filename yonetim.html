@@ -173,55 +173,65 @@
             <p class="form-hint">Yalnızca <strong>@intramail.corp</strong> uzantılı kurumsal adresler oluşturulabilir.</p>
 
             <form id="addUserForm" class="admin-form">
-              <div class="form-group">
-                <label>Personel Adı Soyadı</label>
-                <div class="field">
-                  <i class="fa-solid fa-user"></i>
-                  <input type="text" id="newUserName" placeholder="Örn: Ahmet Yılmaz" required />
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Personel Adı Soyadı</label>
+                  <div class="field">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="newUserName" placeholder="Örn: Muhammed Eren" required />
+                  </div>
                 </div>
-              </div>
-
-              <div class="form-group">
-                <label>Kurumsal Kullanıcı Adı (Email)</label>
-                <div class="email-field">
-                  <i class="fa-solid fa-at"></i>
-                  <input type="text" id="newUserEmailPrefix" placeholder="ahmet.yilmaz" required />
-                  <span class="domain">@intramail.corp</span>
+                <div class="form-group flex-1">
+                  <label>TC Kimlik No</label>
+                  <div class="field">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="text" id="newUserTc" placeholder="11 Haneli TC" pattern="[0-9]{11}" maxlength="11" required />
+                  </div>
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group flex-1">
-                  <label>Departman</label>
-                  <select id="newUserDepartment" required>
-                    <option value="">Seçeiniz...</option>
-                    <option value="Yazılım Geliştirme">Yazılım Geliştirme</option>
-                    <option value="İnsan Kaynakları">İnsan Kaynakları</option>
-                    <option value="Finans & Muhasebe">Finans & Muhasebe</option>
-                    <option value="Satın Alma">Satın Alma</option>
-                    <option value="Hukuk">Hukuk</option>
-                    <option value="Yönetim Kurulu">Yönetim Kurulu</option>
-                  </select>
+                  <label>Doğum Tarihi</label>
+                  <div class="field">
+                    <i class="fa-solid fa-calendar"></i>
+                    <input type="date" id="newUserBirth" required />
+                  </div>
                 </div>
+                <div class="form-group flex-1">
+                  <label>Çalıştığı Şirket / Şube Adı</label>
+                  <div class="field">
+                    <i class="fa-solid fa-building"></i>
+                    <input type="text" id="newUserCompany" placeholder="Örn: Ayka Bellona, Karavil" required />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
                 <div class="form-group flex-1">
                   <label>Yetki / Kategori Rolü</label>
                   <select id="newUserRole" required>
+                    <option value="">Seçiniz...</option>
                     <option value="factory">Fabrika Yöneticisi/Çalışanı</option>
                     <option value="regional">Bölge Bayisi</option>
                     <option value="local">Yerel Bayi</option>
                     <option value="local_employee">Yerel Bayi Çalışanı</option>
                   </select>
                 </div>
+                <div class="form-group flex-1">
+                  <label>Kurumsal Sistem E-postası (Otomatik)</label>
+                  <div class="email-field">
+                    <i class="fa-solid fa-at"></i>
+                    <input type="email" id="newUserEmail" placeholder="Sistem otomatik üretecek" readonly />
+                  </div>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Geçici Erişim Şifresi</label>
+                <label>Geçici Sistem Şifresi (Otomatik)</label>
                 <div class="password-field">
                   <i class="fa-solid fa-lock"></i>
-                  <input type="text" id="newUserPassword" placeholder="Min. 8 karakter" required />
-                  <button type="button" class="btn-gen" id="generatePassBtn" title="Güvenli şifre üret">
-                    <i class="fa-solid fa-dice"></i>
-                  </button>
+                  <input type="text" id="newUserPassword" placeholder="Auto..." readonly />
                 </div>
               </div>
 
