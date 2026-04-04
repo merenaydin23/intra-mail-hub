@@ -50,18 +50,22 @@ async function loadDashboard() {
     const tbody = document.getElementById('recentUsersTable');
     if (tbody) {
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Henüz kullanıcı yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Henüz kullanıcı yok.</td></tr>';
         } else {
-            tbody.innerHTML = users.slice(0, 5).map(u => `
+            tbody.innerHTML = users.slice(0, 8).map(u => `
                 <tr>
-                <td>${u.name}</td>
-                <td>${u.email}</td>
-                <td>${u.department || '-'}</td>
+                <td>
+                    <div class="user-info-cell">
+                        <span class="user-name">${u.name}</span>
+                        <span class="company-tag">${u.company || '-'}</span>
+                    </div>
+                </td>
+                <td><span class="user-email">${u.email}</span></td>
                 <td><span class="role-badge role-${u.role}">${roleLabel(u.role)}</span></td>
                 <td>
                     <div class="status-cell">
                         <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span>
-                        ${u.isActive ? 'Aktif' : 'Pasif'}
+                        <span style="font-size:0.8rem; font-weight:600;">${u.isActive ? 'Aktif' : 'Pasif'}</span>
                     </div>
                 </td>
                 </tr>
