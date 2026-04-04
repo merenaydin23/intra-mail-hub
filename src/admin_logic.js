@@ -257,44 +257,55 @@ function renderUserTable() {
         ? 'background:#ecfdf5; color:#059669; border:1px solid #10b98133;' // Yeşil temalı Aktif
         : 'background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;'; // Pasif
     
+    // İsim Başharfleri (Avatar için)
+    const initials = u.name ? u.name.split(' ').map(n=>n[0]).join('').toUpperCase() : 'U';
+
     return `
-    <div class="user-card anim-fade-up">
-        <div class="user-info-main">
-            <div class="user-avatar-small">${u.name?.[0] || 'U'}</div>
-            <div class="user-name-box">
-                <strong>${u.name}</strong>
-                <span class="company-tag">${u.company || '-'}</span>
+    <tr class="anim-fade-up">
+        <td>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; border-radius:10px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem;">${initials}</div>
+            <div style="display:flex; flex-direction:column;">
+                <strong style="color:var(--text-main); font-size:0.95rem;">${u.name}</strong>
+                <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">${u.company || 'BELLONA'}</span>
             </div>
-        </div>
+          </div>
+        </td>
         
-        <div class="user-contact">
-            <span class="user-email">${u.email}</span>
-            <span class="user-pw">PW: ${u.password || '****'}</span>
-        </div>
+        <td>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:monospace; font-size:0.8rem; color:var(--primary);">${u.email}</span>
+                <span style="font-size:0.7rem; color:#64748b;">PW: ${u.password || '******'}</span>
+            </div>
+        </td>
 
-        <div class="user-details-mini">
-            <span class="detail-item">TC: ${u.tcNo || '-'}</span>
-            <span class="detail-item">DT: ${u.birthDate || '-'}</span>
-        </div>
+        <td>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:0.8rem;">TC: ${u.tcNo || '-'}</span>
+                <span style="font-size:0.7rem; color:#94a3b8;">DT: ${u.birthDate || '-'}</span>
+            </div>
+        </td>
 
-        <div class="user-role-badge">
-            <strong>${u.subRole === 'manager' ? 'BAYİ SAHİBİ' : 'PERSONEL'}</strong>
-            <span>${u.department || 'Genel'}</span>
-        </div>
+        <td>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <span style="background:#f1f5f9; color:#0f172a; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:4px; width:fit-content;">${u.subRole === 'manager' ? 'BAYİ SAHİBİ' : 'PERSONEL'}</span>
+                <span style="font-size:0.75rem; color:#64748b; padding-left:4px;">${u.department || 'Genel'}</span>
+            </div>
+        </td>
 
-        <div class="user-status">
-            <div class="status-badge" style="${statusStyle}">
+        <td>
+            <div class="status-badge" style="${statusStyle} padding: 4px 12px; font-weight:700;">
                 <span class="status-dot ${u.isActive ? 'active' : 'passive'}"></span> 
                 ${u.isActive ? 'Aktif' : 'Pasif'}
             </div>
-        </div>
+        </td>
 
-        <div class="user-actions">
-            <button class="btn-delete" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
+        <td>
+            <button class="btn-action" onclick="deleteUser('${u.id}')" title="Kullanıcıyı Sil">
                 <i class="fa-solid fa-trash-can"></i>
             </button>
-        </div>
-    </div>
+        </td>
+    </tr>
   `}).join('');
 }
 
