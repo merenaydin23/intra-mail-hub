@@ -86,16 +86,16 @@ async function initDashboard() {
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
     
-    // Otomatik Bölge Bayi Tanımlama (Revize Edilmiş Liste)
-    if (localStorage.getItem('dealers_seeded_v2') !== 'true') {
+    // Otomatik Bölge Bayi Tanımlama (FİNAL SÜRÜM - SIFIRDAN)
+    if (localStorage.getItem('dealers_seeded_final_v1') !== 'true') {
         const dealers = [
-            { name: "Karavil", surname: "Group", email: "karavil.group@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Atasaylar", surname: "Group", email: "atasaylar.group@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
-            { name: "Karavil", surname: "Marmara", email: "karavil.marmara@bellona.com.tr", password: "mRm*23zX90", company: "Karavil Marmara", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Horazan", surname: "Group", email: "horazan.group@bellona.com.tr", password: "hRz@11vB78", company: "Horazan Group", region: "Akdeniz", category: "regional", subRole: "manager" },
-            { name: "Gümüşbaşlar", surname: "Birliği", email: "gumusbaslar.birligi@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbaşlar Şirket Birliği", region: "Marmara", category: "regional", subRole: "manager" },
-            { name: "Yılmaz", surname: "Group", email: "yilmaz.group@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", region: "Karadeniz", category: "regional", subRole: "manager" },
-            { name: "Karavil Group", surname: "Ege", email: "karavil.ege@bellona.com.tr", password: "kRv&66rW22", company: "Karavil Group Ege", region: "Ege", category: "regional", subRole: "manager" }
+            { name: "Abdulkadir", surname: "Karavil", email: "abdulkadir.karavil@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Ercan", surname: "Yılmaz", email: "ercan.yilmaz@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
+            { name: "Abdullah", surname: "Gümüşbağlar", email: "abdullah.gumusbaglar@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Aydın", email: "kenan.aydin@bellona.com.tr", password: "aYd*23zX90", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Yılmaz", surname: "Karavil", email: "yilmaz.karavil@bellona.com.tr", password: "kRv@11vB78", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Atasay", email: "kenan.atasay@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
+            { name: "Hakan", surname: "Kırklar", email: "hakan.kirklar@bellona.com.tr", password: "kRk&66rW22", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
         ];
 
         for (const d of dealers) {
@@ -107,7 +107,7 @@ async function initDashboard() {
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_v2', 'true');
+        localStorage.setItem('dealers_seeded_final_v1', 'true');
         location.reload();
     }
 
