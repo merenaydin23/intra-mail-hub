@@ -250,6 +250,22 @@ function updateEmailPreview() {
     }
 }
 
+// 10 karakterli şifre üretici: 6 harf + 2 simge + 2 rakam
+function generateStrictPassword() {
+    const letters = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+    const symbols = '!@#$%&*-_+';
+    const digits  = '23456789';
+    let pw = [];
+    for (let i = 0; i < 6; i++) pw.push(letters[Math.floor(Math.random() * letters.length)]);
+    for (let i = 0; i < 2; i++) pw.push(symbols[Math.floor(Math.random() * symbols.length)]);
+    for (let i = 0; i < 2; i++) pw.push(digits[Math.floor(Math.random() * digits.length)]);
+    for (let i = pw.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pw[i], pw[j]] = [pw[j], pw[i]];
+    }
+    return pw.join('');
+}
+
 function initEkle() {
     const form = document.getElementById('addUserForm');
 
@@ -285,6 +301,32 @@ function initEkle() {
     document.getElementById('newUserCompany')?.addEventListener('input', updateEmailPreview);
     document.getElementById('newUserSubRole')?.addEventListener('change', toggleRoleFields);
 
+    const pwInput = document.getElementById('newUserPassword');
+    const btnCopyPw = document.getElementById('btnCopyUserPw');
+    
+    // Sayfa yüklendiğinde şifreyi oluştur ve alanları ayarla
+    if(pwInput && !pwInput.value) {
+        pwInput.value = generateStrictPassword();
+    }
+    toggleRoleFields(); // Başlangıçta depertman alanını duruma göre gizle/göster
+    
+    if(btnCopyPw) {
+        btnCopyPw.addEventListener('click', () => {
+            if(!pwInput.value) return;
+            navigator.clipboard.writeText(pwInput.value).then(() => {
+                const oldHTML = btnCopyPw.innerHTML;
+                btnCopyPw.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
+                btnCopyPw.style.background = 'rgba(16,185,129,0.2)';
+                btnCopyPw.style.color = '#059669';
+                setTimeout(() => {
+                    btnCopyPw.innerHTML = oldHTML;
+                    btnCopyPw.style.background = 'rgba(79,70,229,0.1)';
+                    btnCopyPw.style.color = 'var(--primary)';
+                }, 2000);
+            });
+        });
+    }
+
     form?.addEventListener('submit', handleAddUser);
 }
 
@@ -298,7 +340,7 @@ async function handleAddUser(e) {
     const department= document.getElementById('newUserDepartment').value.trim();
     const subRole  = document.getElementById('newUserSubRole').value;
     const email    = generateEmail(name, company, category, subRole);
-    const password = Math.random().toString(36).slice(-8).toUpperCase();
+    const password = document.getElementById('newUserPassword').value;
 
     const data = {
         name, tcNo, birthDate, category, company, department, subRole,
@@ -319,7 +361,8 @@ async function handleAddUser(e) {
         msg.innerHTML = `✅ <strong>${name}</strong> başarıyla eklendi!<br>📧 E-posta: <strong>${email}</strong> &nbsp;|&nbsp; 🔑 Şifre: <strong>${password}</strong>`;
         e.target.reset();
         document.getElementById('newUserEmail').value = '';
-        document.getElementById('newUserPassword').value = '';
+        document.getElementById('newUserPassword').value = generateStrictPassword();
+        toggleRoleFields();
     } catch(err) {
         msg.style.display = 'block';
         msg.style.background = '#fef2f2';

@@ -109,8 +109,14 @@
               <div class="input-box"><i class="fa-solid fa-at"></i><input type="text" id="newUserEmail" placeholder="Ad, Kategori ve Firma seçince oluşur" /></div>
             </div>
             <div class="form-group">
-              <label>Geçici Şifre <small style="color:#64748b; font-weight:400;">(Kayıt sonrası gösterilir)</small></label>
-              <div class="input-box" style="background:#f1f5f9;"><i class="fa-solid fa-key"></i><input type="text" id="newUserPassword" readonly placeholder="Otomatik Üretilecek" /></div>
+              <label>Sistem Şifresi <small style="color:#64748b; font-weight:400;">(Personel ile paylaşın)</small></label>
+              <div class="input-box" style="position: relative;">
+                <i class="fa-solid fa-key"></i>
+                <input type="text" id="newUserPassword" readonly style="font-weight:700; color:var(--primary); padding-right: 90px;" />
+                <button type="button" id="btnCopyUserPw" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:rgba(79,70,229,0.1); color:var(--primary); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem; font-weight:600; transition:all 0.2s;">
+                  <i class="fa-regular fa-copy"></i> Kopyala
+                </button>
+              </div>
             </div>
           </div>
 
