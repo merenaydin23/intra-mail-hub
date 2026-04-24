@@ -12,58 +12,53 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --primary: #6c63ff;
-            --primary-dark: #4f46e5;
-            --primary-glow: rgba(108, 99, 255, 0.35);
-            --bg: #0a0a14;
-            --surface: rgba(255,255,255,0.04);
-            --surface-hover: rgba(255,255,255,0.07);
-            --border: rgba(255,255,255,0.08);
-            --text: #f1f5f9;
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: rgba(79, 70, 229, 0.1);
+            --accent: #0ea5e9;
+            --text-main: #1e293b;
             --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --bg: #0f172a;
             --success: #10b981;
             --danger: #ef4444;
+            --shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
-            color: var(--text);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            padding: 2rem;
             position: relative;
+            overflow: hidden;
         }
 
-        /* Animated background orbs */
-        .bg-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            animation: float 8s ease-in-out infinite;
-            pointer-events: none;
-        }
-        .bg-orb-1 { width: 500px; height: 500px; background: var(--primary); top: -150px; right: -100px; animation-delay: 0s; }
-        .bg-orb-2 { width: 400px; height: 400px; background: #06b6d4; bottom: -100px; left: -100px; animation-delay: 3s; }
-        .bg-orb-3 { width: 300px; height: 300px; background: #8b5cf6; top: 50%; left: 50%; animation-delay: 6s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-30px) scale(1.05); }
-        }
-
-        /* Grid lines */
+        /* Subtle gradient background — no image */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 50%, rgba(79,70,229,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(14,165,233,0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 70% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Subtle grid */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
             background-image:
-                linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px);
-            background-size: 50px 50px;
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
             pointer-events: none;
         }
 
@@ -71,296 +66,296 @@
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 480px;
-            padding: 1.5rem;
+            max-width: 460px;
         }
 
         .setup-card {
-            background: rgba(15, 15, 30, 0.85);
-            border: 1px solid var(--border);
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 2.5rem;
-            backdrop-filter: blur(20px);
-            box-shadow:
-                0 0 0 1px rgba(108,99,255,0.1),
-                0 25px 50px rgba(0,0,0,0.5),
-                0 0 80px rgba(108,99,255,0.08);
-            animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 3rem;
+            box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.05);
+            animation: fadeUp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .card-header { margin-bottom: 2rem; }
-
-        .brand {
+        /* Logo */
+        .logo {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .brand-icon {
-            width: 44px; height: 44px;
-            background: linear-gradient(135deg, var(--primary), #8b5cf6);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px var(--primary-glow);
-        }
-
-        .brand-name {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text);
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
         }
-        .brand-name span { color: var(--primary); }
 
-        .badge-setup {
+        .logo i {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 0.6rem;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .logo strong {
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* Badge */
+        .setup-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: rgba(108,99,255,0.15);
-            border: 1px solid rgba(108,99,255,0.3);
+            background: rgba(79,70,229,0.1);
+            border: 1px solid rgba(79,70,229,0.2);
+            color: var(--primary);
             border-radius: 999px;
-            padding: 0.3rem 0.8rem;
+            padding: 0.3rem 0.85rem;
             font-size: 0.7rem;
-            font-weight: 600;
-            color: #a78bfa;
-            letter-spacing: 0.05em;
+            font-weight: 700;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         h1 {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.7rem;
+            font-size: 1.9rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            color: var(--text-main);
+            line-height: 1.15;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            line-height: 1.2;
-            margin-bottom: 0.4rem;
         }
 
         .subtitle {
-            font-size: 0.85rem;
             color: var(--text-muted);
-            line-height: 1.5;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
         }
 
         /* Divider */
         .divider {
             height: 1px;
-            background: var(--border);
-            margin: 1.5rem 0;
+            background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+            margin: 0 0 2rem 0;
         }
 
         /* Form */
-        .form-group { margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1.25rem; }
 
         label {
             display: block;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.06em;
             margin-bottom: 0.5rem;
         }
 
-        .input-box {
+        .input-group {
             position: relative;
-            display: flex;
-            align-items: center;
         }
 
-        .input-box i {
+        .input-group i.field-icon {
             position: absolute;
             left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 0.85rem;
-            transition: color 0.2s;
-        }
-
-        .input-box input {
-            width: 100%;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.875rem 1rem 0.875rem 2.8rem;
-            color: var(--text);
             font-size: 0.9rem;
+            transition: color 0.25s;
+            pointer-events: none;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.9rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            font-size: 0.95rem;
             font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
+            color: var(--text-main);
             outline: none;
+            transition: all 0.25s;
         }
 
-        .input-box input::placeholder { color: #3d4a5c; }
+        .input-group input::placeholder { color: #b0bec5; }
 
-        .input-box input:focus {
+        .input-group input:focus {
             border-color: var(--primary);
-            background: rgba(108,99,255,0.06);
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: 0 0 0 4px rgba(79,70,229,0.12);
         }
 
-        .input-box input:focus + i,
-        .input-box:focus-within i { color: var(--primary); }
+        .input-group input:focus ~ i.field-icon { color: var(--primary); }
 
-        /* Email auto badge */
-        .email-auto-badge {
-            display: inline-flex;
+        /* Email auto hint */
+        .email-hint {
+            display: flex;
             align-items: center;
-            gap: 0.3rem;
-            font-size: 0.68rem;
-            color: #6c63ff;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: var(--primary);
             font-weight: 500;
-            margin-top: 0.35rem;
             opacity: 0;
             transition: opacity 0.3s;
         }
-        .email-auto-badge.visible { opacity: 1; }
+        .email-hint.show { opacity: 1; }
 
         /* Password toggle */
-        .input-box .pw-toggle {
+        .pw-toggle {
             position: absolute;
             right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             padding: 0;
             transition: color 0.2s;
         }
-        .input-box .pw-toggle:hover { color: var(--primary); }
+        .pw-toggle:hover { color: var(--primary); }
 
-        /* Submit button */
+        /* Button */
         .btn-setup {
             width: 100%;
-            margin-top: 1.5rem;
+            margin-top: 0.5rem;
             padding: 1rem;
-            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            background: var(--primary);
+            color: white;
             border: none;
             border-radius: 12px;
-            color: white;
             font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 20px var(--primary-glow);
-            letter-spacing: 0.02em;
+            transition: all 0.25s;
+            letter-spacing: 0.01em;
         }
 
         .btn-setup:hover {
+            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px var(--primary-glow);
+            box-shadow: 0 10px 20px rgba(79,70,229,0.35);
         }
 
         .btn-setup:active { transform: translateY(0); }
-        .btn-setup:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-setup:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* Log / message */
+        /* Log */
         #log {
             margin-top: 1.25rem;
             padding: 1rem 1.2rem;
             border-radius: 12px;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             line-height: 1.7;
             white-space: pre-wrap;
             display: none;
         }
-
         #log.success {
             display: block;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            color: #6ee7b7;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            color: #065f46;
         }
-
         #log.error {
             display: block;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #fca5a5;
+            background: rgba(239,68,68,0.07);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #991b1b;
         }
 
-        /* Info cards */
+        /* Info chips */
         .info-row {
             display: flex;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
         }
 
         .info-chip {
             flex: 1;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 0.6rem 0.75rem;
-            font-size: 0.72rem;
-            color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 0.4rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
         }
 
-        .info-chip i { color: var(--primary); font-size: 0.8rem; }
+        .info-chip i { color: var(--primary); font-size: 0.75rem; }
     </style>
 </head>
 <body>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
-    <div class="bg-orb bg-orb-3"></div>
-
     <div class="setup-wrapper">
         <div class="setup-card">
-            <div class="card-header">
-                <div class="brand">
-                    <div class="brand-icon"><i class="fa-solid fa-paper-plane"></i></div>
-                    <span class="brand-name">IntraMail <span>Hub</span></span>
-                </div>
-                <div class="badge-setup"><i class="fa-solid fa-wand-magic-sparkles"></i> İlk Kurulum</div>
-                <h1>Admin Hesabı Oluştur</h1>
-                <p class="subtitle">Sistemi başlatmak için yönetici profilini tanımla. Bu işlem yalnızca bir kez yapılır.</p>
+
+            <div class="logo">
+                <i class="fa-solid fa-paper-plane"></i>
+                IntraMail <strong>Hub</strong>
             </div>
+
+            <div class="setup-badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> İlk Kurulum
+            </div>
+            <h1>Admin <span>Hesabı</span><br>Oluştur</h1>
+            <p class="subtitle">Sistemi başlatmak için yönetici profilini tanımla. Bu işlem yalnızca bir kez yapılır.</p>
 
             <div class="divider"></div>
 
             <form id="setupForm">
                 <div class="form-group">
                     <label>Ad Soyad</label>
-                    <div class="input-box">
-                        <i class="fa-solid fa-user"></i>
+                    <div class="input-group">
                         <input type="text" id="name" placeholder="Adınızı ve soyadınızı girin" autocomplete="off" required />
+                        <i class="fa-solid fa-user field-icon"></i>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Kurumsal E-posta</label>
-                    <div class="input-box">
-                        <i class="fa-solid fa-at"></i>
+                    <div class="input-group">
                         <input type="email" id="email" placeholder="Ad girince otomatik oluşur" autocomplete="off" required />
+                        <i class="fa-solid fa-at field-icon"></i>
                     </div>
-                    <div class="email-auto-badge" id="emailBadge">
+                    <div class="email-hint" id="emailHint">
                         <i class="fa-solid fa-bolt"></i> Otomatik oluşturuldu — üzerine yazabilirsin
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Şifre</label>
-                    <div class="input-box">
-                        <i class="fa-solid fa-lock"></i>
+                    <div class="input-group">
                         <input type="password" id="password" placeholder="En az 6 karakter" required />
+                        <i class="fa-solid fa-lock field-icon"></i>
                         <button type="button" class="pw-toggle" id="pwToggle">
                             <i class="fa-regular fa-eye" id="pwIcon"></i>
                         </button>
@@ -376,7 +371,7 @@
             <div id="log"></div>
 
             <div class="info-row">
-                <div class="info-chip"><i class="fa-solid fa-shield-halved"></i> Güvenli bağlantı</div>
+                <div class="info-chip"><i class="fa-solid fa-shield-halved"></i> Güvenli</div>
                 <div class="info-chip"><i class="fa-solid fa-fire"></i> Firebase Auth</div>
                 <div class="info-chip"><i class="fa-solid fa-database"></i> Firestore</div>
             </div>
@@ -401,61 +396,44 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Türkçe normalizasyon
-        function normalizeTr(str) {
-            return str.toLowerCase()
-                .replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u')
-                .replace(/ö/g,'o').replace(/ç/g,'c').replace(/ı/g,'i')
-                .replace(/İ/g,'i').replace(/Ş/g,'s').replace(/Ğ/g,'g')
-                .replace(/Ü/g,'u').replace(/Ö/g,'o').replace(/Ç/g,'c')
-                .replace(/[^a-z0-9]/g,'');
-        }
-
-        // Ad girilince admin@bellona.com.tr otomatik doldur
-        const nameInput = document.getElementById('name');
+        const nameInput  = document.getElementById('name');
         const emailInput = document.getElementById('email');
-        const emailBadge = document.getElementById('emailBadge');
+        const emailHint  = document.getElementById('emailHint');
         let emailManuallyEdited = false;
 
+        // Admin email otomatik doldur
         nameInput.addEventListener('input', () => {
             if (emailManuallyEdited) return;
-            const val = nameInput.value.trim();
-            if (val) {
+            if (nameInput.value.trim()) {
                 emailInput.value = 'admin@bellona.com.tr';
-                emailBadge.classList.add('visible');
+                emailHint.classList.add('show');
             } else {
                 emailInput.value = '';
-                emailBadge.classList.remove('visible');
+                emailHint.classList.remove('show');
             }
         });
 
         emailInput.addEventListener('input', () => {
-            if (emailInput.value !== 'admin@bellona.com.tr') {
-                emailManuallyEdited = true;
-                emailBadge.classList.remove('visible');
-            } else {
-                emailManuallyEdited = false;
-            }
+            emailManuallyEdited = emailInput.value !== 'admin@bellona.com.tr';
+            emailHint.classList.toggle('show', !emailManuallyEdited && emailInput.value !== '');
         });
 
         // Şifre göster/gizle
-        const pwToggle = document.getElementById('pwToggle');
-        const pwInput = document.getElementById('password');
-        const pwIcon = document.getElementById('pwIcon');
-        pwToggle.addEventListener('click', () => {
-            const isHidden = pwInput.type === 'password';
-            pwInput.type = isHidden ? 'text' : 'password';
-            pwIcon.className = isHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        document.getElementById('pwToggle').addEventListener('click', () => {
+            const pw = document.getElementById('password');
+            const ico = document.getElementById('pwIcon');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+            ico.className = pw.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
         });
 
-        // Form submit
+        // Submit
         document.getElementById('setupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('setupBtn');
             const log = document.getElementById('log');
-            const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const password = pwInput.value;
+            const name     = nameInput.value.trim();
+            const email    = emailInput.value.trim();
+            const password = document.getElementById('password').value;
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kuruluyor...';
@@ -465,21 +443,15 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await setDoc(doc(db, "users", cred.user.uid), {
-                    name,
-                    email,
+                    name, email,
                     role: "admin",
                     isActive: true,
                     company: "Bellona Kurumsal",
                     createdAt: new Date()
                 });
-
                 log.className = 'success';
-                log.innerHTML = `✅ Admin hesabı oluşturuldu!\n👤 ${name}\n📧 ${email}\n\n🚀 Şimdi giriş yapabilirsin!`;
-
-                setTimeout(() => {
-                    window.location.href = '/index.html';
-                }, 2500);
-
+                log.innerHTML = `✅ Admin hesabı oluşturuldu!\n👤 ${name}\n📧 ${email}\n\n🚀 Giriş sayfasına yönlendiriliyorsunuz...`;
+                setTimeout(() => { window.location.href = '/index.html'; }, 2500);
             } catch (err) {
                 let msg = err.message;
                 if (err.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kayıtlı! Admin hesabı mevcut.';
