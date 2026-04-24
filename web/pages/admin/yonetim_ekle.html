@@ -56,7 +56,18 @@
                     </div>
                     <div class="form-group">
                         <label>Bölge</label>
-                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i><input type="text" id="newRegion" placeholder="Örn: İç Anadolu" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i>
+                            <select id="newRegion" required>
+                                <option value="" disabled selected>Bölge seçiniz</option>
+                                <option value="Marmara">Marmara</option>
+                                <option value="Ege">Ege</option>
+                                <option value="İç Anadolu">İç Anadolu</option>
+                                <option value="Akdeniz">Akdeniz</option>
+                                <option value="Karadeniz">Karadeniz</option>
+                                <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Bayi / Şirket Adı</label>
