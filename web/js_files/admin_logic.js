@@ -59,42 +59,70 @@ async function generateEnterpriseEmail(name, surname) {
 // DASHBOARD & SEEDING
 // =====================
 async function initDashboard() {
-    // 7 Bölge Bayi Patronunu Sıfırdan Tanımla (Enterprise Format)
-    const regionalCheck = await getDocs(query(collection(db, "users"), where("category", "==", "regional")));
-    if (regionalCheck.empty) {
-        const dealers = [
-            { name: "Abdulkadir", surname: "Karavil", company: "Karavil Group", region: "Doğu Anadolu" },
-            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu" },
-            { name: "Abdullah", surname: "Gümüşbağlar", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz" },
-            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu" },
-            { name: "Yılmaz", surname: "Karavil", company: "Karavil Marmara", region: "Marmara" },
-            { name: "Kenan", surname: "Atasay", company: "Atasaylar Group", region: "Akdeniz" },
-            { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege" }
+    // Mega Test Verisi Yükleme (V8 - 40 Yeni Kayıt)
+    if (localStorage.getItem('dealers_seeded_v8_mega') !== 'true') {
+        const regions = ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu"];
+        const depts = ["Üretim", "Sevkiyat", "Muhasebe", "İnsan Kaynakları", "Satış", "Pazarlama", "Bilgi İşlem"];
+        const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya", "Bulut Dizayn", "Toprak Home"];
+        const names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Zeynep", "Ayşe", "Fatma", "Can", "Murat", "Selin", "Burak", "Derya", "Okan", "Gizem", "Serkan", "Esra", "Umut", "Pelin", "Ege", "Deniz"];
+        const surnames = ["Yıldız", "Kaya", "Demir", "Çelik", "Arslan", "Öztürk", "Aydın", "Yavuz", "Şahin", "Kılıç", "Bulut", "Korkmaz", "Erdoğan", "Güneş", "Tezcan", "Eren", "Yalçın", "Güler", "Aksoy", "Toprak"];
+
+        const allToSeed = [
+            { name: "Abdulkadir", surname: "Karavil", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
+            { name: "Abdullah", surname: "Gümüşbağlar", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Yılmaz", surname: "Karavil", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Atasay", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
+            { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
         ];
 
+        // 20 Yerel Bayi (Owner)
+        for(let i=0; i<20; i++) {
+            allToSeed.push({
+                name: names[i % names.length],
+                surname: surnames[(i+2) % surnames.length],
+                company: companiesList[i % companiesList.length],
+                region: regions[Math.floor(Math.random() * regions.length)],
+                category: "local",
+                subRole: "manager"
+            });
+        }
+
+        // 20 Personel (Employee)
+        for(let i=0; i<20; i++) {
+            const isFactory = i < 10;
+            allToSeed.push({
+                name: names[(i+5) % names.length],
+                surname: surnames[(i+7) % surnames.length],
+                company: isFactory ? "Bellona Genel Müdürlük" : companiesList[i % companiesList.length],
+                region: isFactory ? "İç Anadolu" : regions[Math.floor(Math.random() * regions.length)],
+                category: isFactory ? "factory" : "local",
+                subRole: "employee",
+                department: isFactory ? depts[i % depts.length] : "Satış Temsilcisi"
+            });
+        }
+
         const getRandomBirthDate = () => {
-            const year = Math.floor(Math.random() * (1990 - 1960 + 1)) + 1960;
+            const year = Math.floor(Math.random() * (2000 - 1960 + 1)) + 1960;
             const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
             const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
             return `${year}-${month}-${day}`;
         };
 
-        for (const d of dealers) {
-            const email = `${normalizeTr(d.name)}.${normalizeTr(d.surname)}@bellona.com.tr`;
+        for (const d of allToSeed) {
+            const email = await generateEnterpriseEmail(d.name, d.surname);
             await addDoc(collection(db, "users"), {
                 ...d,
                 email: email,
                 password: generateStrictPassword(),
-                category: "regional",
-                subRole: "manager", // Owner
                 role: "user",
                 isActive: true,
-                department: null,
                 birthDate: getRandomBirthDate(),
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_final_v2', 'true');
+        localStorage.setItem('dealers_seeded_v8_mega', 'true');
         location.reload();
     }
 
