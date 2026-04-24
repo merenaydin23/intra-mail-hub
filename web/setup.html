@@ -236,6 +236,52 @@
         }
         .pw-toggle:hover { color: var(--primary); }
 
+        .pw-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .btn-generate {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            background: var(--primary-light);
+            border: 1px solid rgba(79,70,229,0.25);
+            border-radius: 8px;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-generate:hover { background: rgba(79,70,229,0.18); transform: translateY(-1px); }
+
+        .btn-copy {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.25);
+            border-radius: 8px;
+            color: #059669;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-copy.visible { display: inline-flex; }
+        .btn-copy:hover { background: rgba(16,185,129,0.18); }
+
+        .pw-strength { display: none; margin-top: 0.5rem; }
+        .pw-strength.visible { display: block; }
+        .pw-strength-bar { height: 4px; border-radius: 99px; background: #e2e8f0; overflow: hidden; margin-bottom: 0.3rem; }
+        .pw-strength-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease, background 0.4s ease; }
+        .pw-strength-label { font-size: 0.7rem; font-weight: 600; }
+
         /* Button */
         .btn-setup {
             width: 100%;
@@ -354,11 +400,23 @@
                 <div class="form-group">
                     <label>Şifre</label>
                     <div class="input-group">
-                        <input type="password" id="password" placeholder="En az 6 karakter" required />
+                        <input type="password" id="password" placeholder="Güçlü şifre oluştur →" required />
                         <i class="fa-solid fa-lock field-icon"></i>
                         <button type="button" class="pw-toggle" id="pwToggle">
                             <i class="fa-regular fa-eye" id="pwIcon"></i>
                         </button>
+                    </div>
+                    <div class="pw-actions">
+                        <button type="button" class="btn-generate" id="btnGenerate">
+                            <i class="fa-solid fa-wand-sparkles"></i> Güçlü Şifre Oluştur
+                        </button>
+                        <button type="button" class="btn-copy" id="btnCopy">
+                            <i class="fa-regular fa-copy"></i> Kopyala
+                        </button>
+                    </div>
+                    <div class="pw-strength" id="pwStrength">
+                        <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                        <span class="pw-strength-label" id="pwStrengthLabel"></span>
                     </div>
                 </div>
 
@@ -424,6 +482,74 @@
             const ico = document.getElementById('pwIcon');
             pw.type = pw.type === 'password' ? 'text' : 'password';
             ico.className = pw.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+        });
+
+        // Güçlü şifre üretici
+        function generateStrongPassword(len = 16) {
+            const sets = [
+                'ABCDEFGHJKLMNPQRSTUVWXYZ',
+                'abcdefghjkmnpqrstuvwxyz',
+                '23456789',
+                '!@#$%&*-_+'
+            ];
+            const all = sets.join('');
+            let pw = sets.map(s => s[Math.floor(Math.random() * s.length)]);
+            for (let i = 4; i < len; i++) pw.push(all[Math.floor(Math.random() * all.length)]);
+            for (let i = pw.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pw[i], pw[j]] = [pw[j], pw[i]];
+            }
+            return pw.join('');
+        }
+
+        function getStrength(pw) {
+            let score = 0;
+            if (pw.length >= 12) score++;
+            if (pw.length >= 16) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            if (score <= 2) return { label: 'Zayıf', color: '#ef4444', pct: '30%' };
+            if (score <= 3) return { label: 'Orta', color: '#f59e0b', pct: '60%' };
+            return { label: 'Güçlü 💪', color: '#10b981', pct: '100%' };
+        }
+
+        function showStrength(pw) {
+            const s = getStrength(pw);
+            document.getElementById('pwStrength').classList.add('visible');
+            document.getElementById('pwStrengthFill').style.cssText = `width:${s.pct}; background:${s.color}`;
+            const lbl = document.getElementById('pwStrengthLabel');
+            lbl.textContent = 'Şifre Gücü: ' + s.label;
+            lbl.style.color = s.color;
+        }
+
+        const pwInput  = document.getElementById('password');
+        const btnGen   = document.getElementById('btnGenerate');
+        const btnCopy  = document.getElementById('btnCopy');
+
+        btnGen.addEventListener('click', () => {
+            const newPw = generateStrongPassword(16);
+            pwInput.type = 'text';
+            document.getElementById('pwIcon').className = 'fa-regular fa-eye-slash';
+            pwInput.value = newPw;
+            btnCopy.classList.add('visible');
+            showStrength(newPw);
+        });
+
+        pwInput.addEventListener('input', () => {
+            if (pwInput.value) { showStrength(pwInput.value); btnCopy.classList.add('visible'); }
+            else { document.getElementById('pwStrength').classList.remove('visible'); btnCopy.classList.remove('visible'); }
+        });
+
+        btnCopy.addEventListener('click', () => {
+            navigator.clipboard.writeText(pwInput.value).then(() => {
+                btnCopy.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
+                btnCopy.style.background = 'rgba(16,185,129,0.2)';
+                setTimeout(() => {
+                    btnCopy.innerHTML = '<i class="fa-regular fa-copy"></i> Kopyala';
+                    btnCopy.style.background = '';
+                }, 2000);
+            });
         });
 
         // Submit
