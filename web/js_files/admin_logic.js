@@ -204,41 +204,118 @@ function renderUserTable() {
 // =====================
 // EKLEME SAYFASI
 // =====================
+
+// Türkçe karakterleri normalize et, boşluk ve özel karakter temizle
+function normalizeTr(str) {
+    return str
+        .toLowerCase()
+        .replace(/ş/g, 's').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+        .replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/ı/g, 'i')
+        .replace(/İ/g, 'i').replace(/Ş/g, 's').replace(/Ğ/g, 'g')
+        .replace(/Ü/g, 'u').replace(/Ö/g, 'o').replace(/Ç/g, 'c')
+        .replace(/[^a-z0-9.]/g, ''); // sadece harf, rakam, nokta bırak
+}
+
+// Rol + Ad + Firma'ya göre e-posta üret
+function generateEmail(name, company, category, subRole) {
+    const firstName = normalizeTr(name.trim().split(' ')[0]); // Sadece ilk ad
+    const firmSlug = normalizeTr((company || '').replace(/\s+/g, '')); // Firma adı slug
+
+    if (category === 'factory') {
+        return `${firstName}.fabrika@bellona.com.tr`;
+    } else if (category === 'regional') {
+        return `${firstName}.${firmSlug}.bolge@bellona.com.tr`;
+    } else if (category === 'local') {
+        if (subRole === 'manager') {
+            return `${firstName}.${firmSlug}.yerel@bellona.com.tr`;
+        } else {
+            return `${firstName}.${firmSlug}.calisan@bellona.com.tr`;
+        }
+    }
+    return `${firstName}@bellona.com.tr`;
+}
+
+function updateEmailPreview() {
+    const name = document.getElementById('newUserName')?.value || '';
+    const company = document.getElementById('newUserCompany')?.value || '';
+    const category = document.getElementById('newUserCategory')?.value || '';
+    const subRole = document.getElementById('newUserSubRole')?.value || 'employee';
+    const emailField = document.getElementById('newUserEmail');
+    if (!emailField) return;
+    if (name && category) {
+        emailField.value = generateEmail(name, company, category, subRole);
+    } else {
+        emailField.value = '';
+        emailField.placeholder = 'Otomatik Üretilecek';
+    }
+}
+
 function initEkle() {
     const form = document.getElementById('addUserForm');
+
     const toggleFields = () => {
         const cat = document.getElementById('newUserCategory').value;
         const compGroup = document.getElementById('companyGroup');
-        const deptGroup = document.getElementById('deptGroup');
         if(cat === 'factory') {
             document.getElementById('newUserCompany').value = 'Bellona Merkez';
             if(compGroup) compGroup.style.display = 'none';
         } else {
+            document.getElementById('newUserCompany').value = '';
             if(compGroup) compGroup.style.display = 'block';
         }
+        updateEmailPreview();
     };
+
+    // Herhangi bir ilgili alan değiştiğinde e-postayı güncelle
+    document.getElementById('newUserName')?.addEventListener('input', updateEmailPreview);
     document.getElementById('newUserCategory')?.addEventListener('change', toggleFields);
+    document.getElementById('newUserCompany')?.addEventListener('input', updateEmailPreview);
+    document.getElementById('newUserSubRole')?.addEventListener('change', updateEmailPreview);
+
     form?.addEventListener('submit', handleAddUser);
 }
 
 async function handleAddUser(e) {
     e.preventDefault();
+    const name     = document.getElementById('newUserName').value.trim();
+    const tcNo     = document.getElementById('newUserTc').value.trim();
+    const birthDate= document.getElementById('newUserBirth').value;
+    const category = document.getElementById('newUserCategory').value;
+    const company  = document.getElementById('newUserCompany').value.trim();
+    const department= document.getElementById('newUserDepartment').value.trim();
+    const subRole  = document.getElementById('newUserSubRole').value;
+    const email    = generateEmail(name, company, category, subRole);
+    const password = Math.random().toString(36).slice(-8).toUpperCase();
+
     const data = {
-        name: document.getElementById('newUserName').value,
-        tcNo: document.getElementById('newUserTc').value,
-        birthDate: document.getElementById('newUserBirth').value,
-        category: document.getElementById('newUserCategory').value,
-        company: document.getElementById('newUserCompany').value,
-        department: document.getElementById('newUserDepartment').value,
-        subRole: document.getElementById('newUserSubRole').value,
-        email: `${document.getElementById('newUserName').value.toLowerCase().replace(/\s/g,'')}@bellona.com.tr`,
-        password: Math.random().toString(36).slice(-8),
+        name, tcNo, birthDate, category, company, department, subRole,
+        email, password,
         isActive: true, role: 'user', createdAt: serverTimestamp()
     };
+
+    const btn = document.getElementById('addUserBtn');
+    const msg = document.getElementById('formMessage');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+
     try {
         await addDoc(collection(db, "users"), data);
-        alert("Personel Eklendi! ✅"); e.target.reset();
-    } catch(err) { alert(err.message); }
+        msg.style.display = 'block';
+        msg.style.background = '#ecfdf5';
+        msg.style.color = '#065f46';
+        msg.innerHTML = `✅ <strong>${name}</strong> başarıyla eklendi!<br>📧 E-posta: <strong>${email}</strong> &nbsp;|&nbsp; 🔑 Şifre: <strong>${password}</strong>`;
+        e.target.reset();
+        document.getElementById('newUserEmail').value = '';
+        document.getElementById('newUserPassword').value = '';
+    } catch(err) {
+        msg.style.display = 'block';
+        msg.style.background = '#fef2f2';
+        msg.style.color = '#991b1b';
+        msg.innerHTML = `❌ Hata: ${err.message}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Personel Kaydını Tamamla';
+    }
 }
 
 window.deleteUser = async (id) => {
