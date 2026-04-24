@@ -25,6 +25,38 @@
             <a href="yonetim_ekle.html" style="text-decoration:none; background:var(--primary-light); color:white; padding:0.75rem 1.25rem; border-radius:10px; font-weight:700; font-size:0.85rem;">Yeni Personel Ekle</a>
         </header>
 
+        <!-- Filtreleme Paneli -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 0;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div class="input-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchUser" placeholder="İsim veya bayi adı ile ara..." />
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <select id="filterCategory">
+                        <option value="all">Tüm Kategoriler</option>
+                        <option value="factory">Fabrika</option>
+                        <option value="regional">Bölge Bayisi</option>
+                        <option value="local">Yerel Bayi</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <select id="filterRegion">
+                        <option value="all">Tüm Bölgeler</option>
+                        <option value="Marmara">Marmara</option>
+                        <option value="Ege">Ege</option>
+                        <option value="İç Anadolu">İç Anadolu</option>
+                        <option value="Akdeniz">Akdeniz</option>
+                        <option value="Karadeniz">Karadeniz</option>
+                        <option value="Doğu Anadolu">Doğu Anadolu</option>
+                        <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <h3>Kayıtlı Tüm Personeller</h3>

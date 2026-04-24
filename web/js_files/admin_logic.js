@@ -137,10 +137,36 @@ async function initDashboard() {
 // =====================
 // PERSONEL LİSTESİ
 // =====================
+let allUsers = [];
+
 async function initPersonel() {
     const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
-    const users = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => u.role !== 'admin');
-    renderTable(users);
+    allUsers = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => u.role !== 'admin');
+    
+    const searchIn = document.getElementById('searchUser');
+    const filterCat = document.getElementById('filterCategory');
+    const filterReg = document.getElementById('filterRegion');
+
+    const applyFilters = () => {
+        const term = searchIn.value.toLowerCase();
+        const cat = filterCat.value;
+        const reg = filterReg.value;
+
+        const filtered = allUsers.filter(u => {
+            const matchSearch = (u.name + ' ' + u.surname + ' ' + (u.company || '')).toLowerCase().includes(term);
+            const matchCat = (cat === 'all' || u.category === cat);
+            const matchReg = (reg === 'all' || u.region === reg);
+            return matchSearch && matchCat && matchReg;
+        });
+        renderTable(filtered);
+    };
+
+    [searchIn, filterCat, filterReg].forEach(el => {
+        el?.addEventListener('input', applyFilters);
+        el?.addEventListener('change', applyFilters);
+    });
+
+    renderTable(allUsers);
 }
 
 function renderTable(users) {
