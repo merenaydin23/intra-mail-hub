@@ -69,9 +69,25 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="companyGroup">
                         <label>Bayi / Şirket Adı</label>
-                        <div class="input-box"><i class="fa-solid fa-building"></i><input type="text" id="newCompany" placeholder="Örn: Ada Mobilya" required /></div>
+                        <div class="input-box">
+                            <i class="fa-solid fa-building"></i>
+                            <!-- Yerel Bayi için normal input -->
+                            <input type="text" id="newCompany" placeholder="Bayi adını giriniz" required />
+                            
+                            <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
+                            <select id="newRegionCompany" style="display:none;">
+                                <option value="" disabled selected>Grup seçiniz</option>
+                                <option value="Karavil Group">Karavil Group</option>
+                                <option value="Atasaylar Group">Atasaylar Group</option>
+                                <option value="Karavil Marmara">Karavil Marmara</option>
+                                <option value="Horazan Group">Horazan Group</option>
+                                <option value="Gümüşbaşlar Şirket Birliği">Gümüşbaşlar Şirket Birliği</option>
+                                <option value="Yılmaz Group">Yılmaz Group</option>
+                                <option value="Damla Mobilya Group Ege">Damla Mobilya Group Ege</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Rol & Yetki</label>

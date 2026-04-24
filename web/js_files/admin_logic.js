@@ -120,16 +120,24 @@ async function initPersonel() {
 function renderTable(users) {
     const tbody = document.getElementById('userTableBody');
     if(!tbody) return;
-    tbody.innerHTML = users.map(u => `
-        <tr>
-            <td><strong>${u.name} ${u.surname}</strong></td>
-            <td><small>${u.email}</small></td>
-            <td>${u.region || '-'}</td>
-            <td>${u.company || '-'}</td>
-            <td><span class="badge ${u.subRole === 'manager' ? 'badge-accent' : 'badge-primary'}">${u.subRole === 'manager' ? 'PATRON' : 'ÇALIŞAN'}</span></td>
-            <td><button onclick="deleteUser('${u.id}')" style="border:none; background:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = users.map(u => {
+        let catLabel = 'Bilinmiyor';
+        if(u.category === 'factory') catLabel = 'FABRİKA';
+        if(u.category === 'regional') catLabel = 'BÖLGE BAYİSİ';
+        if(u.category === 'local') catLabel = 'YEREL BAYİ';
+
+        return `
+            <tr>
+                <td><strong>${u.name} ${u.surname}</strong></td>
+                <td><small>${u.email}</small></td>
+                <td><span class="badge" style="background:#f1f5f9; color:#475569; font-size:0.7rem;">${catLabel}</span></td>
+                <td>${u.region || '-'}</td>
+                <td>${u.company || '-'}</td>
+                <td><span class="badge ${u.subRole === 'manager' ? 'badge-accent' : 'badge-primary'}">${u.subRole === 'manager' ? 'PATRON' : 'ÇALIŞAN'}</span></td>
+                <td><button onclick="deleteUser('${u.id}')" style="border:none; background:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // =====================
@@ -141,7 +149,8 @@ function initEkle() {
     const catIn = document.getElementById('newCategory');
     const roleIn = document.getElementById('newSubRole');
     const regionIn = document.getElementById('newRegion');
-    const companyIn = document.getElementById('newCompany');
+    const companyIn = document.getElementById('newCompany'); // Local
+    const regionCompanyIn = document.getElementById('newRegionCompany'); // Regional
     const deptGroup = document.getElementById('deptGroup');
     const pwIn = document.getElementById('newPassword');
     const emailPreview = document.getElementById('newEmail');
@@ -149,15 +158,24 @@ function initEkle() {
     if(pwIn) pwIn.value = generateStrictPassword();
     
     const updateUI = () => {
-        // 1. Kategori Kontrolü (Fabrika ise Şirketi otomatik yapabiliriz ama Bölge serbest)
+        // 1. Kategori Kontrolü
         if(catIn.value === 'factory') {
             companyIn.value = 'Bellona Genel Müdürlük';
+            companyIn.style.display = 'block';
+            regionCompanyIn.style.display = 'none';
             companyIn.readOnly = true;
-        } else {
+        } else if(catIn.value === 'regional') {
+            companyIn.style.display = 'none';
+            regionCompanyIn.style.display = 'block';
             companyIn.readOnly = false;
+        } else {
+            companyIn.style.display = 'block';
+            regionCompanyIn.style.display = 'none';
+            companyIn.readOnly = false;
+            if(companyIn.value === 'Bellona Genel Müdürlük') companyIn.value = '';
         }
 
-        // 2. Rol Kontrolü (Patron ise Departman gizle)
+        // 2. Rol Kontrolü
         if(roleIn.value === 'manager') {
             deptGroup.style.display = 'none';
         } else {
@@ -173,18 +191,20 @@ function initEkle() {
     [nameIn, surnameIn, catIn, roleIn].forEach(el => el?.addEventListener('input', updateUI));
     [catIn, roleIn].forEach(el => el?.addEventListener('change', updateUI));
     
-    updateUI(); // İlk açılışta çalıştır
+    updateUI(); 
     
     document.getElementById('addUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = await generateUniqueEmail(nameIn.value, surnameIn.value);
+        const finalCompany = (catIn.value === 'regional') ? regionCompanyIn.value : companyIn.value;
+        
         const data = {
             name: nameIn.value,
             surname: surnameIn.value,
             birthDate: document.getElementById('newBirth').value,
             category: catIn.value,
             region: regionIn.value,
-            company: companyIn.value,
+            company: finalCompany,
             subRole: roleIn.value,
             department: roleIn.value === 'manager' ? 'Yönetici / Patron' : document.getElementById('newDept').value,
             email: email,
