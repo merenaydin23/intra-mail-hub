@@ -46,8 +46,22 @@
                     </div>
                 </div>
 
-                <div class="form-section-head"><i class="fa-solid fa-building"></i> Kurumsal Detaylar</div>
+                <div class="form-section-head"><i class="fa-solid fa-building"></i> Atama Bilgileri</div>
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label>Hizmet Kategorisi</label>
+                        <div class="input-box"><i class="fa-solid fa-sitemap"></i>
+                            <select id="newCategory">
+                                <option value="factory">Fabrika (Merkez)</option>
+                                <option value="regional">Bölge Bayisi</option>
+                                <option value="local">Yerel Bayi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bölge</label>
+                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i><input type="text" id="newRegion" placeholder="Örn: İç Anadolu" required /></div>
+                    </div>
                     <div class="form-group">
                         <label>Bayi / Şirket Adı</label>
                         <div class="input-box"><i class="fa-solid fa-building"></i><input type="text" id="newCompany" placeholder="Örn: Ada Mobilya" required /></div>

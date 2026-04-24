@@ -35,7 +35,7 @@ export function generateStrictPassword() {
     return pw.join('');
 }
 
-// E-posta Üretimi: ad.soyad@bellona.com.tr (+ çakışma kontrolü)
+// Rol + Ad + Soyad'a göre e-posta üret
 async function generateUniqueEmail(name, surname) {
     const base = `${normalizeTr(name)}.${normalizeTr(surname)}`;
     let email = `${base}@bellona.com.tr`;
@@ -138,21 +138,45 @@ function renderTable(users) {
 function initEkle() {
     const nameIn = document.getElementById('newName');
     const surnameIn = document.getElementById('newSurname');
+    const catIn = document.getElementById('newCategory');
     const roleIn = document.getElementById('newSubRole');
+    const regionIn = document.getElementById('newRegion');
+    const companyIn = document.getElementById('newCompany');
     const deptGroup = document.getElementById('deptGroup');
     const pwIn = document.getElementById('newPassword');
+    const emailPreview = document.getElementById('newEmail');
     
     if(pwIn) pwIn.value = generateStrictPassword();
     
     const updateUI = () => {
+        // 1. Kategori Kontrolü (Fabrika ise Bölge/Şirket kısıtla)
+        if(catIn.value === 'factory') {
+            regionIn.value = 'Kayseri';
+            companyIn.value = 'Bellona Genel Müdürlük';
+            regionIn.readOnly = true;
+            companyIn.readOnly = true;
+        } else {
+            regionIn.readOnly = false;
+            companyIn.readOnly = false;
+        }
+
+        // 2. Rol Kontrolü (Patron ise Departman gizle)
         if(roleIn.value === 'manager') {
             deptGroup.style.display = 'none';
         } else {
             deptGroup.style.display = 'block';
         }
+
+        // 3. Email Önizleme
+        if(nameIn.value && surnameIn.value) {
+            emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}@bellona.com.tr`;
+        }
     };
     
-    roleIn.addEventListener('change', updateUI);
+    [nameIn, surnameIn, catIn, roleIn].forEach(el => el?.addEventListener('input', updateUI));
+    [catIn, roleIn].forEach(el => el?.addEventListener('change', updateUI));
+    
+    updateUI(); // İlk açılışta çalıştır
     
     document.getElementById('addUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -161,10 +185,11 @@ function initEkle() {
             name: nameIn.value,
             surname: surnameIn.value,
             birthDate: document.getElementById('newBirth').value,
-            region: document.getElementById('newRegion').value,
-            company: document.getElementById('newCompany').value,
+            category: catIn.value,
+            region: regionIn.value,
+            company: companyIn.value,
             subRole: roleIn.value,
-            department: roleIn.value === 'manager' ? '' : document.getElementById('newDept').value,
+            department: roleIn.value === 'manager' ? 'Yönetici / Patron' : document.getElementById('newDept').value,
             email: email,
             password: pwIn.value,
             role: 'user',
@@ -173,7 +198,7 @@ function initEkle() {
         };
         
         await addDoc(collection(db, "users"), data);
-        alert(`Kullanıcı eklendi: ${email}`);
+        alert(`Kullanıcı başarıyla eklendi!\nE-posta: ${email}`);
         location.reload();
     });
 }
