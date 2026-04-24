@@ -37,15 +37,15 @@ if (loginForm) {
         // Rol bazlı sayfaya yönlendirme
         setTimeout(() => {
           if (userData.role === 'admin') {
-            window.location.href = './yonetim.html';
+            window.location.href = '/pages/admin/yonetim.html';
           } else if (userData.role === 'factory') {
-            window.location.href = './fabrika.html';
+            window.location.href = '/pages/portals/fabrika.html';
           } else if (userData.role === 'regional') {
-            window.location.href = './bolge.html';
+            window.location.href = '/pages/portals/bolge.html';
           } else if (userData.role === 'local') {
-            window.location.href = './yerel.html';
+            window.location.href = '/pages/portals/yerel.html';
           } else {
-            window.location.href = './calisan.html';
+            window.location.href = '/pages/portals/calisan.html';
           }
         }, 1200);
       } else {

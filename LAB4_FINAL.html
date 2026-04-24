@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>LAB 4 - Wireframe ve Ekran Akışları | Muhammed Eren Aydın</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    /* COVER PAGE */
+    .cover {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 40px;
+      page-break-after: always;
+    }
+
+    .cover-logo {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+
+    .cover h1 {
+      font-size: 38px;
+      color: white;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .cover h2 {
+      font-size: 22px;
+      background: linear-gradient(to right, #a78bfa, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 48px;
+    }
+
+    .cover-divider {
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(to right, #8b5cf6, #06b6d4);
+      border-radius: 2px;
+      margin: 32px auto;
+    }
+
+    .cover-info {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 28px 48px;
+    }
+
+    .cover-info p {
+      color: #7791b1;
+      font-size: 16px;
+      line-height: 2.2;
+    }
+
+    .cover-info span {
+      color: white;
+      font-weight: 600;
+    }
+
+    /* CONTENT SECTIONS */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .section-title span {
+      color: #7c3aed;
+    }
+
+    .section-subtitle {
+      color: #64748b;
+      font-size: 16px;
+      margin-bottom: 40px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 20px;
+    }
+
+    .screen-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: #222e41;
+      margin: 40px 0 8px;
+    }
+
+    .screen-desc {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* PHONE FRAMES */
+    .phones-row {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 40px 0;
+    }
+
+    .phone-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .phone-tag {
+      background: #7c3aed;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 100px;
+    }
+
+    .phone {
+      width: 300px;
+      height: 640px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      border-radius: 36px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35), 0 0 0 8px #1e293b;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .p-status {
+      height: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .p-header {
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .p-logo {
+      font-size: 14px;
+      font-weight: 600;
+      background: linear-gradient(to right, #a78bfa, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .p-body {
+      flex: 1;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .p-btn {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .p-section-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .p-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .p-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .p-av1 {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+    }
+
+    .p-av2 {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .p-av3 {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+    }
+
+    .p-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 3px;
+    }
+
+    .p-badge {
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-bottom: 3px;
+    }
+
+    .p-subj {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .p-time {
+      font-size: 10px;
+      color: #64748b;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .p-dot {
+      width: 7px;
+      height: 7px;
+      background: #06b6d4;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 4px;
+      box-shadow: 0 0 6px #06b6d4;
+    }
+
+    .p-label {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 5px;
+    }
+
+    .p-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      color: white;
+      font-size: 12px;
+      font-family: inherit;
+      margin-bottom: 10px;
+    }
+
+    .p-textarea {
+      height: 80px;
+      resize: none;
+    }
+
+    .p-ai-btn {
+      background: rgba(30, 27, 75, 0.8);
+      border: 1px solid #6366f1;
+      color: #c4b5fd;
+      padding: 10px;
+      border-radius: 8px;
+      width: 100%;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .p-detail-card {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 11px;
+      color: #e2e8f0;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .p-reply-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .p-reply-input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px;
+      color: white;
+      font-size: 11px;
+      font-family: inherit;
+    }
+
+    .p-send-btn {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 36px;
+      cursor: pointer;
+    }
+
+    /* FLOW SECTION */
+    .flow-section {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      margin: 40px 0;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .flow-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 24px;
+    }
+
+    .flow-diagram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .flow-node {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .flow-node.green {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .flow-node.cyan {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+    }
+
+    .flow-node.start {
+      background: #1e293b;
+      border-radius: 100px;
+      font-size: 13px;
+      padding: 10px 28px;
+    }
+
+    .flow-arrow {
+      font-size: 22px;
+      color: #94a3b8;
+      margin: 4px 0;
+    }
+
+    .flow-arrow-label {
+      font-size: 12px;
+      color: #7c3aed;
+      background: #f5f3ff;
+      padding: 3px 12px;
+      border-radius: 100px;
+      margin: 2px 0;
+      font-weight: 500;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin: 8px 0;
+    }
+
+    .flow-h-arrow {
+      font-size: 22px;
+      color: #94a3b8;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .scenario-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .sc-num {
+      width: 28px;
+      height: 28px;
+      background: #7c3aed;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .sc-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .sc-desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* INFO BOXES */
+    .info-box {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid #7c3aed;
+    }
+
+    .info-box h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+
+    .info-box p {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+      font-size: 13px;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 20px;
+    }
+
+    @media print {
+      .cover {
+        min-height: auto;
+        padding: 40px;
+      }
+
+      .phones-row {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- KAPAK SAYFASI -->
+  <div class="cover">
+    <div class="cover-logo">📱</div>
+    <h2>Yazılım Mühendisliği Laboratuvarı</h2>
+    <h1>LAB 4 – Wireframe ve Ekran Akışları</h1>
+    <div class="cover-divider"></div>
+    <div class="cover-info">
+      <p>Öğrenci Adı Soyadı &nbsp;→&nbsp; <span>Muhammed Eren Aydın</span></p>
+      <p>Öğrenci Numarası &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span>230541034</span></p>
+      <p>Proje Adı
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;
+        <span>Intra Mail Hub</span></p>
+    </div>
+  </div>
+
+  <!-- ANA İÇERİK -->
+  <div class="section">
+    <div class="section-title"><span>1.</span> Uygulama Wireframe Tasarımları</div>
+    <p class="section-subtitle">Uygulamanın temel işlevlerini yerine getiren 3 ana ekranın gerçekçi taslak çizimleri
+      aşağıda gösterilmektedir. Her ekran, kullanıcı senaryolarına karşılık gelen temel bileşenleri içermektedir.</p>
+
+    <!-- INFO BOXES -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:40px;">
+      <div class="info-box">
+        <h3>📥 Ekran 1 – Liste Ekranı</h3>
+        <p>Kullanıcının giriş sonrası gelen mesajlarını gördüğü, hiyerarşik sıralı mesaj listesi içeren ana ekran.</p>
+      </div>
+      <div class="info-box" style="border-color:#06b6d4;">
+        <h3>✏️ Ekran 2 – Veri Ekleme</h3>
+        <p>Alıcı seçimi, konu ve mesaj formu içeren, Gemini AI ile resmileştirme butonu olan yeni mesaj ekranı.</p>
+      </div>
+      <div class="info-box" style="border-color:#10b981;">
+        <h3>📄 Ekran 3 – Detay & Yanıt</h3>
+        <p>Seçili mesajın tam içeriğini gösteren, AI hızlı yanıt önerisi ve yanıt yazma alanı içeren detay ekranı.</p>
+      </div>
+    </div>
+
+    <!-- PHONE MOCKUPS -->
+    <div class="phones-row">
+
+      <!-- EKRAN 1: GELEN KUTUSU -->
+      <div class="phone-wrap">
+        <div class="phone-tag">Ekran 1 – Gelen Kutusu</div>
+        <div class="phone">
+          <div class="p-status"><span>9:41</span><span>🔋</span></div>
+          <div class="p-header">
+            <i class="fas fa-bars" style="color:white;"></i>
+            <span class="p-logo">Intra Mail Hub</span>
+            <div
+              style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;">
+              ME</div>
+          </div>
+          <div class="p-body">
+            <button class="p-btn"><i class="fas fa-pen"></i> Yeni Mesaj Oluştur</button>
+            <div class="p-section-label">Gelen Mesajlar (2 Okunmamış)</div>
+            <div class="p-card">
+              <div class="p-avatar p-av1">AY</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;">
+                  <div class="p-name">Ali Yılmaz <span class="p-dot"></span></div>
+                  <div class="p-time">14:30</div>
+                </div>
+                <span class="p-badge">Bölge Bayi</span>
+                <div class="p-subj">Aylık Satış Raporları Hk.</div>
+              </div>
+            </div>
+            <div class="p-card">
+              <div class="p-avatar p-av2">MK</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;">
+                  <div class="p-name">Mehmet Kaya <span class="p-dot"></span></div>
+                  <div class="p-time">Dün</div>
+                </div>
+                <span class="p-badge">Yerel Bayi</span>
+                <div class="p-subj">Yeni Stok Talebi - Mayıs</div>
+              </div>
+            </div>
+            <div class="p-card" style="opacity:0.65;">
+              <div class="p-avatar p-av3">AD</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;">
+                  <div class="p-name">Ayşe Demir</div>
+                  <div class="p-time">10 May</div>
+                </div>
+                <span class="p-badge">Fabrika Yöneticisi</span>
+                <div class="p-subj">Sistem Güncellemesi Bildirimi</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EKRAN 2: YENİ MESAJ -->
+      <div class="phone-wrap">
+        <div class="phone-tag" style="background:#0284c7;">Ekran 2 – Yeni Mesaj</div>
+        <div class="phone">
+          <div class="p-status"><span>9:42</span><span>🔋</span></div>
+          <div class="p-header">
+            <i class="fas fa-chevron-left" style="color:white;"></i>
+            <span style="color:white;font-size:14px;font-weight:600;">Yeni Mesaj</span>
+            <span style="width:16px;"></span>
+          </div>
+          <div class="p-body">
+            <div class="p-label">Kime (Hiyerarşi Seçimi)</div>
+            <select class="p-input" style="margin-bottom:10px;">
+              <option>Ali Yılmaz – Bölge Bayi Yöneticisi</option>
+              <option>Ayşe Demir – Fabrika Yöneticisi</option>
+            </select>
+            <div class="p-label">Konu</div>
+            <input type="text" class="p-input" value="Mayıs Ayı Hedefleri">
+            <div class="p-label">Mesajınız</div>
+            <textarea
+              class="p-input p-textarea">Merhaba Ali Bey, bu ayki hedefleri tutturmak için stok artışına ihtiyacımız var.</textarea>
+            <button class="p-ai-btn"><i class="fas fa-magic"></i> AI ile Resmileştir</button>
+            <button class="p-btn" style="margin-bottom:0;"><i class="fas fa-paper-plane"></i> Mesajı Gönder</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EKRAN 3: DETAY -->
+      <div class="phone-wrap">
+        <div class="phone-tag" style="background:#059669;">Ekran 3 – Mesaj Detayı</div>
+        <div class="phone">
+          <div class="p-status"><span>9:45</span><span>🔋</span></div>
+          <div class="p-header">
+            <i class="fas fa-chevron-left" style="color:white;"></i>
+            <span style="color:rgb(237, 237, 237);font-size:14px;font-weight:600;">Mesaj Detayı</span>
+            <i class="fas fa-ellipsis-h" style="color:white;"></i>
+          </div>
+          <div class="p-body">
+            <div class="p-card" style="margin-bottom:12px;">
+              <div class="p-avatar p-av1">AY</div>
+              <div>
+                <div class="p-name">Ali Yılmaz</div>
+                <span class="p-badge">Bölge Bayi Yöneticisi</span>
+                <div style="font-size:10px;color:#64748b;">12 Mayıs 2024, 14:30</div>
+              </div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:white;margin-bottom:8px;">Aylık Satış Raporları Hk.</div>
+            <div class="p-detail-card">
+              Değerli ekip arkadaşlarım,<br><br>
+              Geçen aya ait bölge satış raporlarını sisteme yükledim. Hedeflerimizin %15 üzerine çıktığımızı görmek
+              sevindirici.<br><br>
+              Lütfen inceleyiniz. İyi çalışmalar.
+            </div>
+            <button class="p-ai-btn"><i class="fas fa-robot"></i> AI Hızlı Yanıt Önerisi</button>
+            <div class="p-reply-row">
+              <input type="text" class="p-reply-input" placeholder="Yanıt yazın...">
+              <button class="p-send-btn"><i class="fas fa-paper-plane" style="font-size:12px;"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EKRAN AKIŞI -->
+    <div class="flow-section">
+      <div class="flow-title">2. Ekranlar Arası Geçiş ve Kullanım Akışı</div>
+
+      <div style="display:flex; align-items:flex-start; gap:40px; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-diagram">
+          <div class="flow-node start">🚀 Uygulama Başlangıcı</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node">📥 Gelen Kutusu (Ana Ekran)</div>
+          <div style="display:flex; gap:60px; margin-top:8px;">
+            <div class="flow-diagram">
+              <div class="flow-arrow-label">"+ Yeni Mesaj" tıklanır</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-node cyan">✏️ Yeni Mesaj Ekranı</div>
+              <div class="flow-arrow-label">Gönderilir / İptal</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-node"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);font-size:12px;padding:8px 16px;">↩ Ana Ekrana
+                Dön</div>
+            </div>
+            <div class="flow-diagram">
+              <div class="flow-arrow-label">Mesaja tıklanır</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-node green">📄 Mesaj Detay Ekranı</div>
+              <div class="flow-arrow-label">Yanıt gönderilir (aynı ekran)</div>
+              <div class="flow-arrow">↕</div>
+              <div class="flow-arrow-label">"Geri" tıklanır</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-node"
+                style="background:linear-gradient(135deg,#7c3aed,#4f46e5);font-size:12px;padding:8px 16px;">↩ Ana Ekrana
+                Dön</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scenarios">
+        <div class="scenario-card">
+          <div class="sc-num">1</div>
+          <div class="sc-title">Senaryo 1 – Mesajları Görüntüle</div>
+          <div class="sc-desc">Kullanıcı uygulamayı açar, gelen kutusundaki mesaj listesini hiyerarşik sıraya göre
+            görüntüler.</div>
+        </div>
+        <div class="scenario-card">
+          <div class="sc-num">2</div>
+          <div class="sc-title">Senaryo 2 – Mesaj Gönder</div>
+          <div class="sc-desc">Yeni mesaj ekranına geçer, alıcı seçer, mesaj yazar, AI ile resmileştirir ve gönderir.
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="sc-num">3</div>
+          <div class="sc-title">Senaryo 3 – Mesaja Yanıt Ver</div>
+          <div class="sc-desc">Listeden bir mesaja tıklar, içeriği okur, AI öneri ister ve hızlıca yanıt gönderir.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    LAB 4 – Wireframe ve Ekran Akışları &nbsp;|&nbsp; Muhammed Eren Aydın – 230541034 &nbsp;|&nbsp; Intra Mail Hub
+  </div>
+
+</body>
+
+</html>

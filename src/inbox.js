@@ -13,7 +13,7 @@ let activeThreadId = null;
 // =====================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = './giris.html';
+    window.location.href = '/index.html';
     return;
   }
 
@@ -145,5 +145,5 @@ if (sendBtn) {
 // LOGOUT
 const logoutBtn = document.getElementById('logoutBtn');
 if(logoutBtn) {
-    logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = './giris.html'));
+    logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = '/index.html'));
 }

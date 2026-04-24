@@ -10,14 +10,14 @@ import {
 // =====================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = './giris.html';
+    window.location.href = '/index.html';
     return;
   }
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
   if (!userDoc.exists() || userDoc.data().role !== 'admin') {
     alert("Bu sayfaya erişim yetkiniz yok!");
-    window.location.href = './giris.html';
+    window.location.href = '/index.html';
     return;
   }
 
@@ -376,4 +376,4 @@ async function loadAllMessages() {
     } catch (err) { console.error("Msg error:", err); }
 }
 
-document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = './giris.html'));
+document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => window.location.href = '/index.html'));

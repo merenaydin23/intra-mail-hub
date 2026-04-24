@@ -22,13 +22,13 @@ const getCategoryLabel = (cat) => {
 // ORTAK AUTH VE HAZIRLIK
 // =====================
 onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = './giris.html'; return; }
+  if (!user) { window.location.href = '/index.html'; return; }
 
   try {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (!userDoc.exists() || userDoc.data().role !== 'admin') {
       alert("Bu sayfaya erişim yetkiniz yok!");
-      window.location.href = './giris.html';
+      window.location.href = '/index.html';
       return;
     }
 
