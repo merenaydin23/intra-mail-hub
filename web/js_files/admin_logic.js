@@ -86,6 +86,32 @@ async function initDashboard() {
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
     
+    // Otomatik Bölge Bayi Tanımlama (Sadece 1 kere çalışır)
+    if (!localStorage.getItem('dealers_seeded')) {
+        const dealers = [
+            { name: "Karavil", surname: "Group", email: "karavil.group@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", category: "regional", subRole: "manager" },
+            { name: "Atasaylar", surname: "Group", email: "atasaylar.group@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", category: "regional", subRole: "manager" },
+            { name: "Karavil", surname: "Marmara", email: "karavil.marmara@bellona.com.tr", password: "mRm*23zX90", company: "Karavil Marmara", category: "regional", subRole: "manager" },
+            { name: "Horazan", surname: "Group", email: "horazan.group@bellona.com.tr", password: "hRz@11vB78", company: "Horazan Group", category: "regional", subRole: "manager" },
+            { name: "Gümüşbaşlar", surname: "Birliği", email: "gumusbaslar.birligi@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbaşlar Şirket Birliği", category: "regional", subRole: "manager" },
+            { name: "Yılmaz", surname: "Group", email: "yilmaz.group@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", category: "regional", subRole: "manager" },
+            { name: "Damla Mobilya", surname: "Group Ege", email: "damla.mobilya@bellona.com.tr", password: "dMl&66rW22", company: "Damla Mobilya Group Ege", category: "regional", subRole: "manager" }
+        ];
+
+        for (const d of dealers) {
+            await addDoc(collection(db, "users"), {
+                ...d,
+                role: "user",
+                isActive: true,
+                region: "Belirtilmedi",
+                department: "Yönetici / Patron",
+                createdAt: serverTimestamp()
+            });
+        }
+        localStorage.setItem('dealers_seeded', 'true');
+        location.reload();
+    }
+
     document.getElementById('statTotal').textContent = users.length;
     
     const regions = {};
