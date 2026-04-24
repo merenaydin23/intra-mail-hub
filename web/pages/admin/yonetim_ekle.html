@@ -84,11 +84,11 @@
           <div class="form-grid">
             <div class="form-group" id="companyGroup">
               <label id="companyLabel">Şirket / Bayi Adı</label>
-              <div class="input-box"><i class="fa-solid fa-building"></i><input type="text" id="newUserCompany" placeholder="Şirket Adı" /></div>
+              <div class="input-box"><i class="fa-solid fa-building"></i><input type="text" id="newUserCompany" placeholder="Şirket Adı" autocomplete="off" /></div>
             </div>
             <div class="form-group" id="deptGroup">
               <label>Departman / Görev</label>
-              <div class="input-box"><i class="fa-solid fa-briefcase"></i><input type="text" id="newUserDepartment" placeholder="Örn: Muhasebe" /></div>
+              <div class="input-box"><i class="fa-solid fa-briefcase"></i><input type="text" id="newUserDepartment" placeholder="Örn: Muhasebe" autocomplete="off" /></div>
             </div>
           </div>
           
@@ -97,7 +97,7 @@
              <div class="input-box"><i class="fa-solid fa-user-shield"></i>
               <select id="newUserSubRole">
                 <option value="employee">Operasyonel Personel (Çalışan)</option>
-                <option value="manager" id="managerOption">Yönetici / Bayi Sahibi</option>
+                <option value="manager">Yönetici / Bayi Sahibi</option>
               </select>
              </div>
           </div>
@@ -105,11 +105,11 @@
           <div class="form-section-head"><i class="fa-solid fa-lock-open"></i> Sistem Giriş Verileri</div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Kurumsal E-posta <small style="color:#64748b; font-weight:400;">(Otomatik — üzerine yazabilirsin)</small></label>
-              <div class="input-box"><i class="fa-solid fa-at"></i><input type="text" id="newUserEmail" placeholder="Ad, Kategori ve Firma seçince oluşur" /></div>
+              <label>Kurumsal E-posta <small style="color:#64748b; font-weight:400;">(Otomatik oluşur)</small></label>
+              <div class="input-box"><i class="fa-solid fa-at"></i><input type="text" id="newUserEmail" readonly placeholder="Ad ve Firma girince oluşur" /></div>
             </div>
             <div class="form-group">
-              <label>Sistem Şifresi <small style="color:#64748b; font-weight:400;">(Personel ile paylaşın)</small></label>
+              <label>Sistem Şifresi</label>
               <div class="input-box" style="position: relative;">
                 <i class="fa-solid fa-key"></i>
                 <input type="text" id="newUserPassword" readonly style="font-weight:700; color:var(--primary); padding-right: 90px;" />
