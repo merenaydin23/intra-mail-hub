@@ -142,7 +142,6 @@ async function initDashboard() {
             `).join('');
         }
     }
-    }
 
     // 4. Bölgesel Dağılım Tablosu & Grafik
     const regionStats = {};
