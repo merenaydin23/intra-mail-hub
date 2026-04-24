@@ -59,47 +59,37 @@ async function generateEnterpriseEmail(name, surname) {
 // DASHBOARD & SEEDING
 // =====================
 async function initDashboard() {
-    // Mega Test Verisi Yükleme (V8 - 40 Yeni Kayıt)
-    if (localStorage.getItem('dealers_seeded_v8_mega') !== 'true') {
+    // Mega Test Verisi Yükleme (V10 - Tüm Birimlere Departmanlar)
+    if (localStorage.getItem('dealers_seeded_v10_dept') !== 'true') {
         const regions = ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu"];
-        const depts = ["Üretim", "Sevkiyat", "Muhasebe", "İnsan Kaynakları", "Satış", "Pazarlama", "Bilgi İşlem"];
-        const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya", "Bulut Dizayn", "Toprak Home"];
+        const factoryDepts = ["Pazarlama", "Muhasebe", "İK", "Sevkiyat", "Ar-Ge", "Kalite Kontrol", "Lojistik"];
+        const dealerDepts = ["Satış Temsilcisi", "Muhasebe", "Müşteri İlişkileri", "Pazarlama", "Depo Sorumlusu"];
+        const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya"];
         const names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Zeynep", "Ayşe", "Fatma", "Can", "Murat", "Selin", "Burak", "Derya", "Okan", "Gizem", "Serkan", "Esra", "Umut", "Pelin", "Ege", "Deniz"];
         const surnames = ["Yıldız", "Kaya", "Demir", "Çelik", "Arslan", "Öztürk", "Aydın", "Yavuz", "Şahin", "Kılıç", "Bulut", "Korkmaz", "Erdoğan", "Güneş", "Tezcan", "Eren", "Yalçın", "Güler", "Aksoy", "Toprak"];
 
         const allToSeed = [
-            { name: "Abdulkadir", surname: "Karavil", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
-            { name: "Abdullah", surname: "Gümüşbağlar", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
-            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Yılmaz", surname: "Karavil", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
-            { name: "Kenan", surname: "Atasay", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
-            { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
+            { name: "Abdulkadir", surname: "Karavil", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Abdullah", surname: "Gümüşbağlar", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Yılmaz", surname: "Karavil", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Kenan", surname: "Atasay", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
+            { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager", department: "Bölge Başkanı" }
         ];
 
-        // 20 Yerel Bayi (Owner)
-        for(let i=0; i<20; i++) {
+        // 30 Rastgele Çalışan (Karışık Kategori ve Departman)
+        for(let i=0; i<30; i++) {
+            const cat = i % 3 === 0 ? "factory" : (i % 3 === 1 ? "regional" : "local");
+            const isManager = i < 5; // İlk 5'i patron yap
             allToSeed.push({
                 name: names[i % names.length],
-                surname: surnames[(i+2) % surnames.length],
-                company: companiesList[i % companiesList.length],
+                surname: surnames[(i+5) % surnames.length],
+                company: cat === "factory" ? "Bellona Genel Müdürlük" : companiesList[i % companiesList.length],
                 region: regions[Math.floor(Math.random() * regions.length)],
-                category: "local",
-                subRole: "manager"
-            });
-        }
-
-        // 20 Personel (Employee)
-        for(let i=0; i<20; i++) {
-            const isFactory = i < 10;
-            allToSeed.push({
-                name: names[(i+5) % names.length],
-                surname: surnames[(i+7) % surnames.length],
-                company: isFactory ? "Bellona Genel Müdürlük" : companiesList[i % companiesList.length],
-                region: isFactory ? "İç Anadolu" : regions[Math.floor(Math.random() * regions.length)],
-                category: isFactory ? "factory" : "local",
-                subRole: "employee",
-                department: isFactory ? depts[i % depts.length] : "Satış Temsilcisi"
+                category: cat,
+                subRole: isManager ? "manager" : "employee",
+                department: isManager ? (cat === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi") : (cat === "factory" ? factoryDepts[i % factoryDepts.length] : dealerDepts[i % dealerDepts.length])
             });
         }
 
@@ -122,7 +112,7 @@ async function initDashboard() {
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_v8_mega', 'true');
+        localStorage.setItem('dealers_seeded_v10_dept', 'true');
         location.reload();
     }
 
@@ -132,43 +122,36 @@ async function initDashboard() {
     // 1. Toplam Personel
     document.getElementById('statTotal').textContent = users.length;
 
-    // 2. Yaklaşan Doğum Günleri (Önümüzdeki 30 Gün / 1 Ay)
+    // 2. Şirketin Duayeni (En Yaşlı Üye)
+    const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
+    if (oldest) {
+        document.getElementById('statOldest').textContent = `${oldest.name} ${oldest.surname} (${new Date(oldest.birthDate).getFullYear()})`;
+    }
+
+    // 3. Yaklaşan Doğum Günleri (30 Gün)
     const today = new Date();
     const upcomingBirthdays = users.filter(u => {
         if (!u.birthDate) return false;
         const bday = new Date(u.birthDate);
         const thisYearBday = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
         if (thisYearBday < today) thisYearBday.setFullYear(today.getFullYear() + 1);
-        
-        const diffTime = thisYearBday - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        u.daysRemaining = diffDays; // Sıralama için ekle
-        u.upcomingDate = thisYearBday; // Görüntüleme için ekle
-        return diffDays <= 30; 
+        const diffDays = Math.ceil((thisYearBday - today) / (1000 * 60 * 60 * 24));
+        u.daysRemaining = diffDays;
+        u.upcomingDate = thisYearBday;
+        return diffDays <= 30;
     }).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
     document.getElementById('statBirthdays').textContent = upcomingBirthdays.length;
 
-    // Listeyi Ekranda Göster
     const listDiv = document.getElementById('upcomingBirthdayList');
     if (listDiv) {
-        if (upcomingBirthdays.length === 0) {
-            listDiv.innerHTML = '<p style="text-align:center; color:var(--text-light); padding:2rem;">Önümüzdeki 1 ay içinde doğum günü yok.</p>';
-        } else {
-            listDiv.innerHTML = upcomingBirthdays.map(u => `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f1f5f9;">
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary-dark);">${u.name} ${u.surname}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-light);">${u.company || 'Genel Müdürlük'}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 700; color: var(--accent); font-size: 0.8rem;">${u.daysRemaining === 0 ? 'BUGÜN!' : u.daysRemaining + ' gün kaldı'}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-light);">${u.upcomingDate.toLocaleDateString('tr-TR', {day:'numeric', month:'long'})}</div>
-                    </div>
+        listDiv.innerHTML = upcomingBirthdays.length === 0 ? '<p style="text-align:center;padding:1rem;">Yok</p>' : 
+            upcomingBirthdays.map(u => `
+                <div style="display:flex;justify-content:space-between;padding:0.5rem;border-bottom:1px solid #eee;">
+                    <span><strong>${u.name} ${u.surname}</strong><br><small>${u.company}</small></span>
+                    <span style="text-align:right;"><b style="color:var(--accent);">${u.daysRemaining} gün</b><br><small>${u.upcomingDate.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</small></span>
                 </div>
             `).join('');
-        }
     }
 
     // 4. Bölgesel Dağılım Tablosu & Grafik
@@ -255,6 +238,7 @@ function renderTable(users) {
                 <td><span class="badge" style="background:#f1f5f9; color:#475569;">${catLabel}</span></td>
                 <td>${u.region || '-'}</td>
                 <td>${u.company || '-'}</td>
+                <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || '-'}</span></td>
                 <td><span class="badge ${u.subRole === 'manager' ? 'badge-accent' : 'badge-primary'}">${u.subRole === 'manager' ? 'PATRON' : 'ÇALIŞAN'}</span></td>
                 <td><button onclick="deleteUser('${u.id}')" class="btn-delete"><i class="fa-solid fa-trash"></i></button></td>
             </tr>
@@ -297,14 +281,14 @@ function initEkle() {
             if(companyIn.value === 'Bellona Genel Müdürlük') companyIn.value = '';
         }
 
-        // 2. Rol Mantığı (Owner vs Employee)
+        // 2. Rol Mantığı (Manager vs Employee) - Departman Gösterimi
         if(roleIn.value === 'manager') {
             deptGroup.style.display = 'none';
         } else {
             deptGroup.style.display = 'block';
         }
 
-        // 3. Email Önizleme (Saf Enterprise Format)
+        // 3. Email Önizleme
         if(nameIn.value && surnameIn.value) {
             emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}@bellona.com.tr`;
         }
@@ -326,7 +310,7 @@ function initEkle() {
             region: regionIn.value,
             company: finalCompany,
             subRole: roleIn.value,
-            department: roleIn.value === 'manager' ? null : document.getElementById('newDept').value,
+            department: roleIn.value === 'manager' ? (catIn.value === 'factory' ? "Fabrika Müdürü" : "Bayi Sahibi") : document.getElementById('newDept').value,
             email: email,
             password: pwIn.value,
             role: 'user',
