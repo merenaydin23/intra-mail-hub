@@ -72,6 +72,13 @@ async function initDashboard() {
             { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege" }
         ];
 
+        const getRandomBirthDate = () => {
+            const year = Math.floor(Math.random() * (1990 - 1960 + 1)) + 1960;
+            const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+            const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         for (const d of dealers) {
             const email = `${normalizeTr(d.name)}.${normalizeTr(d.surname)}@bellona.com.tr`;
             await addDoc(collection(db, "users"), {
@@ -83,17 +90,58 @@ async function initDashboard() {
                 role: "user",
                 isActive: true,
                 department: null,
-                birthDate: "1970-01-01",
+                birthDate: getRandomBirthDate(),
                 createdAt: serverTimestamp()
             });
         }
+        localStorage.setItem('dealers_seeded_final_v2', 'true');
         location.reload();
     }
 
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
     
+    // 1. Toplam Personel
     document.getElementById('statTotal').textContent = users.length;
+
+    // 2. Yaklaşan Doğum Günleri (Önümüzdeki 30 Gün / 1 Ay)
+    const today = new Date();
+    const upcomingBirthdays = users.filter(u => {
+        if (!u.birthDate) return false;
+        const bday = new Date(u.birthDate);
+        const thisYearBday = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
+        if (thisYearBday < today) thisYearBday.setFullYear(today.getFullYear() + 1);
+        
+        const diffTime = thisYearBday - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        u.daysRemaining = diffDays; // Sıralama için ekle
+        u.upcomingDate = thisYearBday; // Görüntüleme için ekle
+        return diffDays <= 30; 
+    }).sort((a, b) => a.daysRemaining - b.daysRemaining);
+
+    document.getElementById('statBirthdays').textContent = upcomingBirthdays.length;
+
+    // Listeyi Ekranda Göster
+    const listDiv = document.getElementById('upcomingBirthdayList');
+    if (listDiv) {
+        if (upcomingBirthdays.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:var(--text-light); padding:2rem;">Önümüzdeki 1 ay içinde doğum günü yok.</p>';
+        } else {
+            listDiv.innerHTML = upcomingBirthdays.map(u => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f1f5f9;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary-dark);">${u.name} ${u.surname}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-light);">${u.company || 'Genel Müdürlük'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--accent); font-size: 0.8rem;">${u.daysRemaining === 0 ? 'BUGÜN!' : u.daysRemaining + ' gün kaldı'}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-light);">${u.upcomingDate.toLocaleDateString('tr-TR', {day:'numeric', month:'long'})}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
     // ... diğer istatistikler
 }
 
@@ -124,6 +172,46 @@ async function initPersonel() {
     };
 
     [searchIn, filterCat, filterReg].forEach(el => el?.addEventListener('input', applyFilters));
+    // 4. Bölgesel Dağılım Tablosu & Grafik
+    const regionStats = {};
+    allUsers.forEach(u => {
+        if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1;
+    });
+
+    const regionBody = document.getElementById('regionTableBody');
+    if (regionBody) {
+        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `
+            <tr>
+                <td><strong>${reg}</strong></td>
+                <td>${count} Personel</td>
+            </tr>
+        `).join('');
+    }
+
+    // Chart.js Pasta Grafiği
+    const ctx = document.getElementById('regionChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(regionStats),
+                datasets: [{
+                    data: Object.values(regionStats),
+                    backgroundColor: [
+                        '#0F3D2E', '#1a5c46', '#2d8b6c', '#46b992', '#72d9b6', '#a5eed4', '#d1f7e9'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                }
+            }
+        });
+    }
     renderTable(allUsers);
 }
 

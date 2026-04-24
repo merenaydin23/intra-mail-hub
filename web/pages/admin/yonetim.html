@@ -35,28 +35,45 @@
                 <span class="stat-value" id="statLargest">-</span>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Bugün Doğanlar</span>
+                <span class="stat-label">Yaklaşan Doğum Günleri</span>
                 <span class="stat-value" id="statBirthdays">0</span>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h3>Bölgesel Dağılım</h3>
+        <div class="dashboard-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+            <!-- Sol: Bölgesel Dağılım -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Bölgesel Dağılım Analizi</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; align-items: center;">
+                    <div class="table-wrapper" style="margin-top: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Bölge</th>
+                                    <th>Sayı</th>
+                                </tr>
+                            </thead>
+                            <tbody id="regionTableBody">
+                                <!-- JS ile dolacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
             </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Bölge</th>
-                            <th>Çalışan Sayısı</th>
-                            <th>Durum</th>
-                        </tr>
-                    </thead>
-                    <tbody id="regionTableBody">
-                        <!-- JS with mock or real data -->
-                    </tbody>
-                </table>
+
+            <!-- Sağ: Doğum Günü Listesi -->
+            <div class="card" style="border-left: 4px solid var(--accent);">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-cake-candles" style="color:var(--accent); margin-right:8px;"></i> Yaklaşan Doğum Günleri (1 Ay)</h3>
+                </div>
+                <div id="upcomingBirthdayList" style="padding: 1rem; max-height: 400px; overflow-y: auto;">
+                    <p style="text-align: center; color: var(--text-light); padding: 2rem;">Hesaplanıyor...</p>
+                </div>
             </div>
         </div>
     </main>
