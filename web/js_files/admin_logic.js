@@ -59,11 +59,12 @@ async function generateEnterpriseEmail(name, surname) {
 // DASHBOARD & SEEDING
 // =====================
 async function initDashboard() {
-    // Mega Test Verisi Yükleme (V10 - Tüm Birimlere Departmanlar)
-    if (localStorage.getItem('dealers_seeded_v10_dept') !== 'true') {
+    // Mega Test Verisi Yükleme (V11 - Profesyonel Birim Revizesi)
+    if (localStorage.getItem('dealers_seeded_v11_pro') !== 'true') {
         const regions = ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu"];
-        const factoryDepts = ["Pazarlama", "Muhasebe", "İK", "Sevkiyat", "Ar-Ge", "Kalite Kontrol", "Lojistik"];
-        const dealerDepts = ["Satış Temsilcisi", "Muhasebe", "Müşteri İlişkileri", "Pazarlama", "Depo Sorumlusu"];
+        const factoryDepts = ["Fabrika Üretim Hattı", "Fabrika Ar-Ge Merkezi", "Fabrika Lojistik Birimi", "Fabrika Kalite Kontrol", "Fabrika İnsan Kaynakları", "Fabrika Muhasebe"];
+        const regionalDepts = ["Bölge Pazarlama Sorumlusu", "Bölge Muhasebe Müdürü", "Bölge Sevkiyat Koordinatörü", "Bölge Satış Yönetimi"];
+        const localDepts = ["Mağaza Satış Temsilcisi", "Mağaza Muhasebe", "Mağaza Teknik Servis", "Mağaza Depo Sorumlusu"];
         const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya"];
         const names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Zeynep", "Ayşe", "Fatma", "Can", "Murat", "Selin", "Burak", "Derya", "Okan", "Gizem", "Serkan", "Esra", "Umut", "Pelin", "Ege", "Deniz"];
         const surnames = ["Yıldız", "Kaya", "Demir", "Çelik", "Arslan", "Öztürk", "Aydın", "Yavuz", "Şahin", "Kılıç", "Bulut", "Korkmaz", "Erdoğan", "Güneş", "Tezcan", "Eren", "Yalçın", "Güler", "Aksoy", "Toprak"];
@@ -78,27 +79,21 @@ async function initDashboard() {
             { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager", department: "Bölge Başkanı" }
         ];
 
-        // 30 Rastgele Çalışan (Karışık Kategori ve Departman)
         for(let i=0; i<30; i++) {
             const cat = i % 3 === 0 ? "factory" : (i % 3 === 1 ? "regional" : "local");
-            const isManager = i < 5; // İlk 5'i patron yap
+            const isManager = i < 3;
+            let dept = isManager ? (cat === "factory" ? "Fabrika Genel Müdürü" : "Şirket Sahibi / Patron") : (cat === "factory" ? factoryDepts[i % factoryDepts.length] : (cat === "regional" ? regionalDepts[i % regionalDepts.length] : localDepts[i % localDepts.length]));
+            
             allToSeed.push({
                 name: names[i % names.length],
-                surname: surnames[(i+5) % surnames.length],
+                surname: surnames[(i+3) % surnames.length],
                 company: cat === "factory" ? "Bellona Genel Müdürlük" : companiesList[i % companiesList.length],
                 region: regions[Math.floor(Math.random() * regions.length)],
                 category: cat,
                 subRole: isManager ? "manager" : "employee",
-                department: isManager ? (cat === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi") : (cat === "factory" ? factoryDepts[i % factoryDepts.length] : dealerDepts[i % dealerDepts.length])
+                department: dept
             });
         }
-
-        const getRandomBirthDate = () => {
-            const year = Math.floor(Math.random() * (2000 - 1960 + 1)) + 1960;
-            const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-            const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
 
         for (const d of allToSeed) {
             const email = await generateEnterpriseEmail(d.name, d.surname);
@@ -108,27 +103,25 @@ async function initDashboard() {
                 password: generateStrictPassword(),
                 role: "user",
                 isActive: true,
-                birthDate: getRandomBirthDate(),
+                birthDate: `19${Math.floor(Math.random()*40)+60}-01-01`,
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_v10_dept', 'true');
+        localStorage.setItem('dealers_seeded_v11_pro', 'true');
         location.reload();
+        return;
     }
 
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
     
-    // 1. Toplam Personel
     document.getElementById('statTotal').textContent = users.length;
 
-    // 2. Şirketin Duayeni (En Yaşlı Üye)
     const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
-    if (oldest) {
+    if (oldest && document.getElementById('statOldest')) {
         document.getElementById('statOldest').textContent = `${oldest.name} ${oldest.surname} (${new Date(oldest.birthDate).getFullYear()})`;
     }
 
-    // 3. Yaklaşan Doğum Günleri (30 Gün)
     const today = new Date();
     const upcomingBirthdays = users.filter(u => {
         if (!u.birthDate) return false;
@@ -141,7 +134,7 @@ async function initDashboard() {
         return diffDays <= 30;
     }).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
-    document.getElementById('statBirthdays').textContent = upcomingBirthdays.length;
+    if(document.getElementById('statBirthdays')) document.getElementById('statBirthdays').textContent = upcomingBirthdays.length;
 
     const listDiv = document.getElementById('upcomingBirthdayList');
     if (listDiv) {
@@ -154,20 +147,12 @@ async function initDashboard() {
             `).join('');
     }
 
-    // 4. Bölgesel Dağılım Tablosu & Grafik
     const regionStats = {};
-    users.forEach(u => {
-        if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1;
-    });
+    users.forEach(u => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
 
     const regionBody = document.getElementById('regionTableBody');
     if (regionBody) {
-        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `
-            <tr>
-                <td><strong>${reg}</strong></td>
-                <td>${count} Personel</td>
-            </tr>
-        `).join('');
+        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `<tr><td><strong>${reg}</strong></td><td>${count} Personel</td></tr>`).join('');
     }
 
     const ctx = document.getElementById('regionChart');
@@ -182,11 +167,7 @@ async function initDashboard() {
                     borderWidth: 0
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
         });
     }
 }
