@@ -398,9 +398,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Şifre</label>
+                    <label>Şifre <small style="font-size:0.7rem; text-transform:none; letter-spacing:0; color:#94a3b8;">(10 karakter: 6 harf + 2 simge + 2 rakam)</small></label>
                     <div class="input-group">
-                        <input type="password" id="password" placeholder="Güçlü şifre oluştur →" required />
+                        <input type="password" id="password" placeholder="Şifre oluştur →" maxlength="10" required />
                         <i class="fa-solid fa-lock field-icon"></i>
                         <button type="button" class="pw-toggle" id="pwToggle">
                             <i class="fa-regular fa-eye" id="pwIcon"></i>
@@ -408,15 +408,12 @@
                     </div>
                     <div class="pw-actions">
                         <button type="button" class="btn-generate" id="btnGenerate">
-                            <i class="fa-solid fa-wand-sparkles"></i> Güçlü Şifre Oluştur
+                            <i class="fa-solid fa-wand-sparkles"></i> Şifre Oluştur
                         </button>
                         <button type="button" class="btn-copy" id="btnCopy">
                             <i class="fa-regular fa-copy"></i> Kopyala
                         </button>
-                    </div>
-                    <div class="pw-strength" id="pwStrength">
-                        <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
-                        <span class="pw-strength-label" id="pwStrengthLabel"></span>
+                        <span id="charCounter" style="font-size:0.7rem; color:#94a3b8; display:flex; align-items:center; margin-left:auto;">0/10</span>
                     </div>
                 </div>
 
@@ -484,17 +481,19 @@
             ico.className = pw.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
         });
 
-        // Güçlü şifre üretici
-        function generateStrongPassword(len = 16) {
-            const sets = [
-                'ABCDEFGHJKLMNPQRSTUVWXYZ',
-                'abcdefghjkmnpqrstuvwxyz',
-                '23456789',
-                '!@#$%&*-_+'
-            ];
-            const all = sets.join('');
-            let pw = sets.map(s => s[Math.floor(Math.random() * s.length)]);
-            for (let i = 4; i < len; i++) pw.push(all[Math.floor(Math.random() * all.length)]);
+        // 10 karakterli şifre üretici: 6 harf + 2 simge + 2 rakam
+        function generatePassword() {
+            const letters = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+            const symbols = '!@#$%&*-_+';
+            const digits  = '23456789';
+            let pw = [];
+            // 6 harf
+            for (let i = 0; i < 6; i++) pw.push(letters[Math.floor(Math.random() * letters.length)]);
+            // 2 özel simge
+            for (let i = 0; i < 2; i++) pw.push(symbols[Math.floor(Math.random() * symbols.length)]);
+            // 2 rakam
+            for (let i = 0; i < 2; i++) pw.push(digits[Math.floor(Math.random() * digits.length)]);
+            // Karıştır (Fisher-Yates)
             for (let i = pw.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [pw[i], pw[j]] = [pw[j], pw[i]];
@@ -502,46 +501,31 @@
             return pw.join('');
         }
 
-        function getStrength(pw) {
-            let score = 0;
-            if (pw.length >= 12) score++;
-            if (pw.length >= 16) score++;
-            if (/[A-Z]/.test(pw)) score++;
-            if (/[0-9]/.test(pw)) score++;
-            if (/[^A-Za-z0-9]/.test(pw)) score++;
-            if (score <= 2) return { label: 'Zayıf', color: '#ef4444', pct: '30%' };
-            if (score <= 3) return { label: 'Orta', color: '#f59e0b', pct: '60%' };
-            return { label: 'Güçlü 💪', color: '#10b981', pct: '100%' };
-        }
+        const pwInput     = document.getElementById('password');
+        const btnGen      = document.getElementById('btnGenerate');
+        const btnCopy     = document.getElementById('btnCopy');
+        const charCounter = document.getElementById('charCounter');
 
-        function showStrength(pw) {
-            const s = getStrength(pw);
-            document.getElementById('pwStrength').classList.add('visible');
-            document.getElementById('pwStrengthFill').style.cssText = `width:${s.pct}; background:${s.color}`;
-            const lbl = document.getElementById('pwStrengthLabel');
-            lbl.textContent = 'Şifre Gücü: ' + s.label;
-            lbl.style.color = s.color;
-        }
-
-        const pwInput  = document.getElementById('password');
-        const btnGen   = document.getElementById('btnGenerate');
-        const btnCopy  = document.getElementById('btnCopy');
+        // Elle yazarken 10 karakter sınırı (maxlength HTML'de de var ama JS ile de kontrol)
+        pwInput.addEventListener('input', () => {
+            const len = pwInput.value.length;
+            charCounter.textContent = len + '/10';
+            charCounter.style.color = len === 10 ? '#10b981' : '#94a3b8';
+            btnCopy.classList.toggle('visible', len > 0);
+        });
 
         btnGen.addEventListener('click', () => {
-            const newPw = generateStrongPassword(16);
+            const newPw = generatePassword();
             pwInput.type = 'text';
             document.getElementById('pwIcon').className = 'fa-regular fa-eye-slash';
             pwInput.value = newPw;
+            charCounter.textContent = '10/10';
+            charCounter.style.color = '#10b981';
             btnCopy.classList.add('visible');
-            showStrength(newPw);
-        });
-
-        pwInput.addEventListener('input', () => {
-            if (pwInput.value) { showStrength(pwInput.value); btnCopy.classList.add('visible'); }
-            else { document.getElementById('pwStrength').classList.remove('visible'); btnCopy.classList.remove('visible'); }
         });
 
         btnCopy.addEventListener('click', () => {
+            if (!pwInput.value) return;
             navigator.clipboard.writeText(pwInput.value).then(() => {
                 btnCopy.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
                 btnCopy.style.background = 'rgba(16,185,129,0.2)';
