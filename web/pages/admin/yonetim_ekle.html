@@ -98,9 +98,37 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group" id="deptGroup">
-                        <label>Departman (Zorunlu)</label>
-                        <div class="input-box"><i class="fa-solid fa-briefcase"></i><input type="text" id="newDept" placeholder="Örn: Muhasebe" /></div>
+                    <div class="form-group" id="deptGroup" style="display: none;">
+                        <label>Departman / Birim</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <select id="newDept" required>
+                                <option value="">Departman Seçiniz...</option>
+                                <!-- Fabrika Birimleri -->
+                                <optgroup label="Fabrika Birimleri" id="optFactory">
+                                    <option value="Fabrika Üretim Hattı">Fabrika Üretim Hattı</option>
+                                    <option value="Fabrika Ar-Ge Merkezi">Fabrika Ar-Ge Merkezi</option>
+                                    <option value="Fabrika Lojistik Birimi">Fabrika Lojistik Birimi</option>
+                                    <option value="Fabrika Kalite Kontrol">Fabrika Kalite Kontrol</option>
+                                    <option value="Fabrika İnsan Kaynakları">Fabrika İnsan Kaynakları</option>
+                                    <option value="Fabrika Muhasebe">Fabrika Muhasebe</option>
+                                </optgroup>
+                                <!-- Bölge Birimleri -->
+                                <optgroup label="Bölge Bayi Birimleri" id="optRegional">
+                                    <option value="Bölge Pazarlama Sorumlusu">Bölge Pazarlama Sorumlusu</option>
+                                    <option value="Bölge Muhasebe Müdürü">Bölge Muhasebe Müdürü</option>
+                                    <option value="Bölge Sevkiyat Koordinatörü">Bölge Sevkiyat Koordinatörü</option>
+                                    <option value="Bölge Satış Yönetimi">Bölge Satış Yönetimi</option>
+                                </optgroup>
+                                <!-- Yerel Birimler -->
+                                <optgroup label="Yerel Mağaza Birimleri" id="optLocal">
+                                    <option value="Mağaza Satış Temsilcisi">Mağaza Satış Temsilcisi</option>
+                                    <option value="Mağaza Muhasebe">Mağaza Muhasebe</option>
+                                    <option value="Mağaza Teknik Servis">Mağaza Teknik Servis</option>
+                                    <option value="Mağaza Depo Sorumlusu">Mağaza Depo Sorumlusu</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

@@ -56,39 +56,75 @@ async function generateEnterpriseEmail(name, surname) {
 }
 
 // =====================
-// DASHBOARD & SEEDING
+// OTOMATİK VERİ TEMİZLEME (PERFORMANS ODAKLI)
 // =====================
-async function initDashboard() {
-    // Mega Test Verisi Yükleme (V11 - Profesyonel Birim Revizesi)
-    if (localStorage.getItem('dealers_seeded_v11_pro') !== 'true') {
+async function autoCleanupUsers() {
+    // Her saniye temizlik yapma, sadece günde bir veya manuel tetiklemede yap
+    const lastCleanup = localStorage.getItem('last_cleanup_timestamp');
+    const now = Date.now();
+    if (lastCleanup && (now - lastCleanup < 3600000)) return; // 1 saatte bir kontrol et
+
+    const allSnap = await getDocs(collection(db, "users"));
+    let deleted = false;
+    for (const docSnap of allSnap.docs) {
+        const u = docSnap.data();
+        if (u.role !== 'admin' && (!u.department || u.department === "-" || u.department === "")) {
+            await deleteDoc(doc(db, "users", docSnap.id));
+            deleted = true;
+        }
+    }
+    localStorage.setItem('last_cleanup_timestamp', now.toString());
+    if (deleted) location.reload();
+}
+
+    // =====================
+    // V13 - KAYSERİ MERKEZ FABRİKA DÜZENLEMESİ (ESKİLERİ SİL VE YENİDEN KUR)
+    // =====================
+    if (localStorage.getItem('seed_v13_kayseri_final') !== 'true') {
+        const allSnap = await getDocs(collection(db, "users"));
+        // Önce tüm kullanıcıları silelim ki tertemiz (Reduce Data) bir başlangıç olsun
+        for (const docSnap of allSnap.docs) {
+            if(docSnap.data().role !== 'admin') await deleteDoc(doc(db, "users", docSnap.id));
+        }
+
         const regions = ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu"];
         const factoryDepts = ["Fabrika Üretim Hattı", "Fabrika Ar-Ge Merkezi", "Fabrika Lojistik Birimi", "Fabrika Kalite Kontrol", "Fabrika İnsan Kaynakları", "Fabrika Muhasebe"];
         const regionalDepts = ["Bölge Pazarlama Sorumlusu", "Bölge Muhasebe Müdürü", "Bölge Sevkiyat Koordinatörü", "Bölge Satış Yönetimi"];
         const localDepts = ["Mağaza Satış Temsilcisi", "Mağaza Muhasebe", "Mağaza Teknik Servis", "Mağaza Depo Sorumlusu"];
+        
         const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya"];
         const names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Zeynep", "Ayşe", "Fatma", "Can", "Murat", "Selin", "Burak", "Derya", "Okan", "Gizem", "Serkan", "Esra", "Umut", "Pelin", "Ege", "Deniz"];
         const surnames = ["Yıldız", "Kaya", "Demir", "Çelik", "Arslan", "Öztürk", "Aydın", "Yavuz", "Şahin", "Kılıç", "Bulut", "Korkmaz", "Erdoğan", "Güneş", "Tezcan", "Eren", "Yalçın", "Güler", "Aksoy", "Toprak"];
 
         const allToSeed = [
             { name: "Abdulkadir", surname: "Karavil", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Abdullah", surname: "Gümüşbağlar", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Yılmaz", surname: "Karavil", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Kenan", surname: "Atasay", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager", department: "Bölge Başkanı" },
-            { name: "Hakan", surname: "Kırklar", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager", department: "Bölge Başkanı" }
+            { name: "Ercan", surname: "Yılmaz", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager", department: "Bölge Koordinatörü" },
+            { name: "Kenan", surname: "Aydın", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager", department: "Bölge Başkanı" }
         ];
 
-        for(let i=0; i<30; i++) {
-            const cat = i % 3 === 0 ? "factory" : (i % 3 === 1 ? "regional" : "local");
-            const isManager = i < 3;
-            let dept = isManager ? (cat === "factory" ? "Fabrika Genel Müdürü" : "Şirket Sahibi / Patron") : (cat === "factory" ? factoryDepts[i % factoryDepts.length] : (cat === "regional" ? regionalDepts[i % regionalDepts.length] : localDepts[i % localDepts.length]));
-            
+        // Sadece 25 Kişilik Elit Kadro (Reduce Data)
+        for(let i=0; i<25; i++) {
+            const cat = i < 8 ? "factory" : (i < 16 ? "regional" : "local");
+            const isManager = i % 8 === 0;
+            let dept = "";
+            let region = regions[Math.floor(Math.random() * regions.length)];
+            let company = companiesList[i % companiesList.length];
+
+            if(cat === "factory") {
+                region = "İç Anadolu"; // FABRİKA SADECE KAYSERİ'DE!
+                company = "Bellona Kayseri Fabrika";
+                dept = isManager ? "Fabrika Genel Müdürü" : factoryDepts[i % factoryDepts.length];
+            } else if(cat === "regional") {
+                dept = isManager ? "Bölge Koordinatörü" : regionalDepts[i % regionalDepts.length];
+            } else {
+                dept = isManager ? "Mağaza Sahibi / Patron" : localDepts[i % localDepts.length];
+            }
+
             allToSeed.push({
                 name: names[i % names.length],
-                surname: surnames[(i+3) % surnames.length],
-                company: cat === "factory" ? "Bellona Genel Müdürlük" : companiesList[i % companiesList.length],
-                region: regions[Math.floor(Math.random() * regions.length)],
+                surname: surnames[(i+2) % surnames.length],
+                company: company,
+                region: region,
                 category: cat,
                 subRole: isManager ? "manager" : "employee",
                 department: dept
@@ -100,28 +136,40 @@ async function initDashboard() {
             await addDoc(collection(db, "users"), {
                 ...d,
                 email: email,
-                password: generateStrictPassword(),
+                password: "Bellona123!",
                 role: "user",
                 isActive: true,
                 birthDate: `19${Math.floor(Math.random()*40)+60}-01-01`,
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_v11_pro', 'true');
+        localStorage.setItem('seed_v13_kayseri_final', 'true');
         location.reload();
         return;
     }
 
-    const snap = await getDocs(collection(db, "users"));
-    const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
-    
-    document.getElementById('statTotal').textContent = users.length;
-
-    const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
-    if (oldest && document.getElementById('statOldest')) {
-        document.getElementById('statOldest').textContent = `${oldest.name} ${oldest.surname} (${new Date(oldest.birthDate).getFullYear()})`;
+    // 1. Verileri Çek (En Önce ve Hızlıca)
+    let users = [];
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
+    } catch (err) {
+        console.error("Dashboard veri çekme hatası:", err);
+        return;
     }
 
+    // 2. Temel İstatistikler
+    const statTotal = document.getElementById('statTotal');
+    if (statTotal) statTotal.textContent = users.length;
+
+    // 3. Şirketin Duayeni
+    const statOldest = document.getElementById('statOldest');
+    if (statOldest) {
+        const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
+        statOldest.textContent = oldest ? `${oldest.name} ${oldest.surname} (${new Date(oldest.birthDate).getFullYear()})` : "Veri Yok";
+    }
+
+    // 4. Yaklaşan Doğum Günleri
     const today = new Date();
     const upcomingBirthdays = users.filter(u => {
         if (!u.birthDate) return false;
@@ -134,19 +182,21 @@ async function initDashboard() {
         return diffDays <= 30;
     }).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
-    if(document.getElementById('statBirthdays')) document.getElementById('statBirthdays').textContent = upcomingBirthdays.length;
+    const statBirthdays = document.getElementById('statBirthdays');
+    if (statBirthdays) statBirthdays.textContent = upcomingBirthdays.length;
 
     const listDiv = document.getElementById('upcomingBirthdayList');
     if (listDiv) {
-        listDiv.innerHTML = upcomingBirthdays.length === 0 ? '<p style="text-align:center;padding:1rem;">Yok</p>' : 
+        listDiv.innerHTML = upcomingBirthdays.length === 0 ? '<p style="text-align:center;padding:1rem;">Yakın zamanda doğum günü yok.</p>' : 
             upcomingBirthdays.map(u => `
                 <div style="display:flex;justify-content:space-between;padding:0.5rem;border-bottom:1px solid #eee;">
                     <span><strong>${u.name} ${u.surname}</strong><br><small>${u.company}</small></span>
-                    <span style="text-align:right;"><b style="color:var(--accent);">${u.daysRemaining} gün</b><br><small>${u.upcomingDate.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</small></span>
+                    <span style="text-align:right;"><b style="color:var(--accent);">${u.daysRemaining === 0 ? 'BUGÜN!' : u.daysRemaining + ' gün'}</b><br><small>${u.upcomingDate.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</small></span>
                 </div>
             `).join('');
     }
 
+    // 5. Bölgesel Dağılım & Grafik
     const regionStats = {};
     users.forEach(u => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
 
@@ -177,6 +227,7 @@ async function initDashboard() {
 // =====================
 let allUsers = [];
 async function initPersonel() {
+    autoCleanupUsers(); // Arka planda çalışsın, sayfayı yavaşlatmasın
     const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
     allUsers = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => u.role !== 'admin');
     
@@ -262,11 +313,22 @@ function initEkle() {
             if(companyIn.value === 'Bellona Genel Müdürlük') companyIn.value = '';
         }
 
-        // 2. Rol Mantığı (Manager vs Employee) - Departman Gösterimi
+        // 2. Rol Mantığı (Manager vs Employee) - Departman Gösterimi ve Filtreleme
         if(roleIn.value === 'manager') {
             deptGroup.style.display = 'none';
         } else {
             deptGroup.style.display = 'block';
+            // Kategorilere göre departman optgroup'larını filtrele
+            const optF = document.getElementById('optFactory');
+            const optR = document.getElementById('optRegional');
+            const optL = document.getElementById('optLocal');
+            
+            if(optF) optF.style.display = (catIn.value === 'factory') ? 'block' : 'none';
+            if(optR) optR.style.display = (catIn.value === 'regional') ? 'block' : 'none';
+            if(optL) optL.style.display = (catIn.value === 'local') ? 'block' : 'none';
+            
+            // Eğer kategori değişirse ve eski seçim artık görünmüyorsa temizle
+            document.getElementById('newDept').value = "";
         }
 
         // 3. Email Önizleme
