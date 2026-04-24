@@ -218,19 +218,15 @@ function normalizeTr(str) {
 
 // Rol + Ad + Firma'ya göre e-posta üret
 function generateEmail(name, company, category, subRole) {
-    const firstName = normalizeTr(name.trim().split(' ')[0]); // Sadece ilk ad
-    const firmSlug = normalizeTr((company || '').replace(/\s+/g, '')); // Firma adı slug
+    const firstName = normalizeTr(name.trim().split(' ')[0]);
+    const firmSlug = normalizeTr((company || '').replace(/\s+/g, ''));
 
-    if (category === 'factory') {
-        return `${firstName}.fabrika@bellona.com.tr`;
-    } else if (category === 'regional') {
-        return `${firstName}.${firmSlug}.bolge@bellona.com.tr`;
-    } else if (category === 'local') {
-        if (subRole === 'manager') {
-            return `${firstName}.${firmSlug}.yerel@bellona.com.tr`;
-        } else {
-            return `${firstName}.${firmSlug}.calisan@bellona.com.tr`;
-        }
+    if (category === 'factory') return `${firstName}.fabrika@bellona.com.tr`;
+    if (category === 'regional') return `${firstName}.${firmSlug}.bolge@bellona.com.tr`;
+    if (category === 'local') {
+        return subRole === 'manager' 
+            ? `${firstName}.${firmSlug}.yerel@bellona.com.tr` 
+            : `${firstName}.${firmSlug}.calisan@bellona.com.tr`;
     }
     return `${firstName}@bellona.com.tr`;
 }
@@ -267,61 +263,74 @@ function generateStrictPassword() {
 }
 
 function initEkle() {
+    console.log("initEkle: Başlatıldı.");
     const form = document.getElementById('addUserForm');
-
-    const toggleFields = () => {
-        const cat = document.getElementById('newUserCategory').value;
-        const compGroup = document.getElementById('companyGroup');
-        if(cat === 'factory') {
-            document.getElementById('newUserCompany').value = 'Bellona Merkez';
-            if(compGroup) compGroup.style.display = 'none';
-        } else {
-            document.getElementById('newUserCompany').value = '';
-            if(compGroup) compGroup.style.display = 'block';
-        }
-        updateEmailPreview();
-    };
-
-    const toggleRoleFields = () => {
-        const subRole = document.getElementById('newUserSubRole').value;
-        const deptGroup = document.getElementById('deptGroup');
-        if (subRole === 'manager') {
-            document.getElementById('newUserDepartment').value = 'Yönetici / Sahip';
-            if (deptGroup) deptGroup.style.display = 'none';
-        } else {
-            document.getElementById('newUserDepartment').value = '';
-            if (deptGroup) deptGroup.style.display = 'block';
-        }
-        updateEmailPreview();
-    };
-
-    // Herhangi bir ilgili alan değiştiğinde e-postayı güncelle
-    document.getElementById('newUserName')?.addEventListener('input', updateEmailPreview);
-    document.getElementById('newUserCategory')?.addEventListener('change', toggleFields);
-    document.getElementById('newUserCompany')?.addEventListener('input', updateEmailPreview);
-    document.getElementById('newUserSubRole')?.addEventListener('change', toggleRoleFields);
-
+    const nameInput = document.getElementById('newUserName');
+    const companyInput = document.getElementById('newUserCompany');
+    const categoryInput = document.getElementById('newUserCategory');
+    const subRoleInput = document.getElementById('newUserSubRole');
+    const emailInput = document.getElementById('newUserEmail');
     const pwInput = document.getElementById('newUserPassword');
-    const btnCopyPw = document.getElementById('btnCopyUserPw');
-    
-    // Sayfa yüklendiğinde şifreyi oluştur ve alanları ayarla
-    if(pwInput && !pwInput.value) {
-        pwInput.value = generateStrictPassword();
-    }
-    toggleRoleFields(); // Başlangıçta depertman alanını duruma göre gizle/göster
-    
-    if(btnCopyPw) {
-        btnCopyPw.addEventListener('click', () => {
-            if(!pwInput.value) return;
+    const deptGroup = document.getElementById('deptGroup');
+    const compGroup = document.getElementById('companyGroup');
+
+    // MÜKEMMEL OTOMATİK GÜNCELLEME
+    const updateAll = () => {
+        const name = nameInput.value;
+        const company = companyInput.value;
+        const category = categoryInput.value;
+        const subRole = subRoleInput.value;
+
+        // 1. Departman Gizleme/Gösterme
+        if (subRole === 'manager') {
+            if (deptGroup) deptGroup.style.display = 'none';
+            document.getElementById('newUserDepartment').value = 'Yönetici / Bayi Sahibi';
+        } else {
+            if (deptGroup) deptGroup.style.display = 'block';
+            if (document.getElementById('newUserDepartment').value === 'Yönetici / Bayi Sahibi') {
+                document.getElementById('newUserDepartment').value = '';
+            }
+        }
+
+        // 2. Şirket Gizleme (Fabrika ise)
+        if (category === 'factory') {
+            if (compGroup) compGroup.style.display = 'none';
+            companyInput.value = 'Bellona Merkez';
+        } else {
+            if (compGroup) compGroup.style.display = 'block';
+        }
+
+        // 3. E-posta Üretimi
+        if (name && category) {
+            emailInput.value = generateEmail(name, company, category, subRole);
+        } else {
+            emailInput.value = '';
+        }
+    };
+
+    // Dinleyici Ekle
+    [nameInput, companyInput, categoryInput, subRoleInput].forEach(el => {
+        el?.addEventListener('input', updateAll);
+        el?.addEventListener('change', updateAll);
+    });
+
+    // Sayfa açılışında şifre üret ve durumu ayarla
+    if (pwInput && !pwInput.value) pwInput.value = generateStrictPassword();
+    updateAll();
+
+    // Kopyalama Butonu
+    const btnCopy = document.getElementById('btnCopyUserPw');
+    if (btnCopy) {
+        btnCopy.addEventListener('click', () => {
             navigator.clipboard.writeText(pwInput.value).then(() => {
-                const oldHTML = btnCopyPw.innerHTML;
-                btnCopyPw.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
-                btnCopyPw.style.background = 'rgba(16,185,129,0.2)';
-                btnCopyPw.style.color = '#059669';
+                const originalText = btnCopy.innerHTML;
+                btnCopy.innerHTML = '<i class="fa-solid fa-check"></i> Tamam!';
+                btnCopy.style.background = '#dcfce7';
+                btnCopy.style.color = '#166534';
                 setTimeout(() => {
-                    btnCopyPw.innerHTML = oldHTML;
-                    btnCopyPw.style.background = 'rgba(79,70,229,0.1)';
-                    btnCopyPw.style.color = 'var(--primary)';
+                    btnCopy.innerHTML = originalText;
+                    btnCopy.style.background = 'rgba(79,70,229,0.1)';
+                    btnCopy.style.color = 'var(--primary)';
                 }, 2000);
             });
         });
@@ -332,37 +341,38 @@ function initEkle() {
 
 async function handleAddUser(e) {
     e.preventDefault();
-    const name     = document.getElementById('newUserName').value.trim();
-    const tcNo     = document.getElementById('newUserTc').value.trim();
-    const birthDate= document.getElementById('newUserBirth').value;
-    const category = document.getElementById('newUserCategory').value;
-    const company  = document.getElementById('newUserCompany').value.trim();
-    const department= document.getElementById('newUserDepartment').value.trim();
-    const subRole  = document.getElementById('newUserSubRole').value;
-    const email    = generateEmail(name, company, category, subRole);
-    const password = document.getElementById('newUserPassword').value;
-
-    const data = {
-        name, tcNo, birthDate, category, company, department, subRole,
-        email, password,
-        isActive: true, role: 'user', createdAt: serverTimestamp()
-    };
-
     const btn = document.getElementById('addUserBtn');
     const msg = document.getElementById('formMessage');
+
+    const data = {
+        name: document.getElementById('newUserName').value.trim(),
+        tcNo: document.getElementById('newUserTc').value.trim(),
+        birthDate: document.getElementById('newUserBirth').value,
+        category: document.getElementById('newUserCategory').value,
+        company: document.getElementById('newUserCompany').value.trim(),
+        department: document.getElementById('newUserDepartment').value.trim(),
+        subRole: document.getElementById('newUserSubRole').value,
+        email: document.getElementById('newUserEmail').value,
+        password: document.getElementById('newUserPassword').value,
+        isActive: true,
+        role: 'user',
+        createdAt: serverTimestamp()
+    };
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
 
     try {
         await addDoc(collection(db, "users"), data);
         msg.style.display = 'block';
+        msg.className = '';
         msg.style.background = '#ecfdf5';
         msg.style.color = '#065f46';
-        msg.innerHTML = `✅ <strong>${name}</strong> başarıyla eklendi!<br>📧 E-posta: <strong>${email}</strong> &nbsp;|&nbsp; 🔑 Şifre: <strong>${password}</strong>`;
+        msg.innerHTML = `✅ <strong>${data.name}</strong> başarıyla eklendi!`;
         e.target.reset();
-        document.getElementById('newUserEmail').value = '';
+        // Şifreyi yenile ve durumu güncelle
         document.getElementById('newUserPassword').value = generateStrictPassword();
-        toggleRoleFields();
+        initEkle(); 
     } catch(err) {
         msg.style.display = 'block';
         msg.style.background = '#fef2f2';
