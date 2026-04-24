@@ -266,11 +266,24 @@ function initEkle() {
         updateEmailPreview();
     };
 
+    const toggleRoleFields = () => {
+        const subRole = document.getElementById('newUserSubRole').value;
+        const deptGroup = document.getElementById('deptGroup');
+        if (subRole === 'manager') {
+            document.getElementById('newUserDepartment').value = 'Yönetici / Sahip';
+            if (deptGroup) deptGroup.style.display = 'none';
+        } else {
+            document.getElementById('newUserDepartment').value = '';
+            if (deptGroup) deptGroup.style.display = 'block';
+        }
+        updateEmailPreview();
+    };
+
     // Herhangi bir ilgili alan değiştiğinde e-postayı güncelle
     document.getElementById('newUserName')?.addEventListener('input', updateEmailPreview);
     document.getElementById('newUserCategory')?.addEventListener('change', toggleFields);
     document.getElementById('newUserCompany')?.addEventListener('input', updateEmailPreview);
-    document.getElementById('newUserSubRole')?.addEventListener('change', updateEmailPreview);
+    document.getElementById('newUserSubRole')?.addEventListener('change', toggleRoleFields);
 
     form?.addEventListener('submit', handleAddUser);
 }
