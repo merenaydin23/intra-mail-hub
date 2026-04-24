@@ -36,8 +36,9 @@ export function generateStrictPassword() {
 }
 
 // Rol + Ad + Soyad'a göre e-posta üret
-async function generateUniqueEmail(name, surname) {
-    const base = `${normalizeTr(name)}.${normalizeTr(surname)}`;
+async function generateUniqueEmail(name, surname, subRole) {
+    const isAdmin = subRole === 'manager' ? '.admin' : '';
+    const base = `${normalizeTr(name)}.${normalizeTr(surname)}${isAdmin}`;
     let email = `${base}@bellona.com.tr`;
     
     const usersRef = collection(db, "users");
@@ -49,7 +50,7 @@ async function generateUniqueEmail(name, surname) {
     // Çakışma varsa numara ekle
     let i = 2;
     while (true) {
-        email = `${base}${i}@bellona.com.tr`;
+        email = `${normalizeTr(name)}.${normalizeTr(surname)}${isAdmin}${i}@bellona.com.tr`;
         const q2 = query(usersRef, where("email", "==", email));
         const snap2 = await getDocs(q2);
         if (snap2.empty) return email;
@@ -86,28 +87,30 @@ async function initDashboard() {
     const snap = await getDocs(collection(db, "users"));
     const users = snap.docs.map(d => d.data()).filter(u => u.role !== 'admin');
     
-    // Otomatik Bölge Bayi Tanımlama (FİNAL SÜRÜM - SIFIRDAN)
-    if (localStorage.getItem('dealers_seeded_final_v1') !== 'true') {
+    // Bölge Bayilerini Otomatik Tanımla (V5 - Admin Mail Formatlı)
+    const regionalCheck = await getDocs(query(collection(db, "users"), where("category", "==", "regional")));
+    if (regionalCheck.empty || localStorage.getItem('dealers_seeded_v5') !== 'true') {
         const dealers = [
-            { name: "Abdulkadir", surname: "Karavil", email: "abdulkadir.karavil@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Ercan", surname: "Yılmaz", email: "ercan.yilmaz@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
-            { name: "Abdullah", surname: "Gümüşbağlar", email: "abdullah.gumusbaglar@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
-            { name: "Kenan", surname: "Aydın", email: "kenan.aydin@bellona.com.tr", password: "aYd*23zX90", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
-            { name: "Yılmaz", surname: "Karavil", email: "yilmaz.karavil@bellona.com.tr", password: "kRv@11vB78", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
-            { name: "Kenan", surname: "Atasay", email: "kenan.atasay@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
-            { name: "Hakan", surname: "Kırklar", email: "hakan.kirklar@bellona.com.tr", password: "kRk&66rW22", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
+            { name: "Abdulkadir", surname: "Karavil", email: "abdulkadir.karavil.admin@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Ercan", surname: "Yılmaz", email: "ercan.yilmaz.admin@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
+            { name: "Abdullah", surname: "Gümüşbağlar", email: "abdullah.gumusbaglar.admin@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Aydın", email: "kenan.aydin.admin@bellona.com.tr", password: "aYd*23zX90", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Yılmaz", surname: "Karavil", email: "yilmaz.karavil.admin@bellona.com.tr", password: "kRv@11vB78", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Atasay", email: "kenan.atasay.admin@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
+            { name: "Hakan", surname: "Kırklar", email: "hakan.kirklar.admin@bellona.com.tr", password: "kRk&66rW22", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
         ];
 
         for (const d of dealers) {
             await addDoc(collection(db, "users"), {
                 ...d,
+                birthDate: "1970-01-01",
                 role: "user",
                 isActive: true,
                 department: "Yönetici / Patron",
                 createdAt: serverTimestamp()
             });
         }
-        localStorage.setItem('dealers_seeded_final_v1', 'true');
+        localStorage.setItem('dealers_seeded_v5', 'true');
         location.reload();
     }
 
@@ -139,6 +142,33 @@ async function initDashboard() {
 let allUsers = [];
 
 async function initPersonel() {
+    // Bölge Bayilerini Otomatik Tanımla (Personel Sayfasında da Kontrol Et)
+    const regionalCheck = await getDocs(query(collection(db, "users"), where("category", "==", "regional")));
+    if (regionalCheck.empty) {
+        const dealers = [
+            { name: "Abdulkadir", surname: "Karavil", email: "abdulkadir.karavil@bellona.com.tr", password: "kRv!89pL12", company: "Karavil Group", region: "Doğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Ercan", surname: "Yılmaz", email: "ercan.yilmaz@bellona.com.tr", password: "yLm%55dQ11", company: "Yılmaz Group", region: "İç Anadolu", category: "regional", subRole: "manager" },
+            { name: "Abdullah", surname: "Gümüşbağlar", email: "abdullah.gumusbaglar@bellona.com.tr", password: "gMs$77nJ34", company: "Gümüşbağlar Şirket Birliği", region: "Karadeniz", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Aydın", email: "kenan.aydin@bellona.com.tr", password: "aYd*23zX90", company: "Aydın Group", region: "Güneydoğu Anadolu", category: "regional", subRole: "manager" },
+            { name: "Yılmaz", surname: "Karavil", email: "yilmaz.karavil@bellona.com.tr", password: "kRv@11vB78", company: "Karavil Marmara", region: "Marmara", category: "regional", subRole: "manager" },
+            { name: "Kenan", surname: "Atasay", email: "kenan.atasay@bellona.com.tr", password: "aTs#44mK56", company: "Atasaylar Group", region: "Akdeniz", category: "regional", subRole: "manager" },
+            { name: "Hakan", surname: "Kırklar", email: "hakan.kirklar@bellona.com.tr", password: "kRk&66rW22", company: "Kırklar Şirketler Birliği", region: "Ege", category: "regional", subRole: "manager" }
+        ];
+
+        for (const d of dealers) {
+            await addDoc(collection(db, "users"), {
+                ...d,
+                birthDate: "1970-01-01",
+                role: "user",
+                isActive: true,
+                department: "Yönetici / Patron",
+                createdAt: serverTimestamp()
+            });
+        }
+        location.reload();
+        return;
+    }
+
     const snap = await getDocs(query(collection(db, "users"), orderBy("createdAt", "desc")));
     allUsers = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => u.role !== 'admin');
     
@@ -235,7 +265,8 @@ function initEkle() {
 
         // 3. Email Önizleme
         if(nameIn.value && surnameIn.value) {
-            emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}@bellona.com.tr`;
+            const isAdmin = roleIn.value === 'manager' ? '.admin' : '';
+            emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}${isAdmin}@bellona.com.tr`;
         }
     };
     
@@ -246,7 +277,7 @@ function initEkle() {
     
     document.getElementById('addUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = await generateUniqueEmail(nameIn.value, surnameIn.value);
+        const email = await generateUniqueEmail(nameIn.value, surnameIn.value, roleIn.value);
         const finalCompany = (catIn.value === 'regional') ? regionCompanyIn.value : companyIn.value;
         
         const data = {
