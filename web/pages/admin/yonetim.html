@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | Yönetim Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="logo-text">BELLONA HUB</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users"></i> Personel Listesi</a>
+            <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i> Yeni Kayıt</a>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <h1>Genel Bakış</h1>
+            <div class="user-pill"><i class="fa-solid fa-circle-user"></i> Admin</div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Toplam Çalışan</span>
+                <span class="stat-value" id="statTotal">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">En Kalabalık Bayi</span>
+                <span class="stat-value" id="statLargest">-</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Bugün Doğanlar</span>
+                <span class="stat-value" id="statBirthdays">0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Bölgesel Dağılım</h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bölge</th>
+                            <th>Çalışan Sayısı</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regionTableBody">
+                        <!-- JS with mock or real data -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+</body>
+</html>
