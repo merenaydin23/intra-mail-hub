@@ -30,11 +30,11 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Ad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newName" placeholder="Ali" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newName" placeholder="Adını giriniz" required /></div>
                     </div>
                     <div class="form-group">
                         <label>Soyad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newSurname" placeholder="Yılmaz" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newSurname" placeholder="Soyadını giriniz" required /></div>
                     </div>
                     <div class="form-group">
                         <label>Doğum Tarihi</label>
@@ -42,7 +42,18 @@
                     </div>
                     <div class="form-group">
                         <label>Bölge</label>
-                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i><input type="text" id="newRegion" placeholder="İç Anadolu" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i>
+                            <select id="newRegion" required>
+                                <option value="" disabled selected>Bölge seçiniz</option>
+                                <option value="Marmara">Marmara</option>
+                                <option value="Ege">Ege</option>
+                                <option value="İç Anadolu">İç Anadolu</option>
+                                <option value="Akdeniz">Akdeniz</option>
+                                <option value="Karadeniz">Karadeniz</option>
+                                <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

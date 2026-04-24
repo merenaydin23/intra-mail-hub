@@ -149,14 +149,11 @@ function initEkle() {
     if(pwIn) pwIn.value = generateStrictPassword();
     
     const updateUI = () => {
-        // 1. Kategori Kontrolü (Fabrika ise Bölge/Şirket kısıtla)
+        // 1. Kategori Kontrolü (Fabrika ise Şirketi otomatik yapabiliriz ama Bölge serbest)
         if(catIn.value === 'factory') {
-            regionIn.value = 'Kayseri';
             companyIn.value = 'Bellona Genel Müdürlük';
-            regionIn.readOnly = true;
             companyIn.readOnly = true;
         } else {
-            regionIn.readOnly = false;
             companyIn.readOnly = false;
         }
 
