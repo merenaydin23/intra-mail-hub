@@ -142,7 +142,43 @@ async function initDashboard() {
             `).join('');
         }
     }
-    // ... diğer istatistikler
+    }
+
+    // 4. Bölgesel Dağılım Tablosu & Grafik
+    const regionStats = {};
+    users.forEach(u => {
+        if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1;
+    });
+
+    const regionBody = document.getElementById('regionTableBody');
+    if (regionBody) {
+        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `
+            <tr>
+                <td><strong>${reg}</strong></td>
+                <td>${count} Personel</td>
+            </tr>
+        `).join('');
+    }
+
+    const ctx = document.getElementById('regionChart');
+    if (ctx && typeof Chart !== 'undefined') {
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(regionStats),
+                datasets: [{
+                    data: Object.values(regionStats),
+                    backgroundColor: ['#0F3D2E','#1a5c46','#2d8b6c','#46b992','#72d9b6','#a5eed4','#d1f7e9'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+            }
+        });
+    }
 }
 
 // =====================
@@ -158,12 +194,13 @@ async function initPersonel() {
     const filterReg = document.getElementById('filterRegion');
 
     const applyFilters = () => {
-        const term = searchIn.value.toLowerCase();
+        const term = searchIn.value.toLocaleLowerCase('tr-TR');
         const cat = filterCat.value;
         const reg = filterReg.value;
 
         const filtered = allUsers.filter(u => {
-            const matchSearch = (u.name + ' ' + u.surname + ' ' + (u.company || '')).toLowerCase().includes(term);
+            const fullName = (u.name + ' ' + u.surname + ' ' + (u.company || '')).toLocaleLowerCase('tr-TR');
+            const matchSearch = fullName.includes(term);
             const matchCat = (cat === 'all' || u.category === cat);
             const matchReg = (reg === 'all' || u.region === reg);
             return matchSearch && matchCat && matchReg;
@@ -172,46 +209,6 @@ async function initPersonel() {
     };
 
     [searchIn, filterCat, filterReg].forEach(el => el?.addEventListener('input', applyFilters));
-    // 4. Bölgesel Dağılım Tablosu & Grafik
-    const regionStats = {};
-    allUsers.forEach(u => {
-        if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1;
-    });
-
-    const regionBody = document.getElementById('regionTableBody');
-    if (regionBody) {
-        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `
-            <tr>
-                <td><strong>${reg}</strong></td>
-                <td>${count} Personel</td>
-            </tr>
-        `).join('');
-    }
-
-    // Chart.js Pasta Grafiği
-    const ctx = document.getElementById('regionChart');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(regionStats),
-                datasets: [{
-                    data: Object.values(regionStats),
-                    backgroundColor: [
-                        '#0F3D2E', '#1a5c46', '#2d8b6c', '#46b992', '#72d9b6', '#a5eed4', '#d1f7e9'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
-                }
-            }
-        });
-    }
     renderTable(allUsers);
 }
 
