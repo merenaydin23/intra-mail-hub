@@ -15,6 +15,7 @@ export function initRegisterPage() {
     const regionCompanyIn = document.getElementById("newRegionCompany");
     const deptGroup = document.getElementById("deptGroup");
     const pwIn = document.getElementById("newPassword");
+    const phoneIn = document.getElementById("newPhone");
     const emailPreview = document.getElementById("newEmail");
     const form = document.getElementById("addUserForm");
 
@@ -65,6 +66,7 @@ export function initRegisterPage() {
             name: nameIn.value,
             surname: surnameIn.value,
             birthDate: document.getElementById("newBirth").value,
+            phone: phoneIn?.value.trim() || "",
             category: catIn.value,
             region: regionIn.value,
             company: finalCompany,
