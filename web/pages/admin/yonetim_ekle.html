@@ -82,18 +82,21 @@
                         <label>Şehir</label>
                         <div class="input-box">
                             <i class="fa-solid fa-city"></i>
-                            <input type="text" id="newCity" name="city" placeholder="Bölgeye göre otomatik atanır" readonly required />
+                            <select id="newCity" name="city" required>
+                                <option value="" disabled selected>Önce bölge seçiniz</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group form-group-card" id="companyGroup">
                         <label>Bayi / Şirket Adı</label>
                         <div class="input-box">
                             <i class="fa-solid fa-building"></i>
-                            <!-- Yerel Bayi için normal input -->
-                                                        <input type="text" id="newCompany" name="company" placeholder="Bayi adını giriniz" required />
+                            <!-- Yerel Bayi için normal input + datalist -->
+                            <input type="text" id="newCompany" name="company" list="companySuggestions" placeholder="Bayi adını giriniz" required />
+                            <datalist id="companySuggestions"></datalist>
                             
                             <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
-                                                        <select id="newRegionCompany" name="regionCompany" style="display:none;">
+                            <select id="newRegionCompany" name="regionCompany" style="display:none;">
                                 <option value="" disabled selected>Grup seçiniz</option>
                                 <option value="Karavil Group">Karavil Group (Abdulkadir Karavil)</option>
                                 <option value="Yılmaz Group">Yılmaz Group (Ercan Yılmaz)</option>

@@ -1,6 +1,6 @@
-import { createUserRecord } from "../services/user-service.js";
+import { createUserRecord, getAllUsers } from "../services/user-service.js";
 import { generateEnterpriseEmail, generateStrictPassword, normalizeTr } from "../utils/user-utils.js";
-import { getRandomCityForRegion } from "../utils/location-utils.js";
+import { getRandomCityForRegion, getCitiesForRegion } from "../utils/location-utils.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
 
@@ -24,6 +24,48 @@ export function initRegisterPage() {
     if (!form) return;
     if (pwIn) pwIn.value = generateStrictPassword();
 
+    const updateCities = () => {
+        const selectedRegion = regionIn.value;
+        const cities = getCitiesForRegion(selectedRegion);
+        
+        // Clear and populate city select
+        const currentCity = cityIn.value;
+        cityIn.innerHTML = '<option value="" disabled selected>Şehir seçiniz</option>';
+        cities.forEach(city => {
+            const opt = document.createElement('option');
+            opt.value = city;
+            opt.textContent = city;
+            cityIn.appendChild(opt);
+        });
+
+        // Re-select if possible (for initial load/factory mode)
+        if (cities.includes(currentCity)) {
+            cityIn.value = currentCity;
+        }
+    };
+
+    const updateDealers = async () => {
+        const selectedCity = cityIn.value;
+        if (!selectedCity) return;
+
+        const users = await getAllUsers();
+        const dealers = [...new Set(users
+            .filter(u => u.city === selectedCity && u.company)
+            .map(u => u.company))];
+
+        const datalist = document.getElementById("companySuggestions");
+        if (datalist) {
+            datalist.innerHTML = "";
+            dealers.forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d;
+                datalist.appendChild(opt);
+            });
+        }
+    };
+
+    let lastRegion = "";
+
     const updateUI = () => {
         if (catIn.value === "factory") {
             companyIn.value = "Bellona Genel Müdürlük";
@@ -34,20 +76,40 @@ export function initRegisterPage() {
                 regionIn.value = "İç Anadolu";
                 regionIn.disabled = true;
             }
-            if (cityIn) cityIn.value = "Kayseri";
+            if (cityIn) {
+                // Ensure Kayseri is in the list
+                if (lastRegion !== "İç Anadolu") {
+                    updateCities();
+                    lastRegion = "İç Anadolu";
+                }
+                cityIn.value = "Kayseri";
+                cityIn.disabled = true;
+            }
         } else if (catIn.value === "regional") {
             companyIn.style.display = "none";
             regionCompanyIn.style.display = "block";
             companyIn.readOnly = false;
             if (regionIn) regionIn.disabled = false;
-            if (cityIn) cityIn.value = getRandomCityForRegion(regionIn.value);
+            if (cityIn) {
+                cityIn.disabled = false;
+                if (regionIn.value !== lastRegion) {
+                    updateCities();
+                    lastRegion = regionIn.value;
+                }
+            }
         } else {
             companyIn.style.display = "block";
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
             if (regionIn) regionIn.disabled = false;
-            if (cityIn) cityIn.value = getRandomCityForRegion(regionIn.value);
+            if (cityIn) {
+                cityIn.disabled = false;
+                if (regionIn.value !== lastRegion) {
+                    updateCities();
+                    lastRegion = regionIn.value;
+                }
+            }
         }
 
         deptGroup.style.display = roleIn.value === "manager" ? "none" : "block";
@@ -66,7 +128,12 @@ export function initRegisterPage() {
         }
     };
 
-    [nameIn, surnameIn, catIn, roleIn, regionIn].forEach((el) => el?.addEventListener("input", updateUI));
+    [nameIn, surnameIn, catIn, roleIn].forEach((el) => el?.addEventListener("input", updateUI));
+    regionIn?.addEventListener("change", () => {
+        updateCities();
+        updateUI();
+    });
+    cityIn?.addEventListener("change", updateDealers);
     updateUI();
 
     form.addEventListener("submit", async (e) => {
