@@ -13,14 +13,14 @@
 <body>
     <aside class="sidebar">
         <div class="logo">
-            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" style="max-height: 40px; filter: brightness(0) invert(1);">
-            <span class="logo-text" style="margin-left: 10px;">HUB</span>
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+            <span class="logo-text">YÖNETİM HUB</span>
         </div>
         <nav class="sidebar-nav">
             <a href="yonetim.html" class="nav-item active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
             <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users"></i> Personel Listesi</a>
             <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i> Yeni Kayıt</a>
-            <a href="#" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i> Tüm Mesajlar</a>
+            <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i> Tüm Mesajlar</a>
             <div style="margin-top: auto; padding-top: 2rem;">
                 <a href="../../index.html" class="nav-item" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</a>
             </div>
@@ -30,7 +30,10 @@
     <main>
         <header>
             <h1><i class="fa-solid fa-chart-line" style="margin-right:0.5rem;"></i> Genel Bakış</h1>
-            <div class="user-pill"><i class="fa-solid fa-circle-user"></i> General Admin</div>
+            <div class="header-actions">
+                <a href="yonetim_mesajlar.html" class="btn-outline"><i class="fa-solid fa-timeline"></i> İşlem Akışı</a>
+                <div class="user-pill"><i class="fa-solid fa-circle-user"></i> Bellona Admin</div>
+            </div>
         </header>
 
         <!-- ROW 1: Ana İstatistik Kartları -->

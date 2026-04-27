@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | Tüm Mesajlar ve Audit Akışı</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+            <span class="logo-text">YÖNETİM HUB</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users"></i> Personel Listesi</a>
+            <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i> Yeni Kayıt</a>
+            <a href="yonetim_mesajlar.html" class="nav-item active"><i class="fa-solid fa-envelope-open-text"></i> Tüm Mesajlar</a>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <h1><i class="fa-solid fa-comments" style="margin-right:8px;"></i> Tüm Mesajlar ve İşlem Geçmişi</h1>
+            <div class="header-actions">
+                <a href="yonetim.html" class="btn-outline"><i class="fa-solid fa-house"></i> Dashboard</a>
+                <div class="user-pill"><i class="fa-solid fa-user-shield"></i> Bellona Admin</div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid-2col">
+            <section class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-bullhorn" style="margin-right:8px; color:#007b7b;"></i> Kurumsal Mesaj Kutusu</h3>
+                    <span class="badge badge-primary">Canlı</span>
+                </div>
+                <div id="messageFeed" class="audit-feed">
+                    <div class="audit-empty"><i class="fa-solid fa-spinner fa-spin"></i> Mesaj akışı yükleniyor...</div>
+                </div>
+            </section>
+
+            <section class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-timeline" style="margin-right:8px; color:#007b7b;"></i> Kim, Neyi, Ne Zaman Yaptı?</h3>
+                    <span class="badge badge-accent">Audit</span>
+                </div>
+                <div id="auditFeed" class="audit-feed">
+                    <div class="audit-empty"><i class="fa-solid fa-spinner fa-spin"></i> Audit kayıtları yükleniyor...</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+</body>
+</html>
