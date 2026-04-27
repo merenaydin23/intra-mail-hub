@@ -32,6 +32,19 @@ export async function initPersonnelPage() {
     renderTableRows(tbody, allUsers);
 
     tbody?.addEventListener("click", async (event) => {
+        const clickedRow = event.target.closest(".personnel-main-row");
+        if (clickedRow) {
+            const userId = clickedRow.getAttribute("data-user-id");
+            const detailRow = tbody.querySelector(`.personnel-detail-row[data-detail-id="${userId}"]`);
+            const chevron = clickedRow.querySelector(".detail-chevron");
+            if (detailRow) {
+                const isOpen = !detailRow.hasAttribute("hidden");
+                detailRow.toggleAttribute("hidden", isOpen);
+                if (chevron) chevron.classList.toggle("is-open", !isOpen);
+            }
+            return;
+        }
+
         const btn = event.target.closest("[data-action='delete-user']");
         if (!btn) return;
         const userId = btn.getAttribute("data-user-id");
