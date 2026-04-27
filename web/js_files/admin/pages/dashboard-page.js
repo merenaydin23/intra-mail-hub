@@ -58,12 +58,41 @@ export async function initDashboardPage() {
         }).join("");
     }
 
+    renderCityCoverage(users);
+
     if (typeof Chart !== "undefined") {
         buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, managers, employees, users });
     }
 
     renderInsights({ users, localUsers, regionalUsers });
     renderBirthdays(users);
+}
+
+function renderCityCoverage(users) {
+    const cityStats = {};
+    users.forEach((u) => {
+        const city = u.category === "factory" ? "Kayseri" : (u.city || "");
+        if (!city) return;
+        cityStats[city] = (cityStats[city] || 0) + 1;
+    });
+
+    const sortedCities = Object.entries(cityStats).sort((a, b) => b[1] - a[1]);
+    const leadBadge = document.getElementById("cityCoverageLead");
+    const list = document.getElementById("cityCoverageList");
+    if (!list) return;
+
+    if (!sortedCities.length) {
+        if (leadBadge) leadBadge.textContent = "Şehir verisi bulunamadı";
+        list.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#7b8b91;padding:1.2rem;">Şehir verisi henüz oluşturulmamış.</td></tr>`;
+        return;
+    }
+
+    const [topCity, topCount] = sortedCities[0];
+    if (leadBadge) leadBadge.textContent = `${topCity} şehrinde ${topCount} çalışan`;
+    list.innerHTML = sortedCities.slice(0, 10).map(([city, count]) => {
+        const note = city === "Kayseri" ? "Fabrika merkezi" : "Bayi yoğunluğu";
+        return `<tr><td><strong>${city}</strong></td><td>${count}</td><td>${note}</td></tr>`;
+    }).join("");
 }
 
 function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, managers, employees, users }) {
