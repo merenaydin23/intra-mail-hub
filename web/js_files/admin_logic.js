@@ -77,89 +77,10 @@ async function autoCleanupUsers() {
     if (deleted) location.reload();
 }
 
-    // =====================
-    // V14 - GENİŞ BAYİ KADROSU & KAYSERİ FABRİKA (KESİN DÜZEN)
-    // =====================
-    if (localStorage.getItem('seed_v14_wide_teams') !== 'true') {
-        const allSnap = await getDocs(collection(db, "users"));
-        for (const docSnap of allSnap.docs) {
-            if(docSnap.data().role !== 'admin') await deleteDoc(doc(db, "users", docSnap.id));
-        }
+async function initDashboard() {
+    autoCleanupUsers();
 
-        const regions = ["Marmara", "Ege", "İç Anadolu", "Akdeniz", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu"];
-        const factoryDepts = ["Üretim Hattı", "Ar-Ge Merkezi", "Lojistik Birimi", "Kalite Kontrol", "İnsan Kaynakları", "Muhasebe"];
-        const regionalDepts = ["Pazarlama", "Muhasebe", "Sevkiyat", "Satış"];
-        const localDepts = ["Satış", "Muhasebe", "Teknik Servis", "Depo"];
-        
-        const companiesList = ["Yıldız Mobilya", "Kaya Concept", "Demir Palace", "Arslan Ev Gereçleri", "Öztürk Bellona", "Güneş Mobilya", "Toprak Home", "Deniz Tasarım", "Işık Dekor", "Bulut Dizayn"];
-        const names = ["Ahmet", "Mehmet", "Mustafa", "Ali", "Zeynep", "Ayşe", "Fatma", "Can", "Murat", "Selin", "Burak", "Derya", "Okan", "Gizem", "Serkan", "Esra", "Umut", "Pelin", "Ege", "Deniz", "Hakan", "Merve", "Buse", "Kaan", "Arda"];
-        const surnames = ["Yıldız", "Kaya", "Demir", "Çelik", "Arslan", "Öztürk", "Aydın", "Yavuz", "Şahin", "Kılıç", "Bulut", "Korkmaz", "Erdoğan", "Güneş", "Tezcan", "Eren", "Yalçın", "Güler", "Aksoy", "Toprak", "Can", "Özkan", "Kurt", "Tekin", "Polat"];
 
-        const allToSeed = [];
-
-        // 1. Fabrika (Sadece Kayseri - 8 Kişi)
-        for(let i=0; i<8; i++) {
-            allToSeed.push({
-                name: names[i % names.length],
-                surname: surnames[i % surnames.length],
-                company: "Bellona Kayseri Ana Fabrika",
-                region: "İç Anadolu",
-                category: "factory",
-                subRole: i === 0 ? "manager" : "employee",
-                department: i === 0 ? "Fabrika Genel Müdürü" : "Fabrika " + factoryDepts[i % factoryDepts.length]
-            });
-        }
-
-        // 2. Bölge Bayileri (5 Farklı Şirket, Her Birinde 3 Personel = 15 Kişi)
-        for(let i=0; i<5; i++) {
-            const companyName = companiesList[i] + " Bölge Dağıtım";
-            const region = regions[i % regions.length];
-            for(let j=0; j<3; j++) {
-                allToSeed.push({
-                    name: names[(i*3 + j + 5) % names.length],
-                    surname: surnames[(i*3 + j + 5) % surnames.length],
-                    company: companyName,
-                    region: region,
-                    category: "regional",
-                    subRole: j === 0 ? "manager" : "employee",
-                    department: j === 0 ? "Bölge Koordinatörü" : "Bölge " + regionalDepts[j % regionalDepts.length]
-                });
-            }
-        }
-
-        // 3. Yerel Bayiler (10 Farklı Mağaza, Her Birinde 4 Personel = 40 Kişi)
-        for(let i=0; i<10; i++) {
-            const companyName = companiesList[i % companiesList.length] + " Showroom";
-            const region = regions[Math.floor(Math.random() * regions.length)];
-            for(let j=0; j<4; j++) {
-                allToSeed.push({
-                    name: names[(i*4 + j + 10) % names.length],
-                    surname: surnames[(i*4 + j + 10) % surnames.length],
-                    company: companyName,
-                    region: region,
-                    category: "local",
-                    subRole: j === 0 ? "manager" : "employee",
-                    department: j === 0 ? "Mağaza Sahibi / Patron" : "Mağaza " + localDepts[j % localDepts.length]
-                });
-            }
-        }
-
-        for (const d of allToSeed) {
-            const email = await generateEnterpriseEmail(d.name, d.surname);
-            await addDoc(collection(db, "users"), {
-                ...d,
-                email: email,
-                password: "Bellona123!",
-                role: "user",
-                isActive: true,
-                birthDate: `19${Math.floor(Math.random()*40)+60}-01-01`,
-                createdAt: serverTimestamp()
-            });
-        }
-        localStorage.setItem('seed_v14_wide_teams', 'true');
-        location.reload();
-        return;
-    }
 
     // 1. Verileri Çek (En Önce ve Hızlıca)
     let users = [];
