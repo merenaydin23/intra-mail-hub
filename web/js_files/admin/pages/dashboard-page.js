@@ -1,5 +1,13 @@
 import { getAllUsers } from "../services/user-service.js";
 
+const CHART_PALETTE = {
+    region: ["#2a7f7f", "#56a3a3", "#8ec5c5", "#6b9fbf", "#8ea7c7", "#8093a9", "#a3b0be"],
+    category: ["#2a7f7f", "#72b3c7", "#7b8ea6"],
+    company: ["#2a7f7f", "#4f9f9f", "#7dc3be", "#6fa8c4", "#8fa6c2", "#9eb8c8", "#7b8ea6"],
+    role: ["#2a7f7f", "#a8cfd0"],
+    department: "#6f90ad"
+};
+
 export async function initDashboardPage() {
     let users = [];
     try {
@@ -67,7 +75,7 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
                 labels: sortedRegions.map((r) => r[0]),
                 datasets: [{
                     data: sortedRegions.map((r) => r[1]),
-                    backgroundColor: ["#2a7f7f", "#4f9f9f", "#6e8eb1", "#8ea5c4", "#7caeb8", "#5d99a8", "#9db8cb"],
+                    backgroundColor: CHART_PALETTE.region,
                     borderWidth: 2,
                     borderColor: "#fff"
                 }]
@@ -100,7 +108,7 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
                 labels: ["Fabrika", "Bölge Bayisi", "Yerel Bayi"],
                 datasets: [{
                     data: [factoryUsers.length, regionalUsers.length, localUsers.length],
-                    backgroundColor: ["#2a7f7f", "#4f9bb2", "#6f8fb0"],
+                    backgroundColor: CHART_PALETTE.category,
                     borderColor: "#fff",
                     borderWidth: 3
                 }]
@@ -135,7 +143,12 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
             type: "bar",
             data: {
                 labels: topCompanies.map((c) => c[0].length > 22 ? `${c[0].substring(0, 20)}…` : c[0]),
-                datasets: [{ data: topCompanies.map((c) => c[1]), backgroundColor: "#007b7b", borderRadius: 6, borderSkipped: false }]
+                datasets: [{
+                    data: topCompanies.map((c) => c[1]),
+                    backgroundColor: topCompanies.map((_, idx) => CHART_PALETTE.company[idx % CHART_PALETTE.company.length]),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
             },
             options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } } }
         });
@@ -145,7 +158,10 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
     if (roleCtx) {
         new Chart(roleCtx, {
             type: "doughnut",
-            data: { labels: ["Yönetici / Patron", "Çalışan"], datasets: [{ data: [managers.length, employees.length], backgroundColor: ["#007b7b", "#9fd8d8"], borderColor: "#fff", borderWidth: 3 }] },
+            data: {
+                labels: ["Yönetici / Patron", "Çalışan"],
+                datasets: [{ data: [managers.length, employees.length], backgroundColor: CHART_PALETTE.role, borderColor: "#fff", borderWidth: 3 }]
+            },
             options: { responsive: true, maintainAspectRatio: false, cutout: "55%" }
         });
     }
@@ -159,7 +175,7 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
             type: "bar",
             data: {
                 labels: topDepts.map((d) => d[0].length > 25 ? `${d[0].substring(0, 23)}…` : d[0]),
-                datasets: [{ data: topDepts.map((d) => d[1]), backgroundColor: "#2a9db2", borderRadius: 6, borderSkipped: false }]
+                datasets: [{ data: topDepts.map((d) => d[1]), backgroundColor: CHART_PALETTE.department, borderRadius: 6, borderSkipped: false }]
             },
             options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } } }
         });
