@@ -38,7 +38,7 @@ export function renderTableRows(tbody, users) {
                         <strong>${fullName || "-"}</strong>
                     </div>
                 </td>
-                <td>${u.company || "-"}</td>
+                <td>${u.company || "-"} <span class="badge badge-primary" style="font-size: 0.6rem; padding: 0.15rem 0.4rem; vertical-align: middle; margin-left: 4px;">#${u.dealerCode || "0000"}</span></td>
                 <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || "-"}</span></td>
                 <td><span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
             </tr>
@@ -51,6 +51,7 @@ export function renderTableRows(tbody, users) {
                             <div><span class="detail-label">Şehir</span><span class="detail-value">${u.city || "-"}</span></div>
                             <div><span class="detail-label">Bölge</span><span class="detail-value">${u.region || "-"}</span></div>
                             <div><span class="detail-label">Kategori</span><span class="detail-value">${catLabel}</span></div>
+                            <div><span class="detail-label">Bayi Kodu</span><span class="detail-value">#${u.dealerCode || "0000"}</span></div>
                         </div>
                         <button data-action="delete-user" data-user-id="${u.id}" class="btn-delete"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
                     </div>

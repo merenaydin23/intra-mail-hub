@@ -25,8 +25,8 @@ export function generateStrictPassword() {
     return pw.sort(() => Math.random() - 0.5).join("");
 }
 
-export async function generateEnterpriseEmail(name, surname) {
-    const base = `${normalizeTr(name)}.${normalizeTr(surname)}`;
+export async function generateEnterpriseEmail(name, surname, dealerCode = "0000") {
+    const base = `${normalizeTr(name)}.${normalizeTr(surname)}.${dealerCode}`;
     let email = `${base}@bellona.com.tr`;
     const usersRef = collection(db, "users");
 

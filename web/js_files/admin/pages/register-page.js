@@ -18,6 +18,7 @@ export function initRegisterPage() {
     const deptGroup = document.getElementById("deptGroup");
     const pwIn = document.getElementById("newPassword");
     const phoneIn = document.getElementById("newPhone");
+    const dealerCodeIn = document.getElementById("newDealerCode");
     const emailPreview = document.getElementById("newEmail");
     const form = document.getElementById("addUserForm");
 
@@ -84,6 +85,7 @@ export function initRegisterPage() {
                     lastRegion = existingDealer.region;
                 }
                 cityIn.value = existingDealer.city;
+                dealerCodeIn.value = existingDealer.dealerCode || "";
                 lockedByDealer = true;
             }
         }
@@ -104,6 +106,10 @@ export function initRegisterPage() {
                 }
                 cityIn.value = "Kayseri";
                 cityIn.disabled = true;
+            }
+            if (dealerCodeIn) {
+                dealerCodeIn.value = "0000";
+                dealerCodeIn.disabled = true;
             }
         } else if (catIn.value === "regional") {
             companyIn.style.display = "none";
@@ -135,6 +141,7 @@ export function initRegisterPage() {
                         lastRegion = regionIn.value;
                     }
                 }
+                if (dealerCodeIn) dealerCodeIn.disabled = false;
             }
         }
 
@@ -150,11 +157,12 @@ export function initRegisterPage() {
         if (deptInput && roleIn.value !== "manager") deptInput.value = "";
 
         if (nameIn.value && surnameIn.value) {
-            emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}@bellona.com.tr`;
+            const code = dealerCodeIn?.value || "xxxx";
+            emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}.${code}@bellona.com.tr`;
         }
     };
 
-    [nameIn, surnameIn, catIn, roleIn, companyIn].forEach((el) => el?.addEventListener("input", updateUI));
+    [nameIn, surnameIn, catIn, roleIn, companyIn, dealerCodeIn].forEach((el) => el?.addEventListener("input", updateUI));
     regionIn?.addEventListener("change", () => {
         updateCities();
         updateUI();
@@ -164,7 +172,8 @@ export function initRegisterPage() {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = await generateEnterpriseEmail(nameIn.value, surnameIn.value);
+        const dealerCode = dealerCodeIn?.value || "0000";
+        const email = await generateEnterpriseEmail(nameIn.value, surnameIn.value, dealerCode);
         const finalCompany = catIn.value === "regional" ? regionCompanyIn.value : companyIn.value;
         const data = {
             name: nameIn.value,
@@ -175,7 +184,9 @@ export function initRegisterPage() {
             category: catIn.value,
             region: regionIn.value,
             company: finalCompany,
+            dealerCode: dealerCodeIn?.value || "0000",
             subRole: roleIn.value,
+            email: emailPreview.value,
             department: roleIn.value === "manager"
                 ? (catIn.value === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi")
                 : document.getElementById("newDept").value,
