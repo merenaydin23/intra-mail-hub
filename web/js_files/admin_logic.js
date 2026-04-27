@@ -143,7 +143,9 @@ async function initDashboard() {
                 labels: sortedRegions.map(r => r[0]),
                 datasets: [{
                     data: sortedRegions.map(r => r[1]),
-                    backgroundColor: ['#0F3D2E','#1a5c46','#2d8b6c','#46b992','#72d9b6','#a5eed4','#d1f7e9'],
+                    backgroundColor: [
+                        '#0f766e', '#0891b2', '#0284c7', '#2563eb', '#4f46e5', '#7c3aed', '#9333ea', '#c026d3', '#db2777', '#e11d48'
+                    ],
                     borderWidth: 2,
                     borderColor: '#fff'
                 }]
