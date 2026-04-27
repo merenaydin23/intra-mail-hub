@@ -91,7 +91,19 @@ export function initRegisterPage() {
                     updateCities();
                     lastRegion = existingDealer.region;
                 }
-                cityIn.value = existingDealer.city;
+                // Find the city in the select options to ensure exact match
+                const targetCity = existingDealer.city;
+                const options = Array.from(cityIn.options);
+                const matchingOption = options.find(opt => 
+                    opt.value.toLocaleLowerCase('tr-TR') === targetCity.toLocaleLowerCase('tr-TR')
+                );
+                
+                if (matchingOption) {
+                    cityIn.value = matchingOption.value;
+                } else {
+                    cityIn.value = targetCity;
+                }
+                
                 dealerCodeIn.value = existingDealer.dealerCode || "";
                 lockedByDealer = true;
             }
