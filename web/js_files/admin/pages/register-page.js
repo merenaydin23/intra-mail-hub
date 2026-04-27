@@ -1,5 +1,6 @@
 import { createUserRecord } from "../services/user-service.js";
 import { generateEnterpriseEmail, generateStrictPassword, normalizeTr } from "../utils/user-utils.js";
+import { getRandomCityForRegion } from "../utils/location-utils.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
 
@@ -11,6 +12,7 @@ export function initRegisterPage() {
     const catIn = document.getElementById("newCategory");
     const roleIn = document.getElementById("newSubRole");
     const regionIn = document.getElementById("newRegion");
+    const cityIn = document.getElementById("newCity");
     const companyIn = document.getElementById("newCompany");
     const regionCompanyIn = document.getElementById("newRegionCompany");
     const deptGroup = document.getElementById("deptGroup");
@@ -28,15 +30,24 @@ export function initRegisterPage() {
             companyIn.style.display = "block";
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = true;
+            if (regionIn) {
+                regionIn.value = "İç Anadolu";
+                regionIn.disabled = true;
+            }
+            if (cityIn) cityIn.value = "Kayseri";
         } else if (catIn.value === "regional") {
             companyIn.style.display = "none";
             regionCompanyIn.style.display = "block";
             companyIn.readOnly = false;
+            if (regionIn) regionIn.disabled = false;
+            if (cityIn) cityIn.value = getRandomCityForRegion(regionIn.value);
         } else {
             companyIn.style.display = "block";
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
+            if (regionIn) regionIn.disabled = false;
+            if (cityIn) cityIn.value = getRandomCityForRegion(regionIn.value);
         }
 
         deptGroup.style.display = roleIn.value === "manager" ? "none" : "block";
@@ -55,7 +66,7 @@ export function initRegisterPage() {
         }
     };
 
-    [nameIn, surnameIn, catIn, roleIn].forEach((el) => el?.addEventListener("input", updateUI));
+    [nameIn, surnameIn, catIn, roleIn, regionIn].forEach((el) => el?.addEventListener("input", updateUI));
     updateUI();
 
     form.addEventListener("submit", async (e) => {
@@ -67,6 +78,7 @@ export function initRegisterPage() {
             surname: surnameIn.value,
             birthDate: document.getElementById("newBirth").value,
             phone: phoneIn?.value.trim() || "",
+            city: cityIn?.value || "",
             category: catIn.value,
             region: regionIn.value,
             company: finalCompany,

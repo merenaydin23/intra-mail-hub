@@ -48,6 +48,7 @@ export function renderTableRows(tbody, users) {
                         <div class="personnel-detail-grid">
                             <div><span class="detail-label">E-posta</span><span class="detail-value">${u.email || "-"}</span></div>
                             <div><span class="detail-label">Telefon</span><span class="detail-value">${u.phone || "-"}</span></div>
+                            <div><span class="detail-label">Şehir</span><span class="detail-value">${u.city || "-"}</span></div>
                             <div><span class="detail-label">Bölge</span><span class="detail-value">${u.region || "-"}</span></div>
                             <div><span class="detail-label">Kategori</span><span class="detail-value">${catLabel}</span></div>
                         </div>
