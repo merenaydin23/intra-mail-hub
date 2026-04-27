@@ -80,9 +80,7 @@ async function autoCleanupUsers() {
 async function initDashboard() {
     autoCleanupUsers();
 
-
-
-    // 1. Verileri Çek (En Önce ve Hızlıca)
+    // 1. Verileri Çek
     let users = [];
     try {
         const snap = await getDocs(collection(db, "users"));
@@ -92,18 +90,201 @@ async function initDashboard() {
         return;
     }
 
-    // 2. Temel İstatistikler
-    const statTotal = document.getElementById('statTotal');
-    if (statTotal) statTotal.textContent = users.length;
+    const total = users.length;
+    const factoryUsers = users.filter(u => u.category === 'factory');
+    const regionalUsers = users.filter(u => u.category === 'regional');
+    const localUsers = users.filter(u => u.category === 'local');
+    const managers = users.filter(u => u.subRole === 'manager');
+    const employees = users.filter(u => u.subRole === 'employee');
+    const companies = [...new Set(users.map(u => u.company).filter(Boolean))];
+    const departments = [...new Set(users.map(u => u.department).filter(Boolean))];
 
-    // 3. Şirketin Duayeni
-    const statOldest = document.getElementById('statOldest');
-    if (statOldest) {
-        const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
-        statOldest.textContent = oldest ? `${oldest.name} ${oldest.surname} (${new Date(oldest.birthDate).getFullYear()})` : "Veri Yok";
+    // ===== ROW 1: Stat Cards =====
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setEl('statTotal', total);
+    setEl('statFactory', factoryUsers.length);
+    setEl('statRegional', regionalUsers.length);
+    setEl('statLocal', localUsers.length);
+
+    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+    setHtml('statTotalSub', `${managers.length} Yönetici · ${employees.length} Çalışan`);
+    setHtml('statFactorySub', `${[...new Set(factoryUsers.map(u => u.department).filter(Boolean))].length} farklı departman`);
+    setHtml('statRegionalSub', `${[...new Set(regionalUsers.map(u => u.company).filter(Boolean))].length} farklı firma`);
+    setHtml('statLocalSub', `${[...new Set(localUsers.map(u => u.company).filter(Boolean))].length} farklı mağaza`);
+
+    // ===== ROW 2: Highlight Strip =====
+    const hlMgr = document.querySelector('#hlManagerCount .hl-value');
+    const hlEmp = document.querySelector('#hlEmployeeCount .hl-value');
+    const hlComp = document.querySelector('#hlCompanyCount .hl-value');
+    const hlDept = document.querySelector('#hlDeptCount .hl-value');
+    if (hlMgr) hlMgr.textContent = managers.length;
+    if (hlEmp) hlEmp.textContent = employees.length;
+    if (hlComp) hlComp.textContent = companies.length;
+    if (hlDept) hlDept.textContent = departments.length;
+
+    // ===== ROW 3a: Bölgesel Dağılım Tablosu & Grafiği =====
+    const regionStats = {};
+    users.forEach(u => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
+    const sortedRegions = Object.entries(regionStats).sort((a, b) => b[1] - a[1]);
+
+    const regionBody = document.getElementById('regionTableBody');
+    if (regionBody) {
+        regionBody.innerHTML = sortedRegions.map(([reg, count]) => {
+            const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            return `<tr><td><strong>${reg}</strong></td><td>${count}</td><td>${pct}%</td></tr>`;
+        }).join('');
     }
 
-    // 4. Yaklaşan Doğum Günleri
+    const regionCtx = document.getElementById('regionChart');
+    if (regionCtx && typeof Chart !== 'undefined') {
+        new Chart(regionCtx, {
+            type: 'pie',
+            data: {
+                labels: sortedRegions.map(r => r[0]),
+                datasets: [{
+                    data: sortedRegions.map(r => r[1]),
+                    backgroundColor: ['#0F3D2E','#1a5c46','#2d8b6c','#46b992','#72d9b6','#a5eed4','#d1f7e9'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, family: 'Inter' }, padding: 12 } } } }
+        });
+    }
+
+    // ===== ROW 3b: Kategori Dağılımı (Doughnut) =====
+    const catCtx = document.getElementById('categoryChart');
+    if (catCtx && typeof Chart !== 'undefined') {
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fabrika', 'Bölge Bayisi', 'Yerel Bayi'],
+                datasets: [{
+                    data: [factoryUsers.length, regionalUsers.length, localUsers.length],
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6'],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11, family: 'Inter', weight: '600' }, padding: 16 } }
+                }
+            }
+        });
+    }
+
+    // ===== ROW 4: Insight Cards =====
+    // En Kalabalık Yerel Bayi
+    const localCompanyStats = {};
+    localUsers.forEach(u => { if (u.company) localCompanyStats[u.company] = (localCompanyStats[u.company] || 0) + 1; });
+    const busiestLocal = Object.entries(localCompanyStats).sort((a, b) => b[1] - a[1])[0];
+    const insightLocal = document.getElementById('insightBusiestLocal');
+    if (insightLocal) {
+        if (busiestLocal) {
+            const bLocalUsers = localUsers.filter(u => u.company === busiestLocal[0]);
+            const bLocalMgr = bLocalUsers.filter(u => u.subRole === 'manager').length;
+            const bLocalRegion = bLocalUsers[0]?.region || 'Bilinmiyor';
+            insightLocal.innerHTML = `
+                <div class="insight-big">
+                    <div class="insight-company-name"><i class="fa-solid fa-store"></i> ${busiestLocal[0]}</div>
+                    <div class="insight-metric"><span class="insight-metric-label">Toplam Personel</span><span class="insight-metric-value">${busiestLocal[1]} kişi</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Yönetici Sayısı</span><span class="insight-metric-value">${bLocalMgr}</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Bölge</span><span class="insight-metric-value">${bLocalRegion}</span></div>
+                </div>`;
+        } else {
+            insightLocal.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:1rem;">Yerel bayi verisi bulunamadı.</p>';
+        }
+    }
+
+    // En Kalabalık Bölge Bayisi
+    const regCompanyStats = {};
+    regionalUsers.forEach(u => { if (u.company) regCompanyStats[u.company] = (regCompanyStats[u.company] || 0) + 1; });
+    const busiestRegional = Object.entries(regCompanyStats).sort((a, b) => b[1] - a[1])[0];
+    const insightRegional = document.getElementById('insightBusiestRegional');
+    if (insightRegional) {
+        if (busiestRegional) {
+            const bRegUsers = regionalUsers.filter(u => u.company === busiestRegional[0]);
+            const bRegMgr = bRegUsers.filter(u => u.subRole === 'manager').length;
+            const bRegRegion = bRegUsers[0]?.region || 'Bilinmiyor';
+            insightRegional.innerHTML = `
+                <div class="insight-big">
+                    <div class="insight-company-name"><i class="fa-solid fa-map-location-dot"></i> ${busiestRegional[0]}</div>
+                    <div class="insight-metric"><span class="insight-metric-label">Toplam Personel</span><span class="insight-metric-value">${busiestRegional[1]} kişi</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Koordinatör</span><span class="insight-metric-value">${bRegMgr}</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Bölge</span><span class="insight-metric-value">${bRegRegion}</span></div>
+                </div>`;
+        } else {
+            insightRegional.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:1rem;">Bölge bayisi verisi bulunamadı.</p>';
+        }
+    }
+
+    // Şirketin Duayeni
+    const oldest = [...users].filter(u => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
+    const insightOldest = document.getElementById('insightOldest');
+    if (insightOldest) {
+        if (oldest) {
+            const birthYear = new Date(oldest.birthDate).getFullYear();
+            const age = new Date().getFullYear() - birthYear;
+            const initials = (oldest.name?.[0] || '') + (oldest.surname?.[0] || '');
+            insightOldest.innerHTML = `
+                <div class="insight-big">
+                    <div class="insight-person">
+                        <div class="insight-avatar">${initials.toUpperCase()}</div>
+                        <div class="insight-person-info">
+                            <span class="insight-person-name">${oldest.name} ${oldest.surname}</span>
+                            <span class="insight-person-detail">${oldest.company || 'Bilinmeyen Şirket'}</span>
+                        </div>
+                    </div>
+                    <div class="insight-metric"><span class="insight-metric-label">Doğum Yılı</span><span class="insight-metric-value">${birthYear}</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Yaş</span><span class="insight-metric-value">${age}</span></div>
+                    <div class="insight-metric"><span class="insight-metric-label">Departman</span><span class="insight-metric-value">${oldest.department || '-'}</span></div>
+                </div>`;
+        } else {
+            insightOldest.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:1rem;">Doğum tarihi bilgisi bulunamadı.</p>';
+        }
+    }
+
+    // ===== ROW 5a: Şirket Bazlı Bar Chart (Top 10) =====
+    const companyStats = {};
+    users.forEach(u => { if (u.company) companyStats[u.company] = (companyStats[u.company] || 0) + 1; });
+    const topCompanies = Object.entries(companyStats).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    const compCtx = document.getElementById('companyChart');
+    if (compCtx && typeof Chart !== 'undefined') {
+        new Chart(compCtx, {
+            type: 'bar',
+            data: {
+                labels: topCompanies.map(c => c[0].length > 22 ? c[0].substring(0, 20) + '…' : c[0]),
+                datasets: [{
+                    label: 'Personel',
+                    data: topCompanies.map(c => c[1]),
+                    backgroundColor: topCompanies.map((_, i) => {
+                        const colors = ['#0F3D2E','#1a5c46','#2d8b6c','#46b992','#72d9b6','#f59e0b','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+                        return colors[i % colors.length];
+                    }),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10, family: 'Inter' } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, family: 'Inter', weight: '600' } } }
+                }
+            }
+        });
+    }
+
+    // ===== ROW 5b: Doğum Günleri =====
     const today = new Date();
     const upcomingBirthdays = users.filter(u => {
         if (!u.birthDate) return false;
@@ -116,42 +297,81 @@ async function initDashboard() {
         return diffDays <= 30;
     }).sort((a, b) => a.daysRemaining - b.daysRemaining);
 
-    const statBirthdays = document.getElementById('statBirthdays');
-    if (statBirthdays) statBirthdays.textContent = upcomingBirthdays.length;
+    setEl('statBirthdays', upcomingBirthdays.length);
 
     const listDiv = document.getElementById('upcomingBirthdayList');
     if (listDiv) {
-        listDiv.innerHTML = upcomingBirthdays.length === 0 ? '<p style="text-align:center;padding:1rem;">Yakın zamanda doğum günü yok.</p>' : 
-            upcomingBirthdays.map(u => `
-                <div style="display:flex;justify-content:space-between;padding:0.5rem;border-bottom:1px solid #eee;">
-                    <span><strong>${u.name} ${u.surname}</strong><br><small>${u.company}</small></span>
-                    <span style="text-align:right;"><b style="color:var(--accent);">${u.daysRemaining === 0 ? 'BUGÜN!' : u.daysRemaining + ' gün'}</b><br><small>${u.upcomingDate.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</small></span>
+        listDiv.innerHTML = upcomingBirthdays.length === 0
+            ? '<p style="text-align:center;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-face-smile-wink" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>Yakın 30 gün içinde doğum günü yok.</p>'
+            : upcomingBirthdays.map(u => `
+                <div class="birthday-item">
+                    <div class="bday-left">
+                        <span class="bday-name">${u.name} ${u.surname}</span>
+                        <span class="bday-company">${u.company || '-'}</span>
+                    </div>
+                    <div class="bday-right">
+                        <span class="bday-countdown ${u.daysRemaining === 0 ? 'today' : ''}">${u.daysRemaining === 0 ? '🎉 BUGÜN!' : u.daysRemaining + ' gün'}</span>
+                        <span class="bday-date">${u.upcomingDate.toLocaleDateString('tr-TR', {day:'numeric', month:'long'})}</span>
+                    </div>
                 </div>
             `).join('');
     }
 
-    // 5. Bölgesel Dağılım & Grafik
-    const regionStats = {};
-    users.forEach(u => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
-
-    const regionBody = document.getElementById('regionTableBody');
-    if (regionBody) {
-        regionBody.innerHTML = Object.entries(regionStats).map(([reg, count]) => `<tr><td><strong>${reg}</strong></td><td>${count} Personel</td></tr>`).join('');
-    }
-
-    const ctx = document.getElementById('regionChart');
-    if (ctx && typeof Chart !== 'undefined') {
-        new Chart(ctx, {
-            type: 'pie',
+    // ===== ROW 6a: Yönetici / Çalışan Oranı (Doughnut) =====
+    const roleCtx = document.getElementById('roleChart');
+    if (roleCtx && typeof Chart !== 'undefined') {
+        new Chart(roleCtx, {
+            type: 'doughnut',
             data: {
-                labels: Object.keys(regionStats),
+                labels: ['Yönetici / Patron', 'Çalışan'],
                 datasets: [{
-                    data: Object.values(regionStats),
-                    backgroundColor: ['#0F3D2E','#1a5c46','#2d8b6c','#46b992','#72d9b6','#a5eed4','#d1f7e9'],
-                    borderWidth: 0
+                    data: [managers.length, employees.length],
+                    backgroundColor: ['#0F3D2E', '#a5eed4'],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 12, family: 'Inter', weight: '600' }, padding: 16 } }
+                }
+            }
+        });
+    }
+
+    // ===== ROW 6b: Departman Dağılımı (Top 10 - Horizontal Bar) =====
+    const deptStats = {};
+    users.forEach(u => { if (u.department) deptStats[u.department] = (deptStats[u.department] || 0) + 1; });
+    const topDepts = Object.entries(deptStats).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    const deptCtx = document.getElementById('deptChart');
+    if (deptCtx && typeof Chart !== 'undefined') {
+        new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: topDepts.map(d => d[0].length > 25 ? d[0].substring(0, 23) + '…' : d[0]),
+                datasets: [{
+                    label: 'Kişi',
+                    data: topDepts.map(d => d[1]),
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10, family: 'Inter' } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, family: 'Inter', weight: '600' } } }
+                }
+            }
         });
     }
 }

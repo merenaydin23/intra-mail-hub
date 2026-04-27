@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bellona | Yönetim Paneli</title>
+    <meta name="description" content="Bellona Hub kurumsal yönetim paneli - personel analizi ve istatistikler">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../js_files/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -25,61 +28,179 @@
 
     <main>
         <header>
-            <h1>Genel Bakış</h1>
+            <h1><i class="fa-solid fa-chart-line" style="margin-right:0.5rem;"></i> Genel Bakış</h1>
             <div class="user-pill"><i class="fa-solid fa-circle-user"></i> General Admin</div>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-label">Toplam Çalışan</span>
-                <span class="stat-value" id="statTotal">0</span>
+        <!-- ROW 1: Ana İstatistik Kartları -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card stat-card--gradient" id="cardTotal">
+                <div class="stat-icon-circle"><i class="fa-solid fa-users"></i></div>
+                <span class="stat-label">Toplam Personel</span>
+                <span class="stat-value" id="statTotal">—</span>
+                <div class="stat-sub" id="statTotalSub"></div>
             </div>
-            <div class="stat-card" style="border-left: 4px solid #f59e0b;">
-                <span class="stat-label">Şirketin Duayeni (En Yaşlı)</span>
-                <span class="stat-value" id="statOldest" style="font-size: 1rem; color: #b45309;">Yükleniyor...</span>
+            <div class="stat-card stat-card--amber" id="cardFactory">
+                <div class="stat-icon-circle stat-icon--amber"><i class="fa-solid fa-industry"></i></div>
+                <span class="stat-label">Fabrika Kadrosu</span>
+                <span class="stat-value" id="statFactory">—</span>
+                <div class="stat-sub" id="statFactorySub"></div>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Yaklaşan Doğum Günleri</span>
-                <span class="stat-value" id="statBirthdays">0</span>
+            <div class="stat-card stat-card--blue" id="cardRegional">
+                <div class="stat-icon-circle stat-icon--blue"><i class="fa-solid fa-map-location-dot"></i></div>
+                <span class="stat-label">Bölge Bayileri</span>
+                <span class="stat-value" id="statRegional">—</span>
+                <div class="stat-sub" id="statRegionalSub"></div>
+            </div>
+            <div class="stat-card stat-card--purple" id="cardLocal">
+                <div class="stat-icon-circle stat-icon--purple"><i class="fa-solid fa-store"></i></div>
+                <span class="stat-label">Yerel Bayiler</span>
+                <span class="stat-value" id="statLocal">—</span>
+                <div class="stat-sub" id="statLocalSub"></div>
             </div>
         </div>
 
-        <div class="dashboard-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
-            <!-- Sol: Bölgesel Dağılım -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>Bölgesel Dağılım Analizi</h3>
+        <!-- ROW 2: Highlight Strip -->
+        <div class="highlight-strip" id="highlightStrip">
+            <div class="highlight-item" id="hlManagerCount">
+                <i class="fa-solid fa-crown"></i>
+                <div class="hl-content">
+                    <span class="hl-value">—</span>
+                    <span class="hl-label">Toplam Yönetici</span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; align-items: center;">
-                    <div class="table-wrapper" style="margin-top: 0;">
+            </div>
+            <div class="highlight-item" id="hlEmployeeCount">
+                <i class="fa-solid fa-user-tie"></i>
+                <div class="hl-content">
+                    <span class="hl-value">—</span>
+                    <span class="hl-label">Toplam Çalışan</span>
+                </div>
+            </div>
+            <div class="highlight-item" id="hlCompanyCount">
+                <i class="fa-solid fa-building"></i>
+                <div class="hl-content">
+                    <span class="hl-value">—</span>
+                    <span class="hl-label">Farklı Şirket</span>
+                </div>
+            </div>
+            <div class="highlight-item" id="hlDeptCount">
+                <i class="fa-solid fa-sitemap"></i>
+                <div class="hl-content">
+                    <span class="hl-value">—</span>
+                    <span class="hl-label">Farklı Departman</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 3: Grafikler -->
+        <div class="dashboard-grid-2col">
+            <!-- Bölgesel Dağılım -->
+            <div class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-globe" style="color:var(--primary-light);margin-right:8px;"></i> Bölgesel Dağılım</h3>
+                </div>
+                <div class="chart-split">
+                    <div class="chart-table-side">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Bölge</th>
-                                    <th>Sayı</th>
-                                </tr>
-                            </thead>
-                            <tbody id="regionTableBody">
-                                <!-- JS ile dolacak -->
-                            </tbody>
+                            <thead><tr><th>Bölge</th><th>Personel</th><th>Oran</th></tr></thead>
+                            <tbody id="regionTableBody"></tbody>
                         </table>
                     </div>
-                    <div style="position: relative; height: 250px;">
+                    <div class="chart-canvas-side">
                         <canvas id="regionChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Sağ: Doğum Günü Listesi -->
-            <div class="card" style="border-left: 4px solid var(--accent);">
+            <!-- Kategori Dağılımı (Doughnut) -->
+            <div class="card card--elevated">
                 <div class="card-header">
-                    <h3><i class="fa-solid fa-cake-candles" style="color:var(--accent); margin-right:8px;"></i> Yaklaşan Doğum Günleri (1 Ay)</h3>
+                    <h3><i class="fa-solid fa-chart-pie" style="color:var(--primary-light);margin-right:8px;"></i> Kategori Dağılımı</h3>
                 </div>
-                <div id="upcomingBirthdayList" style="padding: 1rem; max-height: 400px; overflow-y: auto;">
-                    <p style="text-align: center; color: var(--text-light); padding: 2rem;">Hesaplanıyor...</p>
+                <div class="chart-center">
+                    <canvas id="categoryChart"></canvas>
                 </div>
             </div>
         </div>
+
+        <!-- ROW 4: Öne Çıkan İstatistikler -->
+        <div class="dashboard-grid-3col">
+            <!-- En Kalabalık Yerel Bayi -->
+            <div class="card card--elevated insight-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-trophy" style="color:#f59e0b;margin-right:8px;"></i> En Kalabalık Yerel Bayi</h3>
+                </div>
+                <div class="insight-body" id="insightBusiestLocal">
+                    <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
+                </div>
+            </div>
+
+            <!-- En Kalabalık Bölge Bayisi -->
+            <div class="card card--elevated insight-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-medal" style="color:#3b82f6;margin-right:8px;"></i> En Kalabalık Bölge Bayisi</h3>
+                </div>
+                <div class="insight-body" id="insightBusiestRegional">
+                    <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
+                </div>
+            </div>
+
+            <!-- Şirketin Duayeni -->
+            <div class="card card--elevated insight-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-star" style="color:#8b5cf6;margin-right:8px;"></i> Şirketin Duayeni</h3>
+                </div>
+                <div class="insight-body" id="insightOldest">
+                    <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 5: Şirket Bazlı Personel Grafiği + Doğum Günleri -->
+        <div class="dashboard-grid-2col">
+            <!-- Şirket Bazlı Bar Chart -->
+            <div class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-ranking-star" style="color:var(--primary-light);margin-right:8px;"></i> Şirket Bazlı Personel Sayıları</h3>
+                </div>
+                <div class="chart-center chart-tall">
+                    <canvas id="companyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Doğum Günü Listesi -->
+            <div class="card card--elevated" style="border-left: 4px solid var(--accent);">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-cake-candles" style="color:var(--accent); margin-right:8px;"></i> Yaklaşan Doğum Günleri (30 Gün)</h3>
+                    <span class="badge badge-accent" id="statBirthdays">0</span>
+                </div>
+                <div id="upcomingBirthdayList" class="birthday-list">
+                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Hesaplanıyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 6: Yönetici vs Çalışan + Departman Dağılımı -->
+        <div class="dashboard-grid-2col">
+            <div class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-scale-balanced" style="color:var(--primary-light);margin-right:8px;"></i> Yönetici / Çalışan Oranı</h3>
+                </div>
+                <div class="chart-center">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card card--elevated">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-layer-group" style="color:var(--primary-light);margin-right:8px;"></i> Departman Dağılımı (Top 10)</h3>
+                </div>
+                <div class="chart-center chart-tall">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script src="../../js_files/admin_logic.js" type="module"></script>
