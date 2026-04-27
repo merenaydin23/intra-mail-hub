@@ -32,6 +32,7 @@ async function seed() {
             const name = names[Math.floor(Math.random() * names.length)];
             const surname = surnames[Math.floor(Math.random() * surnames.length)];
             const email = `${name.toLowerCase()}.${surname.toLowerCase()}.${Math.floor(Math.random()*1000)}@bellona.com.tr`;
+            const gender = Math.random() > 0.5 ? "Kadın" : "Erkek";
             
             await addDoc(collection(db, "users"), {
                 name: name,
@@ -40,6 +41,7 @@ async function seed() {
                 password: "Bellona123!",
                 role: "user",
                 subRole: i === 0 ? "manager" : "employee",
+                gender: gender,
                 category: "regional",
                 region: regRegion,
                 company: regName,
@@ -61,6 +63,7 @@ async function seed() {
                 const name = names[Math.floor(Math.random() * names.length)];
                 const surname = surnames[Math.floor(Math.random() * surnames.length)];
                 const email = `${name.toLowerCase()}.${surname.toLowerCase()}.${Math.floor(Math.random()*1000)}@bellona.com.tr`;
+                const gender = Math.random() > 0.5 ? "Kadın" : "Erkek";
                 
                 await addDoc(collection(db, "users"), {
                     name: name,
@@ -69,6 +72,7 @@ async function seed() {
                     password: "Bellona123!",
                     role: "user",
                     subRole: i === 0 ? "manager" : "employee",
+                    gender: gender,
                     category: "local",
                     region: region,
                     company: company,
