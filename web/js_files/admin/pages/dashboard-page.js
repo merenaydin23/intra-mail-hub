@@ -67,12 +67,28 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
                 labels: sortedRegions.map((r) => r[0]),
                 datasets: [{
                     data: sortedRegions.map((r) => r[1]),
-                    backgroundColor: ["#007b7b", "#169e9e", "#43bcbc", "#74cfd0", "#93b9cf", "#80a1bb"],
+                    backgroundColor: ["#2a7f7f", "#4f9f9f", "#6e8eb1", "#8ea5c4", "#7caeb8", "#5d99a8", "#9db8cb"],
                     borderWidth: 2,
                     borderColor: "#fff"
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "circle",
+                            boxWidth: 8,
+                            padding: 12,
+                            color: "#4b5b60",
+                            font: { size: 11, family: "Inter", weight: "600" }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -82,9 +98,31 @@ function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, m
             type: "doughnut",
             data: {
                 labels: ["Fabrika", "Bölge Bayisi", "Yerel Bayi"],
-                datasets: [{ data: [factoryUsers.length, regionalUsers.length, localUsers.length], backgroundColor: ["#007b7b", "#249eb4", "#6f8fb0"], borderColor: "#fff", borderWidth: 3 }]
+                datasets: [{
+                    data: [factoryUsers.length, regionalUsers.length, localUsers.length],
+                    backgroundColor: ["#2a7f7f", "#4f9bb2", "#6f8fb0"],
+                    borderColor: "#fff",
+                    borderWidth: 3
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: "60%" }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "60%",
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "circle",
+                            boxWidth: 8,
+                            padding: 12,
+                            color: "#4b5b60",
+                            font: { size: 11, family: "Inter", weight: "600" }
+                        }
+                    }
+                }
+            }
         });
     }
 
