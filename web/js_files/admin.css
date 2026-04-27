@@ -55,15 +55,15 @@ body {
 }
 
 .logo {
-    padding: 2rem;
+    padding: 1.6rem 1.35rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border-bottom: 1px solid var(--border);
 }
 
 .brand-logo {
-    max-height: 34px;
+    max-height: 46px;
     border-radius: 6px;
     box-shadow: 0 3px 10px rgba(42, 127, 127, 0.12);
 }
