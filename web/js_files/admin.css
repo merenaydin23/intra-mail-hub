@@ -671,8 +671,9 @@ tr:last-child td {
 
 .personnel-detail-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(110px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1.25rem;
+    flex: 1;
 }
 
 .detail-label {
@@ -690,6 +691,9 @@ tr:last-child td {
     font-size: 0.82rem;
     font-weight: 600;
     color: #33464d;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    line-height: 1.4;
 }
 
 .no-result-state {

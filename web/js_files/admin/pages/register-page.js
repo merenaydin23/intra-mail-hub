@@ -24,6 +24,12 @@ export function initRegisterPage() {
     if (!form) return;
     if (pwIn) pwIn.value = generateStrictPassword();
 
+    let allUsersCache = [];
+    const loadUsers = async () => {
+        allUsersCache = await getAllUsers();
+    };
+    loadUsers();
+
     const updateCities = () => {
         const selectedRegion = regionIn.value;
         const cities = getCitiesForRegion(selectedRegion);
@@ -44,12 +50,11 @@ export function initRegisterPage() {
         }
     };
 
-    const updateDealers = async () => {
+    const updateDealers = () => {
         const selectedCity = cityIn.value;
         if (!selectedCity) return;
 
-        const users = await getAllUsers();
-        const dealers = [...new Set(users
+        const dealers = [...new Set(allUsersCache
             .filter(u => u.city === selectedCity && u.company)
             .map(u => u.company))];
 
@@ -67,6 +72,22 @@ export function initRegisterPage() {
     let lastRegion = "";
 
     const updateUI = () => {
+        // Dealer Consistency Check
+        let lockedByDealer = false;
+        if (catIn.value === "local" && companyIn.value.trim()) {
+            const companyName = companyIn.value.trim();
+            const existingDealer = allUsersCache.find(u => u.company === companyName && u.city && u.region);
+            if (existingDealer) {
+                regionIn.value = existingDealer.region;
+                if (lastRegion !== existingDealer.region) {
+                    updateCities();
+                    lastRegion = existingDealer.region;
+                }
+                cityIn.value = existingDealer.city;
+                lockedByDealer = true;
+            }
+        }
+
         if (catIn.value === "factory") {
             companyIn.value = "Bellona Genel Müdürlük";
             companyIn.style.display = "block";
@@ -77,7 +98,6 @@ export function initRegisterPage() {
                 regionIn.disabled = true;
             }
             if (cityIn) {
-                // Ensure Kayseri is in the list
                 if (lastRegion !== "İç Anadolu") {
                     updateCities();
                     lastRegion = "İç Anadolu";
@@ -102,12 +122,18 @@ export function initRegisterPage() {
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
-            if (regionIn) regionIn.disabled = false;
-            if (cityIn) {
-                cityIn.disabled = false;
-                if (regionIn.value !== lastRegion) {
-                    updateCities();
-                    lastRegion = regionIn.value;
+            
+            if (lockedByDealer) {
+                regionIn.disabled = true;
+                cityIn.disabled = true;
+            } else {
+                if (regionIn) regionIn.disabled = false;
+                if (cityIn) {
+                    cityIn.disabled = false;
+                    if (regionIn.value !== lastRegion) {
+                        updateCities();
+                        lastRegion = regionIn.value;
+                    }
                 }
             }
         }
@@ -128,7 +154,7 @@ export function initRegisterPage() {
         }
     };
 
-    [nameIn, surnameIn, catIn, roleIn].forEach((el) => el?.addEventListener("input", updateUI));
+    [nameIn, surnameIn, catIn, roleIn, companyIn].forEach((el) => el?.addEventListener("input", updateUI));
     regionIn?.addEventListener("change", () => {
         updateCities();
         updateUI();
