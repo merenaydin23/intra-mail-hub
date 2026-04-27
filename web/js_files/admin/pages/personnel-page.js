@@ -15,6 +15,7 @@ export async function initPersonnelPage() {
     const tbody = document.getElementById("userTableBody");
     const totalCountEl = document.getElementById("totalPersonnelCount");
     const alphaFilter = document.getElementById("alphabetFilter");
+    const sortIn = document.getElementById("sortUser");
     let selectedLetter = "all";
 
     // Alfabe butonlarını oluştur
@@ -41,7 +42,7 @@ export async function initPersonnelPage() {
         const cat = filterCat?.value || "all";
         const reg = filterReg?.value || "all";
 
-        const filtered = allUsers.filter((u) => {
+        let filtered = allUsers.filter((u) => {
             const fullName = `${u.name || ""} ${u.surname || ""} ${u.company || ""}`.toLocaleLowerCase("tr-TR");
             const firstChar = (u.name || "").charAt(0).toLocaleUpperCase("tr-TR");
 
@@ -50,11 +51,22 @@ export async function initPersonnelPage() {
                 && (reg === "all" || u.region === reg)
                 && (selectedLetter === "all" || firstChar === selectedLetter);
         });
+
+        // Sorting Logic
+        const sortVal = sortIn?.value || "name-asc";
+        if (sortVal === "name-asc") {
+            filtered.sort((a, b) => (a.name || "").localeCompare(b.name || "", "tr"));
+        } else if (sortVal === "name-desc") {
+            filtered.sort((a, b) => (b.name || "").localeCompare(a.name || "", "tr"));
+        } else if (sortVal === "newest") {
+            // allUsers is already sorted by newest in service
+        }
+
         renderTableRows(tbody, filtered);
         if (totalCountEl) totalCountEl.textContent = filtered.length;
     };
 
-    [searchIn, filterCat, filterReg].forEach((el) => el?.addEventListener("input", applyFilters));
+    [searchIn, filterCat, filterReg, sortIn].forEach((el) => el?.addEventListener("input", applyFilters));
     renderTableRows(tbody, allUsers);
 
     tbody?.addEventListener("click", async (event) => {
@@ -72,23 +84,31 @@ export async function initPersonnelPage() {
         }
 
         const btn = event.target.closest("[data-action='delete-user']");
-        if (!btn) return;
-        const userId = btn.getAttribute("data-user-id");
-        const user = allUsers.find((x) => x.id === userId);
-        if (!user) return;
-        if (!confirm(`${user.name} ${user.surname} kaydı silinsin mi?`)) return;
+        if (btn) {
+            const userId = btn.getAttribute("data-user-id");
+            const user = allUsers.find((x) => x.id === userId);
+            if (!user) return;
+            if (!confirm(`${user.name} ${user.surname} kaydı silinsin mi?`)) return;
 
-        await removeUserRecord(userId);
-        const actor = await getSessionActor();
-        await writeAuditLog({
-            actor,
-            action: "PERSONEL_SILME",
-            targetType: "users",
-            targetId: userId,
-            detail: `${user.name} ${user.surname} kaydı silindi.`
-        });
+            try {
+                await removeUserRecord(userId);
+                const actor = await getSessionActor();
+                await writeAuditLog({
+                    actor,
+                    action: "PERSONEL_SILME",
+                    targetType: "users",
+                    targetId: userId,
+                    detail: `${user.name} ${user.surname} kaydı silindi.`
+                });
 
-        allUsers = allUsers.filter((x) => x.id !== userId);
-        applyFilters();
+                allUsers = allUsers.filter((x) => x.id !== userId);
+                applyFilters();
+                alert("Personel başarıyla silindi.");
+            } catch (err) {
+                console.error("Silme hatası:", err);
+                alert("Hata: Kayıt silinemedi.");
+            }
+            return;
+        }
     });
 }

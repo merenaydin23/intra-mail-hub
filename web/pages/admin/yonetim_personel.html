@@ -31,7 +31,7 @@
 
         <!-- Filtreleme Paneli -->
         <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
-            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 0;">
+            <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 1rem; margin-bottom: 0;">
                 <div class="form-group" style="margin-bottom: 0;">
                     <div class="input-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -58,14 +58,22 @@
                         <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
                     </select>
                 </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <select id="sortUser">
+                        <option value="name-asc">A-Z Sırala</option>
+                        <option value="name-desc">Z-A Sırala</option>
+                        <option value="newest">En Yeni</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Küçük Alfabetik Filtreleme -->
+            <div class="alphabet-filter" id="alphabetFilter" style="margin-top: 1rem; margin-bottom: 0; padding: 0.5rem; border: none; box-shadow: none;">
+                <button class="alpha-btn active" data-letter="all" style="font-size: 0.6rem;">HEPSİ</button>
+                <!-- A-Z JS ile buraya dolacak -->
             </div>
         </div>
 
-        <!-- Alfabetik Filtreleme -->
-        <div class="alphabet-filter" id="alphabetFilter">
-            <button class="alpha-btn active" data-letter="all">HEPSİ</button>
-            <!-- A-Z JS ile buraya dolacak -->
-        </div>
 
         <div class="card">
             <div class="card-header">
