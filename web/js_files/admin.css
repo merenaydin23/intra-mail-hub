@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
 
 :root {
     --brand: #2a7f7f;
@@ -8,13 +8,13 @@
     --brand-glow: rgba(42, 127, 127, 0.12);
     --brand-contrast: #ffffff;
     --bg: #ffffff;
-    --bg-page: #f6f8f9;
+    --bg-page: #F8F9FA;
     --text: #253235;
     --text-muted: #728286;
     --text-light: #96a5a9;
     --sidebar-w: 270px;
-    --shadow: 0 10px 20px rgba(10, 45, 52, 0.08);
-    --shadow-lg: 0 20px 35px rgba(10, 45, 52, 0.14);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
     --border: #d7e7ea;
     --radius: 16px;
     --radius-sm: 10px;
@@ -38,7 +38,7 @@ body {
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #c8d6db; border-radius: 3px; }
 
 /* ===== SIDEBAR ===== */
 .sidebar {
@@ -122,9 +122,11 @@ header {
 }
 
 h1 {
+    font-family: 'Outfit', 'Inter', sans-serif;
     font-size: 1.75rem;
-    font-weight: 900;
+    font-weight: 700;
     color: var(--brand-ink);
+    letter-spacing: 0.01em;
 }
 
 .user-pill {
@@ -303,7 +305,7 @@ h1 {
     background: white;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+    border: none;
     overflow: hidden;
 }
 
@@ -320,6 +322,7 @@ h1 {
 }
 
 .card-header h3 {
+    font-family: 'Outfit', 'Inter', sans-serif;
     font-size: 0.95rem;
     font-weight: 700;
     color: var(--brand-ink);
