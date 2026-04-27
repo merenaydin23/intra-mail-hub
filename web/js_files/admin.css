@@ -555,6 +555,11 @@ h1 {
     overflow-x: auto;
 }
 
+.table-shell {
+    padding-inline: 24px;
+    padding-bottom: 16px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -573,8 +578,8 @@ th {
 }
 
 td {
-    padding: 1rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid #edf2f4;
     font-size: 0.82rem;
     font-weight: 500;
 }
@@ -601,20 +606,111 @@ tr:last-child td {
 
 .badge-role {
     border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.7rem;
+    padding: 0.26rem 0.62rem;
+    font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.03em;
 }
 
 .badge-role-manager {
-    background: rgba(42, 127, 127, 0.14);
-    color: #245e5e;
+    background: rgba(42, 127, 127, 0.12);
+    color: #2b6363;
 }
 
 .badge-role-employee {
-    background: rgba(92, 120, 146, 0.14);
-    color: #3c4f64;
+    background: rgba(92, 120, 146, 0.12);
+    color: #44566c;
+}
+
+.personnel-main-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.personnel-main-row:hover {
+    background: #fbfdfe;
+}
+
+.personnel-name-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.detail-chevron {
+    color: #8ea0a6;
+    font-size: 0.7rem;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.detail-chevron.is-open {
+    transform: rotate(90deg);
+    color: var(--brand-dark);
+}
+
+.personnel-detail-row td {
+    padding-top: 0.35rem;
+    padding-bottom: 1rem;
+    background: #fbfcfd;
+    border-bottom: 1px solid #e7edef;
+}
+
+.personnel-detail-panel {
+    border: 1px solid #e6edef;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.personnel-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.detail-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #89a0a7;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.detail-value {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #33464d;
+}
+
+.no-result-state {
+    padding: 2.1rem 1rem;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.45rem;
+}
+
+.no-result-icon {
+    font-size: 2rem;
+    color: #9bb2ba;
+}
+
+.no-result-state h4 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: #31454d;
+}
+
+.no-result-state p {
+    color: #7f949b;
+    font-size: 0.82rem;
+    max-width: 420px;
 }
 
 /* ===== PROGRESS BAR ===== */
