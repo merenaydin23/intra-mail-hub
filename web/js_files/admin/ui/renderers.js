@@ -19,7 +19,7 @@ export function renderTableRows(tbody, users) {
                 <td>${u.region || "-"}</td>
                 <td>${u.company || "-"}</td>
                 <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || "-"}</span></td>
-                <td><span class="badge ${u.subRole === "manager" ? "badge-accent" : "badge-primary"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
+                <td><span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
                 <td><button data-action="delete-user" data-user-id="${u.id}" class="btn-delete"><i class="fa-solid fa-trash"></i></button></td>
             </tr>
         `;
