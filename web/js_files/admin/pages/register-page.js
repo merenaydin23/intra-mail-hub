@@ -52,12 +52,19 @@ export function initRegisterPage() {
     };
 
     const updateDealers = () => {
-        const selectedCity = cityIn.value;
-        if (!selectedCity) return;
+        const selRegion = regionIn.value;
+        const selCity = cityIn.value;
 
-        const dealers = [...new Set(allUsersCache
-            .filter(u => u.city === selectedCity && u.company)
-            .map(u => u.company))];
+        let filtered = allUsersCache.filter(u => u.company && u.category !== 'factory');
+        
+        if (selRegion) {
+            filtered = filtered.filter(u => u.region === selRegion);
+        }
+        if (selCity) {
+            filtered = filtered.filter(u => u.city === selCity);
+        }
+
+        const dealers = [...new Set(filtered.map(u => u.company))];
 
         const datalist = document.getElementById("companySuggestions");
         if (datalist) {
@@ -165,9 +172,11 @@ export function initRegisterPage() {
     [nameIn, surnameIn, catIn, roleIn, companyIn, dealerCodeIn].forEach((el) => el?.addEventListener("input", updateUI));
     regionIn?.addEventListener("change", () => {
         updateCities();
+        updateDealers();
         updateUI();
     });
     cityIn?.addEventListener("change", updateDealers);
+    catIn?.addEventListener("change", updateDealers);
     updateUI();
 
     form.addEventListener("submit", async (e) => {
