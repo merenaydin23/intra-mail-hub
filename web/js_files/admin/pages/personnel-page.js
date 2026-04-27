@@ -43,7 +43,7 @@ export async function initPersonnelPage() {
         const reg = filterReg?.value || "all";
 
         let filtered = allUsers.filter((u) => {
-            const fullName = `${u.name || ""} ${u.surname || ""} ${u.company || ""}`.toLocaleLowerCase("tr-TR");
+            const fullName = `${u.name || ""} ${u.surname || ""} ${u.company || ""} ${u.dealerCode || ""}`.toLocaleLowerCase("tr-TR");
             const firstChar = (u.name || "").charAt(0).toLocaleUpperCase("tr-TR");
 
             return fullName.includes(term)
