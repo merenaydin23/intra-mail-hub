@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-    --brand: #007b7b;
-    --brand-dark: #005f5f;
-    --brand-soft: #daf2f2;
-    --brand-ink: #0d2c2d;
-    --brand-glow: rgba(0, 123, 123, 0.16);
+    --brand: #2a7f7f;
+    --brand-dark: #225f5f;
+    --brand-soft: #e9f4f4;
+    --brand-ink: #1d2b2b;
+    --brand-glow: rgba(42, 127, 127, 0.12);
     --brand-contrast: #ffffff;
     --bg: #ffffff;
-    --bg-page: #eef6f7;
-    --text: #162224;
-    --text-muted: #5f7780;
-    --text-light: #8fa2a8;
+    --bg-page: #f6f8f9;
+    --text: #253235;
+    --text-muted: #728286;
+    --text-light: #96a5a9;
     --sidebar-w: 270px;
     --shadow: 0 10px 20px rgba(10, 45, 52, 0.08);
     --shadow-lg: 0 20px 35px rgba(10, 45, 52, 0.14);
@@ -28,10 +28,7 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background:
-        radial-gradient(circle at 10% 0%, rgba(0, 123, 123, 0.08), transparent 30%),
-        radial-gradient(circle at 90% 100%, rgba(0, 95, 95, 0.06), transparent 32%),
-        var(--bg-page);
+    background: var(--bg-page);
     color: var(--text);
     display: flex;
     min-height: 100vh;
@@ -45,37 +42,29 @@ body {
 /* ===== SIDEBAR ===== */
 .sidebar {
     width: var(--sidebar-w);
-    background: linear-gradient(180deg, #023b3b 0%, var(--brand) 46%, #006969 100%);
-    color: var(--brand-contrast);
+    background: #ffffff;
+    color: var(--text);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
     z-index: 100;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    box-shadow: 4px 0 20px rgba(17, 24, 39, 0.06);
+    border-right: 1px solid var(--border);
 }
 
 .logo {
     padding: 2rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
 }
 
 .brand-logo {
-    max-height: 36px;
+    max-height: 34px;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-
-.logo-text {
-    font-weight: 900;
-    font-size: 1.05rem;
-    letter-spacing: 0.05em;
-    background: linear-gradient(135deg, #ffffff, #c5ffff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    box-shadow: 0 3px 10px rgba(42, 127, 127, 0.12);
 }
 
 .sidebar-nav {
@@ -90,7 +79,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1rem;
-    color: rgba(255,255,255,0.75);
+    color: var(--text-muted);
     text-decoration: none;
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
@@ -100,15 +89,15 @@ body {
 }
 
 .nav-item:hover {
-    background-color: rgba(255,255,255,0.16);
-    color: var(--brand-contrast);
+    background-color: #f1f7f7;
+    color: var(--brand-dark);
     transform: translateX(4px);
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, #00a0a0, #00b9b9);
-    color: var(--brand-contrast);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+    background: #e8f4f4;
+    color: var(--brand-dark);
+    box-shadow: inset 0 0 0 1px #c6e4e4;
 }
 
 .nav-item i {
