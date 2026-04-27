@@ -31,15 +31,15 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Ad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newName" placeholder="Adını giriniz" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newName" name="newName" placeholder="Adını giriniz" required /></div>
                     </div>
                     <div class="form-group">
                         <label>Soyad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i><input type="text" id="newSurname" placeholder="Soyadını giriniz" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newSurname" name="newSurname" placeholder="Soyadını giriniz" required /></div>
                     </div>
                     <div class="form-group">
                         <label>Doğum Tarihi</label>
-                        <div class="input-box"><i class="fa-solid fa-calendar-days"></i><input type="date" id="newBirth" required /></div>
+                        <div class="input-box"><i class="fa-solid fa-calendar-days"></i>                        <input type="date" id="newBirth" name="newBirth" required /></div>
                     </div>
                 </div>
 
@@ -48,7 +48,7 @@
                     <div class="form-group">
                         <label>Hizmet Kategorisi</label>
                         <div class="input-box"><i class="fa-solid fa-sitemap"></i>
-                            <select id="newCategory">
+                                                        <select id="newCategory" name="category">
                                 <option value="factory">Fabrika (Merkez)</option>
                                 <option value="regional">Bölge Bayisi</option>
                                 <option value="local">Yerel Bayi</option>
@@ -58,7 +58,7 @@
                     <div class="form-group">
                         <label>Bölge</label>
                         <div class="input-box"><i class="fa-solid fa-map-location-dot"></i>
-                            <select id="newRegion" required>
+                                                        <select id="newRegion" name="region" required>
                                 <option value="" disabled selected>Bölge seçiniz</option>
                                 <option value="Marmara">Marmara</option>
                                 <option value="Ege">Ege</option>
@@ -75,10 +75,10 @@
                         <div class="input-box">
                             <i class="fa-solid fa-building"></i>
                             <!-- Yerel Bayi için normal input -->
-                            <input type="text" id="newCompany" placeholder="Bayi adını giriniz" required />
+                                                        <input type="text" id="newCompany" name="company" placeholder="Bayi adını giriniz" required />
                             
                             <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
-                            <select id="newRegionCompany" style="display:none;">
+                                                        <select id="newRegionCompany" name="regionCompany" style="display:none;">>
                                 <option value="" disabled selected>Grup seçiniz</option>
                                 <option value="Karavil Group">Karavil Group (Abdulkadir Karavil)</option>
                                 <option value="Yılmaz Group">Yılmaz Group (Ercan Yılmaz)</option>
@@ -93,7 +93,7 @@
                     <div class="form-group">
                         <label>Rol & Yetki Hiyerarşisi</label>
                         <div class="input-box"><i class="fa-solid fa-user-shield"></i>
-                            <select id="newSubRole">
+                                                    <select id="newSubRole" name="subRole">
                                 <option value="manager">Yönetici / Müdür / Patron</option>
                                 <option value="employee">Personel / Çalışan</option>
                             </select>
@@ -103,7 +103,7 @@
                         <label>Departman / Birim</label>
                         <div class="input-box">
                             <i class="fa-solid fa-briefcase"></i>
-                            <select id="newDept" required>
+                            <select id="newDept" name="newDept">
                                 <option value="">Departman Seçiniz...</option>
                                 <!-- Fabrika Birimleri -->
                                 <optgroup label="Fabrika Birimleri" id="optFactory">
