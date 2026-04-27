@@ -26,27 +26,27 @@
             <a href="yonetim_mesajlar.html" class="btn-outline"><i class="fa-solid fa-timeline"></i> Audit Akışı</a>
         </header>
 
-        <div class="card" style="padding: 2.5rem;">
+        <div class="card form-shell" style="padding: 2.5rem;">
             <form id="addUserForm">
-                <div class="form-section-head"><i class="fa-solid fa-user"></i> Temel Bilgiler</div>
+                <div class="form-section-head"><i class="fa-solid fa-user"></i> Kişisel Bilgiler</div>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Ad</label>
                         <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newName" name="newName" placeholder="Adını giriniz" required /></div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Soyad</label>
                         <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newSurname" name="newSurname" placeholder="Soyadını giriniz" required /></div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Doğum Tarihi</label>
                         <div class="input-box"><i class="fa-solid fa-calendar-days"></i>                        <input type="date" id="newBirth" name="newBirth" required /></div>
                     </div>
                 </div>
 
-                <div class="form-section-head"><i class="fa-solid fa-building"></i> Atama Bilgileri</div>
+                <div class="form-section-head"><i class="fa-solid fa-building"></i> İş Bilgileri</div>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Hizmet Kategorisi</label>
                         <div class="input-box"><i class="fa-solid fa-sitemap"></i>
                                                         <select id="newCategory" name="category">
@@ -56,7 +56,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Bölge</label>
                         <div class="input-box"><i class="fa-solid fa-map-location-dot"></i>
                                                         <select id="newRegion" name="region" required>
@@ -71,7 +71,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group" id="companyGroup">
+                    <div class="form-group form-group-card" id="companyGroup">
                         <label>Bayi / Şirket Adı</label>
                         <div class="input-box">
                             <i class="fa-solid fa-building"></i>
@@ -79,7 +79,7 @@
                                                         <input type="text" id="newCompany" name="company" placeholder="Bayi adını giriniz" required />
                             
                             <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
-                                                        <select id="newRegionCompany" name="regionCompany" style="display:none;">>
+                                                        <select id="newRegionCompany" name="regionCompany" style="display:none;">
                                 <option value="" disabled selected>Grup seçiniz</option>
                                 <option value="Karavil Group">Karavil Group (Abdulkadir Karavil)</option>
                                 <option value="Yılmaz Group">Yılmaz Group (Ercan Yılmaz)</option>
@@ -91,7 +91,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Rol & Yetki Hiyerarşisi</label>
                         <div class="input-box"><i class="fa-solid fa-user-shield"></i>
                                                     <select id="newSubRole" name="subRole">
@@ -100,7 +100,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group" id="deptGroup" style="display: none;">
+                    <div class="form-group form-group-card" id="deptGroup" style="display: none;">
                         <label>Departman / Birim</label>
                         <div class="input-box">
                             <i class="fa-solid fa-briefcase"></i>
@@ -134,13 +134,13 @@
                     </div>
                 </div>
 
-                <div class="form-section-head"><i class="fa-solid fa-lock"></i> Sistem Bilgileri</div>
+                <div class="form-section-head"><i class="fa-solid fa-lock"></i> Hesap Bilgileri</div>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Kurumsal E-posta <small>(Otomatik oluşur)</small></label>
                         <div class="input-box"><i class="fa-solid fa-at"></i><input type="text" id="newEmail" readonly placeholder="ad.soyad@bellona.com.tr" /></div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group form-group-card">
                         <label>Şifre</label>
                         <div class="input-box" style="position:relative;">
                             <i class="fa-solid fa-key"></i>
