@@ -330,39 +330,40 @@ h1 {
 /* ===== CHART AREAS ===== */
 .chart-split {
     display: grid;
-    grid-template-columns: minmax(360px, 1.15fr) minmax(260px, 0.85fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 1rem;
     padding: 1.25rem;
     align-items: start;
 }
 
 .chart-table-side {
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     background: #fff;
 }
 
 .region-table {
-    min-width: 430px;
-    table-layout: fixed;
+    width: 100%;
+    table-layout: auto;
 }
 
 .region-table th:nth-child(1),
 .region-table td:nth-child(1) {
-    width: 42%;
+    width: 44%;
+    white-space: normal;
 }
 
 .region-table th:nth-child(2),
 .region-table td:nth-child(2) {
-    width: 29%;
+    width: 28%;
 }
 
 .region-table th:nth-child(3),
 .region-table td:nth-child(3) {
-    width: 29%;
+    width: 28%;
     text-align: right;
+    white-space: nowrap;
 }
 
 .chart-canvas-side {
