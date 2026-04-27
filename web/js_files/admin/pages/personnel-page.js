@@ -13,6 +13,28 @@ export async function initPersonnelPage() {
     const filterCat = document.getElementById("filterCategory");
     const filterReg = document.getElementById("filterRegion");
     const tbody = document.getElementById("userTableBody");
+    const totalCountEl = document.getElementById("totalPersonnelCount");
+    const alphaFilter = document.getElementById("alphabetFilter");
+    let selectedLetter = "all";
+
+    // Alfabe butonlarını oluştur
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".split("");
+    alphabet.forEach(l => {
+        const btn = document.createElement("button");
+        btn.className = "alpha-btn";
+        btn.textContent = l;
+        btn.dataset.letter = l;
+        alphaFilter?.appendChild(btn);
+    });
+
+    alphaFilter?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".alpha-btn");
+        if (!btn) return;
+        alphaFilter.querySelectorAll(".alpha-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedLetter = btn.dataset.letter;
+        applyFilters();
+    });
 
     const applyFilters = () => {
         const term = (searchIn?.value || "").toLocaleLowerCase("tr-TR");
@@ -21,11 +43,15 @@ export async function initPersonnelPage() {
 
         const filtered = allUsers.filter((u) => {
             const fullName = `${u.name || ""} ${u.surname || ""} ${u.company || ""}`.toLocaleLowerCase("tr-TR");
+            const firstChar = (u.name || "").charAt(0).toLocaleUpperCase("tr-TR");
+
             return fullName.includes(term)
                 && (cat === "all" || u.category === cat)
-                && (reg === "all" || u.region === reg);
+                && (reg === "all" || u.region === reg)
+                && (selectedLetter === "all" || firstChar === selectedLetter);
         });
         renderTableRows(tbody, filtered);
+        if (totalCountEl) totalCountEl.textContent = filtered.length;
     };
 
     [searchIn, filterCat, filterReg].forEach((el) => el?.addEventListener("input", applyFilters));

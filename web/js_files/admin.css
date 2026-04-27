@@ -913,6 +913,52 @@ input:focus, select:focus {
     .personnel-detail-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
 }
 
+
+/* ===== ALPHABET FILTER ===== */
+.alphabet-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.alpha-btn {
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+}
+
+.alpha-btn:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    background: var(--brand-glow);
+}
+
+.alpha-btn.active {
+    background: var(--brand);
+    color: white;
+    border-color: var(--brand);
+}
+
+.alpha-btn[data-letter="all"] {
+    padding-inline: 0.75rem;
+}
+
 @media (max-width: 768px) {
     .sidebar { display: none; }
     main { margin-left: 0; padding: 1rem; }
