@@ -2,19 +2,19 @@
    DESIGN SYSTEM & TOKENS
 ============================== */
 :root {
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-soft: #eef2ff;
-  --accent: #0ea5e9;
+  --primary: #0a2e2e;
+  --primary-hover: #082424;
+  --primary-soft: #eef7f7;
+  --accent: #2a7f7f;
   --bg-app: #f8fafc;
   --surface: #ffffff;
-  --text-main: #0f172a;
+  --text-main: #1e293b;
   --text-muted: #64748b;
   --border: #e2e8f0;
   --danger: #ef4444;
   --success: #10b981;
-  --glass: rgba(37, 24, 24, 0.7);
-  --glass-dark: rgba(15, 23, 42, 0.05);
+  --glass: #ffffff;
+  --glass-dark: rgba(10, 46, 46, 0.05);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
@@ -56,19 +56,16 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   font-family: 'Outfit', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--primary);
 }
 
-.logo i {
-  background: var(--primary);
-  color: white;
-  padding: 0.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
+.brand-logo-img {
+  max-height: 40px;
+  border-radius: 6px;
 }
 
 .compose-btn {
