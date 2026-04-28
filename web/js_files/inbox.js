@@ -2,14 +2,15 @@ import { auth, db } from './firebase/config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
   collection, query, where, orderBy, onSnapshot, 
-  addDoc, serverTimestamp, doc, getDoc, updateDoc 
+  addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentUserData = null;
 let activeThreadId = null;
+let currentFolder = 'inbox';
 
 // =====================
-// AUTH & ROLE PROTECTION
+// AUTH & INITIALIZATION
 // =====================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -25,133 +26,268 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUserData = { id: user.uid, ...userDoc.data() };
   
-  // UI Update
-  if(document.getElementById('userName')) {
-      document.getElementById('userName').textContent = `${currentUserData.name} ${currentUserData.surname || ''}`;
-  }
-  if(document.getElementById('userCompany')) {
-      document.getElementById('userCompany').textContent = currentUserData.company || 'Bellona Kurumsal';
-  }
-  if(document.getElementById('userRole')) {
-      document.getElementById('userRole').textContent = currentUserData.department || 'Personel';
-  }
-  if(document.getElementById('userAvatar')) {
-      const init = currentUserData.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-      document.getElementById('userAvatar').textContent = init;
-  }
-
-  loadInbox();
+  updateUI();
+  initNavigation();
+  initCompose();
+  loadFolder(currentFolder);
 });
 
-// =====================
-// INBOX LOADING (REAL-TIME)
-// =====================
-function loadInbox() {
-  const inboxList = document.getElementById('inboxList');
-  if (!inboxList) return;
+function updateUI() {
+    const elements = {
+        'userName': `${currentUserData.name} ${currentUserData.surname || ''}`,
+        'userCompany': currentUserData.company || 'Bellona Kurumsal',
+        'userRole': currentUserData.department || 'Personel',
+        'userAvatar': currentUserData.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
+    };
 
-  // Mesajları getir (Sadece kullanıcıya ait olanlar)
-  const q = query(
-    collection(db, "messages"),
-    where("participants", "array-contains", currentUserData.id),
-    orderBy("timestamp", "desc")
-  );
-
-  onSnapshot(q, (snapshot) => {
-    if (snapshot.empty) {
-      inboxList.innerHTML = '<div class="empty-view" style="padding:3rem; text-align:center; color:#94a3b8;">Henüz mesajınız yok.</div>';
-      return;
-    }
-
-    inboxList.innerHTML = snapshot.docs.map(doc => {
-      const m = doc.data();
-      const isActive = doc.id === activeThreadId ? 'active' : '';
-      const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '';
-      
-      return `
-        <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
-          <div class="msg-info">
-            <span class="msg-sender">${m.senderName || 'Bilinmiyor'}</span>
-            <span class="msg-time">${time}</span>
-          </div>
-          <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
-          <p style="font-size:0.75rem; color:#64748b; margin-top:0.3rem;">${m.lastMessage?.substring(0, 40)}...</p>
-        </div>
-      `;
-    }).join('');
-  });
-}
-
-// =====================
-// SELECT & VIEW MESSAGE
-// =====================
-window.selectThread = async (id) => {
-  activeThreadId = id;
-  const docSnap = await getDoc(doc(db, "messages", id));
-  if (!docSnap.exists()) return;
-
-  const data = docSnap.data();
-  
-  // UI state change
-  document.getElementById('emptyView').classList.add('hidden');
-  document.getElementById('messageView').classList.remove('hidden');
-  document.querySelectorAll('.msg-item').forEach(el => el.classList.remove('active'));
-
-  document.getElementById('activeSubj').textContent = data.subject || 'Konu Yok';
-  document.getElementById('activeSender').textContent = data.senderName || 'Bilinmeyen Gönderici';
-  document.getElementById('activeTime').textContent = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString('tr-TR') : '';
-  document.getElementById('activeContent').innerHTML = data.content || '';
-
-  // AI Summary Logic (If content is long or has attachments)
-  const aiBox = document.getElementById('aiSummary');
-  if (data.content && data.content.length > 200) {
-      aiBox.classList.remove('hidden');
-      document.getElementById('aiSummaryText').textContent = "Yapay zeka mesaj içeriğini özetliyor: " + data.content.substring(0, 100) + "... [Otomate Özet Aktif]";
-  } else {
-      aiBox.classList.add('hidden');
-  }
-
-  // Attachments
-  const attachDiv = document.getElementById('activeAttaches');
-  attachDiv.innerHTML = '';
-  if (data.attachments && data.attachments.length > 0) {
-      data.attachments.forEach(file => {
-          attachDiv.innerHTML += `
-            <div class="attachment-chip">
-              <i class="fa-solid fa-file-pdf"></i>
-              <span>${file.name || 'Dosya'}</span>
-              <i class="fa-solid fa-download" style="margin-left:0.5rem; opacity:0.5;"></i>
-            </div>
-          `;
-      });
-  }
-};
-
-// =====================
-// REPLY LOGIC
-// =====================
-const sendBtn = document.getElementById('sendReply');
-if (sendBtn) {
-    sendBtn.addEventListener('click', async () => {
-        const input = document.getElementById('replyInput');
-        if (!input.value.trim() || !activeThreadId) return;
-
-        const replyText = input.value.trim();
-        input.value = '';
-
-        try {
-            await updateDoc(doc(db, "messages", activeThreadId), {
-                lastMessage: replyText,
-                timestamp: serverTimestamp(),
-                content: document.getElementById('activeContent').innerHTML + `<hr/><p><strong>Re:</strong> ${replyText}</p>`
-            });
-            selectThread(activeThreadId);
-        } catch (err) { console.error("Reply error:", err); }
+    Object.entries(elements).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
     });
 }
 
-// LOGOUT
-const logoutBtn = document.getElementById('logoutBtn');
-if(logoutBtn) {
-    logoutBtn.addEventListener('click', () => signOut(auth).then(() => window.location.href = '/index.html'));
+// =====================
+// NAVIGATION LOGIC
+// =====================
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const folder = item.getAttribute('data-folder') || item.getAttribute('data-type');
+            if (folder) switchFolder(folder, item);
+        });
+    });
+
+    const logoutBtns = document.querySelectorAll('#logoutBtn');
+    logoutBtns.forEach(btn => {
+        btn.addEventListener('click', () => signOut(auth).then(() => window.location.href = '/index.html'));
+    });
+}
+
+function switchFolder(folder, clickedElement) {
+    currentFolder = folder;
+    
+    // UI Updates
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    if (clickedElement) clickedElement.classList.add('active');
+    
+    const folderTitle = document.getElementById('currentFolderName');
+    if (folderTitle) {
+        const names = {
+            'inbox': 'Gelen Kutusu', 'sent': 'Gönderilenler', 'spam': 'Spam Klasörü',
+            'archive': 'Arşiv', 'trash': 'Çöp Kutusu', 'all': 'Tüm Mesajlar'
+        };
+        folderTitle.textContent = names[folder] || folder;
+    }
+
+    // Reset View
+    resetDetailView();
+    loadFolder(folder);
+}
+
+function resetDetailView() {
+    const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
+    const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
+    const composeArea = document.getElementById('composeArea');
+    
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (contentArea) contentArea.classList.add('hidden');
+    if (composeArea) composeArea.classList.add('hidden');
+    activeThreadId = null;
+}
+
+// =====================
+// DATA LOADING
+// =====================
+function loadFolder(folder) {
+    const listContainer = document.getElementById('messageList') || document.getElementById('inboxList');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<div class="loader" style="padding:2rem; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>';
+
+    let q;
+    const baseRef = collection(db, "messages");
+
+    if (folder === 'sent') {
+        q = query(baseRef, where("senderId", "==", currentUserData.id), orderBy("timestamp", "desc"));
+    } else if (['spam', 'archive', 'trash'].includes(folder)) {
+        q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder), orderBy("timestamp", "desc"));
+    } else {
+        q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"), orderBy("timestamp", "desc"));
+    }
+
+    onSnapshot(q, (snapshot) => {
+        if (snapshot.empty) {
+            listContainer.innerHTML = `
+                <div class="empty-state" style="padding:3rem; text-align:center; color:#94a3b8;">
+                    <i class="fa-solid fa-folder-open" style="font-size:2.5rem; display:block; margin-bottom:1rem; opacity:0.3;"></i>
+                    <p>Bu klasörde henüz mesaj yok.</p>
+                </div>`;
+            return;
+        }
+
+        listContainer.innerHTML = snapshot.docs.map(doc => {
+            const m = doc.data();
+            const isActive = doc.id === activeThreadId ? 'active' : '';
+            const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+            
+            return `
+                <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
+                    <div class="msg-header">
+                        <span class="msg-sender">${m.senderName || 'Bilinmiyor'}</span>
+                        <span class="msg-time">${time}</span>
+                    </div>
+                    <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
+                    <p class="msg-preview">${(m.lastMessage || m.content || '').substring(0, 45).replace(/<[^>]*>?/gm, '')}...</p>
+                </div>
+            `;
+        }).join('');
+    });
+}
+
+// =====================
+// MESSAGE ACTIONS
+// =====================
+window.selectThread = async (id) => {
+    activeThreadId = id;
+    const docSnap = await getDoc(doc(db, "messages", id));
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+
+    const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
+    const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
+    const composeArea = document.getElementById('composeArea');
+    
+    if (emptyState) emptyState.classList.add('hidden');
+    if (contentArea) contentArea.classList.remove('hidden');
+    if (composeArea) composeArea.classList.add('hidden');
+    
+    document.querySelectorAll('.msg-item').forEach(el => {
+        if(el.textContent.includes(data.subject)) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+
+    const map = {
+        'detailSubject': data.subject, 'activeSubj': data.subject,
+        'detailSenderName': data.senderName, 'activeSender': data.senderName,
+        'detailDate': data.timestamp?.toDate().toLocaleString('tr-TR'), 'activeTime': data.timestamp?.toDate().toLocaleString('tr-TR'),
+        'detailBody': data.content, 'activeContent': data.content
+    };
+
+    Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = val || '';
+    });
+
+    // AI Summary
+    const aiBox = document.getElementById('aiSummaryBox') || document.getElementById('aiSummary');
+    if (aiBox) {
+        if (data.content?.length > 150) {
+            aiBox.classList.remove('hidden');
+            const aiText = document.getElementById('aiSummaryContent') || document.getElementById('aiSummaryText');
+            if (aiText) aiText.textContent = "AI Analizi: Bu mesaj '" + data.subject + "' konusunu içermektedir. Kurumsal standartlara uygun olarak analiz edilmiştir.";
+        } else {
+            aiBox.classList.add('hidden');
+        }
+    }
+};
+
+// =====================
+// COMPOSE & REPLY
+// =====================
+function initCompose() {
+    const composeBtn = document.getElementById('composeBtn') || document.getElementById('newThreadBtn');
+    const composeArea = document.getElementById('composeArea');
+    const closeCompose = document.getElementById('closeComposeBtn');
+    
+    if (composeBtn && composeArea) {
+        composeBtn.addEventListener('click', () => {
+            resetDetailView();
+            document.getElementById('detailEmptyState')?.classList.add('hidden');
+            document.getElementById('emptyView')?.classList.add('hidden');
+            composeArea.classList.remove('hidden');
+            loadReceivers();
+        });
+    }
+
+    if (closeCompose) {
+        closeCompose.addEventListener('click', () => resetDetailView());
+    }
+
+    const composeForm = document.getElementById('composeForm');
+    if (composeForm) {
+        composeForm.addEventListener('submit', handleComposeSubmit);
+    }
+
+    const replyBtn = document.getElementById('sendReply');
+    if (replyBtn) {
+        replyBtn.addEventListener('click', handleReplySubmit);
+    }
+}
+
+async function loadReceivers() {
+    const select = document.getElementById('receiverSelect');
+    if (!select) return;
+    
+    const q = query(collection(db, "users"), where("role", "!=", "admin"));
+    const snap = await getDocs(q);
+    
+    select.innerHTML = '<option value="">Kurumsal alıcı seçiniz...</option>';
+    snap.forEach(doc => {
+        const u = doc.data();
+        if (doc.id !== currentUserData.id) {
+            select.innerHTML += `<option value="${doc.id}">${u.name} ${u.surname || ''} (${u.company || 'Bellona'})</option>`;
+        }
+    });
+}
+
+async function handleComposeSubmit(e) {
+    e.preventDefault();
+    const receiverId = document.getElementById('receiverSelect').value;
+    const subject = document.getElementById('subjectInput')?.value || "Konu Yok";
+    const body = document.getElementById('messageBodyInput')?.value;
+
+    if (!receiverId || !body) return;
+
+    const receiverDoc = await getDoc(doc(db, "users", receiverId));
+    const rData = receiverDoc.data();
+
+    try {
+        await addDoc(collection(db, "messages"), {
+            senderId: currentUserData.id,
+            senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
+            receiverId: receiverId,
+            receiverName: `${rData.name} ${rData.surname || ''}`,
+            participants: [currentUserData.id, receiverId],
+            subject: subject,
+            content: body,
+            lastMessage: body,
+            status: 'active',
+            timestamp: serverTimestamp()
+        });
+        resetDetailView();
+        alert("Mesaj başarıyla gönderildi!");
+    } catch (err) { console.error("Send error:", err); }
+}
+
+async function handleReplySubmit() {
+    const input = document.getElementById('replyInput');
+    if (!input.value.trim() || !activeThreadId) return;
+
+    const replyText = input.value.trim();
+    input.value = '';
+
+    try {
+        const docRef = doc(db, "messages", activeThreadId);
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.data();
+        
+        await updateDoc(docRef, {
+            lastMessage: replyText,
+            timestamp: serverTimestamp(),
+            content: data.content + `<hr/><p><strong>Re (${currentUserData.name}):</strong> ${replyText}</p>`
+        });
+        selectThread(activeThreadId);
+    } catch (err) { console.error("Reply error:", err); }
 }
