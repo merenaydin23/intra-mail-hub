@@ -242,6 +242,25 @@ window.selectThread = async (id) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = val || '';
     });
+
+    // Render Replies (Threading)
+    const detailBody = document.getElementById('detailBody');
+    if (data.replies && data.replies.length > 0) {
+        let repliesHtml = '<div class="thread-divider">Yazışma Geçmişi</div>';
+        data.replies.forEach(r => {
+            const rDate = new Date(r.timestamp).toLocaleString('tr-TR', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short'});
+            repliesHtml += `
+                <div class="reply-bubble">
+                    <div class="reply-header">
+                        <span class="reply-author">${r.authorName}</span>
+                        <span class="reply-time">${rDate}</span>
+                    </div>
+                    <div class="reply-text">${r.text}</div>
+                </div>
+            `;
+        });
+        detailBody.innerHTML += repliesHtml;
+    }
 };
 
 // =====================
@@ -420,21 +439,33 @@ async function handleComposeSubmit(e) {
 
 async function handleReplySubmit() {
     const input = document.getElementById('replyInput');
-    if (!input.value.trim() || !activeThreadId) return;
+    if (!input || !input.value.trim() || !activeThreadId) return;
 
     const replyText = input.value.trim();
-    input.value = '';
+    const now = new Date();
+    
+    const replyObj = {
+        authorName: `${currentUserData.name} ${currentUserData.surname || ''}`,
+        authorId: currentUserData.id,
+        text: replyText,
+        timestamp: now.toISOString()
+    };
 
     try {
         const docRef = doc(db, "messages", activeThreadId);
         const docSnap = await getDoc(docRef);
         const data = docSnap.data();
         
+        const replies = data.replies || [];
+        replies.push(replyObj);
+
         await updateDoc(docRef, {
+            replies: replies,
             lastMessage: replyText,
-            timestamp: serverTimestamp(),
-            content: data.content + `<hr/><p><strong>Re (${currentUserData.name}):</strong> ${replyText}</p>`
+            timestamp: serverTimestamp()
         });
+        
+        input.value = '';
         selectThread(activeThreadId);
     } catch (err) { console.error("Reply error:", err); }
 }
