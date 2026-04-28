@@ -291,13 +291,14 @@ async function loadReceiversByCategory(category) {
     const usersRef = collection(db, "users");
 
     if (category === 'local_boss') {
-        // Kendi mağazasındaki yöneticiler
+        // Bölgedeki tüm yerel bayi sorumluları (yöneticiler)
         q = query(usersRef, 
-            where("company", "==", currentUserData.company),
+            where("region", "==", currentUserData.region),
+            where("category", "==", "local"),
             where("subRole", "==", "manager")
         );
     } else if (category === 'local_colleagues') {
-        // Kendi mağazasındaki diğer çalışanlar
+        // Sadece kendi mağazasındaki çalışma arkadaşları
         q = query(usersRef, 
             where("company", "==", currentUserData.company),
             where("subRole", "==", "staff")
