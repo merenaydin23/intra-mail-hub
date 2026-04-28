@@ -994,3 +994,86 @@ input:focus, select:focus {
     .chart-split { grid-template-columns: 1fr; }
     .personnel-detail-grid { grid-template-columns: 1fr; }
 }
+/* ===== NEW STATS WIDGETS ===== */
+.stats-grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-mini-card {
+    background: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid #eef2f6;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: transform 0.2s;
+}
+
+.stat-mini-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.stat-info h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* MESSAGE ACCORDION */
+.message-item {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.message-item:hover {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.message-item .message-content-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s;
+    margin-top: 0;
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.6;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.message-item.expanded .message-content-body {
+    max-height: 500px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+}

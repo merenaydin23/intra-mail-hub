@@ -83,21 +83,29 @@ export function renderMessageFeed(container, messages) {
         container.innerHTML = `<div class="audit-empty"><i class="fa-solid fa-comment-slash"></i><br>Görüntülenecek mesaj bulunamadı.</div>`;
         return;
     }
-    container.innerHTML = messages.map((m) => `
-        <article class="audit-item message-item">
-            <div class="audit-title" style="color: var(--brand-dark); font-weight: 700;">
-                <i class="fa-solid fa-envelope" style="margin-right: 6px; font-size: 0.8rem; opacity: 0.7;"></i>
-                ${m.subject || "Konu Yok"}
+    container.innerHTML = messages.map((m) => {
+        const time = formatDate(m.timestamp);
+        return `
+        <article class="audit-item message-item" onclick="this.classList.toggle('expanded')">
+            <div class="message-summary-row" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="audit-title" style="color: var(--brand-dark); font-weight: 700;">
+                    <i class="fa-solid fa-envelope" style="margin-right: 6px; font-size: 0.8rem; opacity: 0.7;"></i>
+                    ${m.subject || "Konu Yok"}
+                </div>
+                <div class="audit-meta" style="font-size: 0.75rem; color: var(--text-light);">
+                    <i class="fa-regular fa-clock"></i> ${time}
+                </div>
             </div>
-            <div class="audit-meta" style="margin-top: 4px;">
-                <strong>Gönderen:</strong> ${m.senderName || "Bilinmiyor"}
+            
+            <div class="audit-meta" style="margin-top: 6px; display:flex; gap:10px; font-size:0.8rem;">
+                <span style="color:#475569;"><strong style="color:var(--brand-dark)">G:</strong> ${m.senderName || 'Bilinmiyor'}</span>
+                <span style="color:#475569;"><strong style="color:var(--brand-dark)">A:</strong> ${m.receiverName || 'Bilinmiyor'}</span>
             </div>
-            <div class="audit-meta" style="font-style: italic; color: var(--text-muted); margin-top: 4px; border-left: 2px solid var(--border); padding-left: 8px;">
-                "${m.lastMessage || m.content?.replace(/<[^>]*>/g, '').substring(0, 80) || "İçerik yok..."}"
-            </div>
-            <div class="audit-meta" style="margin-top: 6px; font-size: 0.75rem; color: var(--text-light);">
-                <i class="fa-regular fa-clock"></i> ${formatDate(m.timestamp)}
+
+            <div class="message-content-body">
+                ${m.content || "İçerik yok..."}
             </div>
         </article>
-    `).join("");
+        `;
+    }).join("");
 }
