@@ -16,37 +16,11 @@ export async function initMessagesPage() {
     // Stats Calculation
     updateStats(messages);
 
-    // CSV Export & Timer Logic
+    // CSV Export
     const exportBtn = document.getElementById("btnExportCSV");
     if (exportBtn) {
-        exportBtn.disabled = true; // Varsayılan olarak kapalı
-        exportBtn.title = "Rapor sadece 16:50 - 17:00 saatleri arasında alınabilir.";
-        exportBtn.style.opacity = "0.5";
-        exportBtn.style.cursor = "not-allowed";
-
-        const checkTime = () => {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            
-            // 16:50 - 17:00 arası kontrolü
-            if (hours === 16 && minutes >= 50 && minutes < 60) {
-                exportBtn.disabled = false;
-                exportBtn.style.opacity = "1";
-                exportBtn.style.cursor = "pointer";
-                exportBtn.title = "Günlük raporu şimdi indirebilirsiniz.";
-            } else {
-                exportBtn.disabled = true;
-                exportBtn.style.opacity = "0.5";
-                exportBtn.style.cursor = "not-allowed";
-            }
-        };
-
-        checkTime();
-        setInterval(checkTime, 30000); // 30 saniyede bir kontrol et
-
         exportBtn.addEventListener("click", () => {
-            if (!exportBtn.disabled) exportToCSV(messages);
+            exportToCSV(messages);
         });
     }
 }
