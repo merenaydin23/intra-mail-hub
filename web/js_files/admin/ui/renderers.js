@@ -77,17 +77,27 @@ export function renderAuditFeed(container, logs) {
     `).join("");
 }
 
-export function renderMessageFeed(container, logs) {
+export function renderMessageFeed(container, messages) {
     if (!container) return;
-    if (!logs.length) {
+    if (!messages.length) {
         container.innerHTML = `<div class="audit-empty"><i class="fa-solid fa-comment-slash"></i><br>Görüntülenecek mesaj bulunamadı.</div>`;
         return;
     }
-    container.innerHTML = logs.map((log) => `
-        <article class="audit-item">
-            <div class="audit-title">${log.action || "Sistem Mesajı"}</div>
-            <div class="audit-meta">${log.detail || "Detay yok"}</div>
-            <div class="audit-meta">Kullanıcı: ${log.actorName || "Bilinmiyor"} · ${formatDate(log.createdAt)}</div>
+    container.innerHTML = messages.map((m) => `
+        <article class="audit-item message-item">
+            <div class="audit-title" style="color: var(--brand-dark); font-weight: 700;">
+                <i class="fa-solid fa-envelope" style="margin-right: 6px; font-size: 0.8rem; opacity: 0.7;"></i>
+                ${m.subject || "Konu Yok"}
+            </div>
+            <div class="audit-meta" style="margin-top: 4px;">
+                <strong>Gönderen:</strong> ${m.senderName || "Bilinmiyor"}
+            </div>
+            <div class="audit-meta" style="font-style: italic; color: var(--text-muted); margin-top: 4px; border-left: 2px solid var(--border); padding-left: 8px;">
+                "${m.lastMessage || m.content?.replace(/<[^>]*>/g, '').substring(0, 80) || "İçerik yok..."}"
+            </div>
+            <div class="audit-meta" style="margin-top: 6px; font-size: 0.75rem; color: var(--text-light);">
+                <i class="fa-regular fa-clock"></i> ${formatDate(m.timestamp)}
+            </div>
         </article>
     `).join("");
 }
