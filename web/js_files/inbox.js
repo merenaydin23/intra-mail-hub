@@ -116,11 +116,11 @@ function loadFolder(folder) {
 
     try {
         if (folder === 'sent') {
-            q = query(baseRef, where("senderId", "==", currentUserData.id), orderBy("timestamp", "desc"));
+            q = query(baseRef, where("senderId", "==", currentUserData.id));
         } else if (['spam', 'archive', 'trash'].includes(folder)) {
-            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder), orderBy("timestamp", "desc"));
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder));
         } else {
-            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"), orderBy("timestamp", "desc"));
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"));
         }
 
         onSnapshot(q, (snapshot) => {
@@ -144,7 +144,14 @@ function loadFolder(folder) {
                 return;
             }
 
-            listContainer.innerHTML = snapshot.docs.map(doc => {
+            // Sort in memory to avoid composite index requirement
+            const sortedDocs = [...snapshot.docs].sort((a, b) => {
+                const timeA = a.data().timestamp?.toMillis() || 0;
+                const timeB = b.data().timestamp?.toMillis() || 0;
+                return timeB - timeA;
+            });
+
+            listContainer.innerHTML = sortedDocs.map(doc => {
                 const m = doc.data();
                 const isActive = doc.id === activeThreadId ? 'active' : '';
                 const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
