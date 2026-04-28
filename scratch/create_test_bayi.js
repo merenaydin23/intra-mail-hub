@@ -16,21 +16,18 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 async function createTestUser() {
-    const email = "test.patron1@bellona.com.tr";
+    const email = "test.bayi@bellona.com.tr";
     const password = "Bellona123!";
     
     try {
-        console.log("Creating manager user in Auth...");
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = cred.user.uid;
-        
-        console.log("Writing manager to Firestore...");
-        await setDoc(doc(db, "users", uid), {
+        console.log("Updating Test Bayi to Employee...");
+        // Since it exists, I'll just overwrite with correct subRole
+        await setDoc(doc(db, "users", "test_bayi_uid_placeholder"), { // This is a script, I'll just run it with the right email
             name: "Test",
-            surname: "Patron 1",
+            surname: "Bayi",
             email: email,
             role: "user",
-            subRole: "manager",
+            subRole: "employee", // Changed from manager
             category: "local",
             company: "Yıldız Mobilya",
             region: "Marmara",

@@ -357,10 +357,9 @@ async function loadReceiversByCategory(category) {
             where("subRole", "==", "manager")
         );
     } else if (category === 'local_colleagues') {
-        // Sadece kendi mağazasındaki çalışma arkadaşları
+        // Kendi mağazasındaki herkes (hem çalışan hem diğer yöneticiler)
         q = query(usersRef, 
-            where("company", "==", currentUserData.company),
-            where("subRole", "==", "staff")
+            where("company", "==", currentUserData.company)
         );
     } else if (category === 'region_dealers') {
         // Bağlı olduğu bölgedeki diğer bayi sorumluları/çalışanları
