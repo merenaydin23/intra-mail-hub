@@ -15,6 +15,37 @@ export async function initMessagesPage() {
 
     // Stats Calculation
     updateStats(messages);
+
+    // CSV Export
+    document.getElementById("btnExportCSV")?.addEventListener("click", () => {
+        exportToCSV(messages);
+    });
+}
+
+function exportToCSV(messages) {
+    const today = new Date().toLocaleDateString('tr-TR');
+    let csvContent = "\uFEFF"; // UTF-8 BOM for Excel
+    csvContent += "Tarih;Gönderen;Alıcı;Konu;İçerik\n";
+
+    messages.forEach(m => {
+        const date = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleString('tr-TR') : '-';
+        const sender = m.senderName || '-';
+        const receiver = m.receiverName || '-';
+        const subject = (m.subject || '-').replace(/;/g, ',');
+        const content = (m.content || '-').replace(/;/g, ',').replace(/\n/g, ' ');
+        
+        csvContent += `${date};${sender};${receiver};${subject};${content}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Bellona_Gunluk_Rapor_${today}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 async function updateStats(messages) {
