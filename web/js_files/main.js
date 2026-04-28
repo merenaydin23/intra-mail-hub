@@ -56,9 +56,11 @@ if (loginForm) {
       let errorMsg = error.message;
       if (error.code === 'auth/invalid-credential') errorMsg = "E-posta veya şifre hatalı!";
       if (error.code === 'auth/user-not-found') errorMsg = "Böyle bir kullanıcı tanımlı değil!";
+      if (error.code === 'auth/too-many-requests') errorMsg = "Çok fazla hatalı deneme yaptınız. Güvenliğiniz için hesabınız geçici olarak kilitlendi. Lütfen birkaç dakika sonra tekrar deneyin.";
+      if (error.code === 'auth/network-request-failed') errorMsg = "İnternet bağlantınızı kontrol edin!";
       
       messageDiv.innerHTML = `❌ Hata: ${errorMsg}`;
-      messageDiv.style.color = "var(--danger)";
+      messageDiv.style.color = "var(--error)";
       console.error(error);
     }
   });
