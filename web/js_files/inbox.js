@@ -26,7 +26,15 @@ onAuthStateChanged(auth, async (user) => {
   currentUserData = { id: user.uid, ...userDoc.data() };
   
   // UI Update
-  if(document.getElementById('userName')) document.getElementById('userName').textContent = currentUserData.name;
+  if(document.getElementById('userName')) {
+      document.getElementById('userName').textContent = `${currentUserData.name} ${currentUserData.surname || ''}`;
+  }
+  if(document.getElementById('userCompany')) {
+      document.getElementById('userCompany').textContent = currentUserData.company || 'Bellona Kurumsal';
+  }
+  if(document.getElementById('userRole')) {
+      document.getElementById('userRole').textContent = currentUserData.department || 'Personel';
+  }
   if(document.getElementById('userAvatar')) {
       const init = currentUserData.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
       document.getElementById('userAvatar').textContent = init;
