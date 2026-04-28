@@ -33,10 +33,14 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 function updateUI() {
+    let roleLabel = currentUserData.subRole === 'manager' ? 'Yönetici / Patron' : 'Mağaza Personeli';
+    if (currentUserData.category === 'regional') roleLabel = 'Bölge Sorumlusu';
+    if (currentUserData.category === 'factory') roleLabel = 'Fabrika Yetkilisi';
+
     const elements = {
         'userName': `${currentUserData.name} ${currentUserData.surname || ''}`,
         'userCompany': currentUserData.company || 'Bellona Kurumsal',
-        'userRole': currentUserData.department || 'Personel',
+        'userRole': roleLabel,
         'userAvatar': currentUserData.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
     };
 
