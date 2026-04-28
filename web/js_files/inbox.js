@@ -272,6 +272,36 @@ function initCompose() {
     if (replyBtn) {
         replyBtn.addEventListener('click', handleReplySubmit);
     }
+
+    // Akıllı Düzenle (AI Smart Edit)
+    const aiSuggestBtn = document.getElementById('aiSuggestBtn');
+    if (aiSuggestBtn) {
+        aiSuggestBtn.addEventListener('click', () => {
+            const bodyInput = document.getElementById('messageBodyInput');
+            const recSelect = document.getElementById('receiverSelect');
+            if (!bodyInput || !recSelect) return;
+
+            const originalText = bodyInput.value.trim();
+            if (!originalText) return;
+
+            const receiverText = recSelect.options[recSelect.selectedIndex]?.text || "Yetkili";
+            const receiverName = receiverText.split('(')[0].trim();
+            
+            const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
+            const myCompany = currentUserData.company || "Bellona";
+
+            // Kurumsal Formatta Düzenle
+            const formalText = `Sayın ${receiverName},\n\n${originalText}\n\nSaygılarımla,\n${myName}\n${myCompany}`;
+            
+            bodyInput.value = formalText;
+            
+            const statusEl = document.getElementById('composeStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Metin kurumsallaştırıldı.';
+                setTimeout(() => statusEl.innerHTML = '', 3000);
+            }
+        });
+    }
 }
 
 async function loadReceiversByCategory(category) {

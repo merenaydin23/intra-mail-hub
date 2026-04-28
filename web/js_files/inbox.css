@@ -587,8 +587,8 @@ body {
   position: absolute;
   bottom: 0;
   right: 2rem;
-  width: 550px;
-  height: 600px;
+  width: 700px; /* Increased from 550px */
+  height: 750px; /* Increased from 600px */
   background: white;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border-radius: 16px 16px 0 0;
@@ -597,12 +597,13 @@ body {
   border: 1px solid var(--border);
   z-index: 100;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .compose-header {
   background: var(--text-main);
   color: white;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -648,7 +649,7 @@ body {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .flex-1 { flex: 1; display: flex; flex-direction: column; }
@@ -669,11 +670,18 @@ body {
   outline: none;
   font-family: inherit;
   font-size: 0.9375rem;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus, .form-group textarea:focus {
+  border-color: var(--primary);
 }
 
 .form-group textarea {
   flex: 1;
   resize: none;
+  line-height: 1.6;
+  padding: 1rem;
 }
 
 .form-footer {
