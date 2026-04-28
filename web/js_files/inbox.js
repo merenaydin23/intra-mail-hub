@@ -216,17 +216,10 @@ window.selectThread = async (id) => {
         if (el) el.innerHTML = val || '';
     });
 
-    // AI Summary
-    const aiBox = document.getElementById('aiSummaryBox') || document.getElementById('aiSummary');
-    if (aiBox) {
-        if (data.content?.length > 150) {
-            aiBox.classList.remove('hidden');
-            const aiText = document.getElementById('aiSummaryContent') || document.getElementById('aiSummaryText');
-            if (aiText) aiText.textContent = "AI Analizi: Bu mesaj '" + data.subject + "' konusunu içermektedir. Kurumsal standartlara uygun olarak analiz edilmiştir.";
-        } else {
-            aiBox.classList.add('hidden');
-        }
-    }
+    Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = val || '';
+    });
 };
 
 // =====================
