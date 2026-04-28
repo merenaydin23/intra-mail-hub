@@ -104,46 +104,75 @@ function loadFolder(folder) {
     const listContainer = document.getElementById('messageList') || document.getElementById('inboxList');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<div class="loader" style="padding:2rem; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>';
+    // Show initial loader
+    listContainer.innerHTML = `
+        <div class="loader-container" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); opacity:0.6; padding: 4rem 0;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; margin-bottom:1rem;"></i>
+            <p>Mesajlar yükleniyor...</p>
+        </div>`;
 
     let q;
     const baseRef = collection(db, "messages");
 
-    if (folder === 'sent') {
-        q = query(baseRef, where("senderId", "==", currentUserData.id), orderBy("timestamp", "desc"));
-    } else if (['spam', 'archive', 'trash'].includes(folder)) {
-        q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder), orderBy("timestamp", "desc"));
-    } else {
-        q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"), orderBy("timestamp", "desc"));
-    }
-
-    onSnapshot(q, (snapshot) => {
-        if (snapshot.empty) {
-            listContainer.innerHTML = `
-                <div class="empty-state" style="padding:3rem; text-align:center; color:#94a3b8;">
-                    <i class="fa-solid fa-folder-open" style="font-size:2.5rem; display:block; margin-bottom:1rem; opacity:0.3;"></i>
-                    <p>Bu klasörde henüz mesaj yok.</p>
-                </div>`;
-            return;
+    try {
+        if (folder === 'sent') {
+            q = query(baseRef, where("senderId", "==", currentUserData.id), orderBy("timestamp", "desc"));
+        } else if (['spam', 'archive', 'trash'].includes(folder)) {
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder), orderBy("timestamp", "desc"));
+        } else {
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"), orderBy("timestamp", "desc"));
         }
 
-        listContainer.innerHTML = snapshot.docs.map(doc => {
-            const m = doc.data();
-            const isActive = doc.id === activeThreadId ? 'active' : '';
-            const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
-            
-            return `
-                <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
-                    <div class="msg-header">
-                        <span class="msg-sender">${m.senderName || 'Bilinmiyor'}</span>
-                        <span class="msg-time">${time}</span>
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                const emptyMessages = {
+                    'inbox': 'Henüz bir mesaj almadınız.',
+                    'sent': 'Henüz bir mesaj göndermediniz.',
+                    'spam': 'Spam klasörünüz temiz.',
+                    'archive': 'Arşivlenmiş mesajınız bulunmuyor.',
+                    'trash': 'Çöp kutusu boş.'
+                };
+                
+                listContainer.innerHTML = `
+                    <div class="empty-state-modern">
+                        <div class="empty-icon-wrapper">
+                            <i class="fa-solid fa-envelope-open"></i>
+                        </div>
+                        <h3>Tertemiz!</h3>
+                        <p>${emptyMessages[folder] || 'Burada görülecek bir şey yok.'}</p>
+                    </div>`;
+                return;
+            }
+
+            listContainer.innerHTML = snapshot.docs.map(doc => {
+                const m = doc.data();
+                const isActive = doc.id === activeThreadId ? 'active' : '';
+                const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+                
+                return `
+                    <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
+                        <div class="msg-header">
+                            <span class="msg-sender">${m.senderName || 'Bilinmiyor'}</span>
+                            <span class="msg-time">${time}</span>
+                        </div>
+                        <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
+                        <p class="msg-preview">${(m.lastMessage || m.content || '').substring(0, 45).replace(/<[^>]*>?/gm, '')}...</p>
                     </div>
-                    <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
-                    <p class="msg-preview">${(m.lastMessage || m.content || '').substring(0, 45).replace(/<[^>]*>?/gm, '')}...</p>
-                </div>
-            `;
-        }).join('');
-    });
+                `;
+            }).join('');
+        }, (error) => {
+            console.error("Snapshot error:", error);
+            listContainer.innerHTML = `
+                <div class="error-state" style="padding:2rem; text-align:center; color:var(--danger);">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:2rem; margin-bottom:1rem;"></i>
+                    <p>Mesajlar yüklenirken bir hata oluştu.</p>
+                    <small style="display:block; margin-top:0.5rem; opacity:0.7;">Dizin eksik olabilir veya bağlantı sorunu var.</small>
+                </div>`;
+        });
+    } catch (err) {
+        console.error("Query buildup error:", err);
+        listContainer.innerHTML = '<div style="padding:2rem; text-align:center;">Sorgu oluşturulurken hata oluştu.</div>';
+    }
 }
 
 // =====================
