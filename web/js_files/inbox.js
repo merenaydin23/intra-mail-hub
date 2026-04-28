@@ -120,7 +120,8 @@ function loadFolder(folder) {
         } else if (['spam', 'archive', 'trash'].includes(folder)) {
             q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder));
         } else {
-            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"));
+            // Inbox: Sadece bana gelen aktif mesajlar
+            q = query(baseRef, where("receiverId", "==", currentUserData.id), where("status", "==", "active"));
         }
 
         onSnapshot(q, (snapshot) => {
@@ -154,13 +155,26 @@ function loadFolder(folder) {
             listContainer.innerHTML = sortedDocs.map(doc => {
                 const m = doc.data();
                 const isActive = doc.id === activeThreadId ? 'active' : '';
-                const time = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+                
+                // Tarih formatlama
+                const dateObj = m.timestamp?.toDate();
+                let timeStr = "--:--";
+                if (dateObj) {
+                    const today = new Date();
+                    if (dateObj.toDateString() === today.toDateString()) {
+                        timeStr = dateObj.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+                    } else {
+                        timeStr = dateObj.toLocaleDateString('tr-TR', {day:'2-digit', month:'short'});
+                    }
+                }
+                
+                const senderDisplay = folder === 'sent' ? `Alıcı: ${m.receiverName || 'Bilinmiyor'}` : (m.senderName || 'Bilinmiyor');
                 
                 return `
                     <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
                         <div class="msg-header">
-                            <span class="msg-sender">${m.senderName || 'Bilinmiyor'}</span>
-                            <span class="msg-time">${time}</span>
+                            <span class="msg-sender">${senderDisplay}</span>
+                            <span class="msg-time">${timeStr}</span>
                         </div>
                         <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
                         <p class="msg-preview">${(m.lastMessage || m.content || '').substring(0, 45).replace(/<[^>]*>?/gm, '')}...</p>
@@ -204,11 +218,15 @@ window.selectThread = async (id) => {
         else el.classList.remove('active');
     });
 
+    const dateObj = data.timestamp?.toDate();
+    const fullDate = dateObj ? dateObj.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+
     const map = {
-        'detailSubject': data.subject, 'activeSubj': data.subject,
-        'detailSenderName': data.senderName, 'activeSender': data.senderName,
-        'detailDate': data.timestamp?.toDate().toLocaleString('tr-TR'), 'activeTime': data.timestamp?.toDate().toLocaleString('tr-TR'),
-        'detailBody': data.content, 'activeContent': data.content
+        'detailSubject': data.subject,
+        'detailSenderName': data.senderName,
+        'detailSenderEmail': `Alıcı: ${data.receiverName || 'Bilinmiyor'}`,
+        'detailDate': fullDate,
+        'detailBody': data.content
     };
 
     Object.entries(map).forEach(([id, val]) => {
