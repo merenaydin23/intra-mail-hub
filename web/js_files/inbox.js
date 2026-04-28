@@ -296,17 +296,22 @@ async function loadReceiversByCategory(category) {
             where("company", "==", currentUserData.company),
             where("subRole", "==", "manager")
         );
+    } else if (category === 'local_colleagues') {
+        // Kendi mağazasındaki diğer çalışanlar
+        q = query(usersRef, 
+            where("company", "==", currentUserData.company),
+            where("subRole", "==", "staff")
+        );
     } else if (category === 'region_dealers') {
         // Bağlı olduğu bölgedeki diğer bayi sorumluları/çalışanları
         q = query(usersRef, 
             where("region", "==", currentUserData.region),
             where("category", "==", "region")
         );
-    } else if (category === 'factory') {
-        // Fabrika personeli
-        q = query(usersRef, where("category", "==", "factory"));
     } else {
-        q = query(usersRef, where("role", "!=", "admin"));
+        // Fallback or restricted access
+        select.innerHTML = '<option value="">Yetkiniz olmayan birim</option>';
+        return;
     }
 
     try {
