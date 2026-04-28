@@ -170,9 +170,18 @@
       <form class="compose-form" id="composeForm">
         <div class="form-body">
           <div class="form-group">
-            <label><i class="fa-solid fa-user-plus"></i> Kime</label>
-            <select id="receiverSelect" required>
-              <option value="">Kurumsal alıcı seçiniz...</option>
+            <label><i class="fa-solid fa-sitemap"></i> Alıcı Birimi</label>
+            <select id="receiverCategorySelect">
+              <option value="">Birim seçiniz...</option>
+              <option value="local_boss">Yerel Patron / Yönetici</option>
+              <option value="region_dealers">Bölge Bayisi Çalışanları</option>
+              <option value="factory">Fabrika / Merkez Birimler</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-user-plus"></i> Alıcı Seçimi</label>
+            <select id="receiverSelect" required disabled>
+              <option value="">Önce birim seçiniz...</option>
             </select>
           </div>
           <div class="form-group">

@@ -236,6 +236,7 @@ function initCompose() {
     const composeBtn = document.getElementById('composeBtn') || document.getElementById('newThreadBtn');
     const composeArea = document.getElementById('composeArea');
     const closeCompose = document.getElementById('closeComposeBtn');
+    const categorySelect = document.getElementById('receiverCategorySelect');
     
     if (composeBtn && composeArea) {
         composeBtn.addEventListener('click', () => {
@@ -243,7 +244,18 @@ function initCompose() {
             document.getElementById('detailEmptyState')?.classList.add('hidden');
             document.getElementById('emptyView')?.classList.add('hidden');
             composeArea.classList.remove('hidden');
-            loadReceivers();
+            if (categorySelect) categorySelect.value = "";
+            const recSelect = document.getElementById('receiverSelect');
+            if (recSelect) {
+                recSelect.innerHTML = '<option value="">Önce birim seçiniz...</option>';
+                recSelect.disabled = true;
+            }
+        });
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', (e) => {
+            loadReceiversByCategory(e.target.value);
         });
     }
 
@@ -262,20 +274,55 @@ function initCompose() {
     }
 }
 
-async function loadReceivers() {
+async function loadReceiversByCategory(category) {
     const select = document.getElementById('receiverSelect');
     if (!select) return;
-    
-    const q = query(collection(db, "users"), where("role", "!=", "admin"));
-    const snap = await getDocs(q);
-    
-    select.innerHTML = '<option value="">Kurumsal alıcı seçiniz...</option>';
-    snap.forEach(doc => {
-        const u = doc.data();
-        if (doc.id !== currentUserData.id) {
-            select.innerHTML += `<option value="${doc.id}">${u.name} ${u.surname || ''} (${u.company || 'Bellona'})</option>`;
-        }
-    });
+
+    if (!category) {
+        select.innerHTML = '<option value="">Önce birim seçiniz...</option>';
+        select.disabled = true;
+        return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = '<option value="">Yükleniyor...</option>';
+
+    let q;
+    const usersRef = collection(db, "users");
+
+    if (category === 'local_boss') {
+        // Kendi mağazasındaki yöneticiler
+        q = query(usersRef, 
+            where("company", "==", currentUserData.company),
+            where("subRole", "==", "manager")
+        );
+    } else if (category === 'region_dealers') {
+        // Bağlı olduğu bölgedeki diğer bayi sorumluları/çalışanları
+        q = query(usersRef, 
+            where("region", "==", currentUserData.region),
+            where("category", "==", "region")
+        );
+    } else if (category === 'factory') {
+        // Fabrika personeli
+        q = query(usersRef, where("category", "==", "factory"));
+    } else {
+        q = query(usersRef, where("role", "!=", "admin"));
+    }
+
+    try {
+        const snap = await getDocs(q);
+        select.innerHTML = `<option value="">${snap.empty ? 'Alıcı bulunamadı' : 'Alıcı seçiniz...'}</option>`;
+        
+        snap.forEach(doc => {
+            const u = doc.data();
+            if (doc.id !== currentUserData.id) {
+                select.innerHTML += `<option value="${doc.id}">${u.name} ${u.surname || ''} (${u.role === 'admin' ? 'Sistem' : (u.company || 'Bellona')})</option>`;
+            }
+        });
+    } catch (err) {
+        console.error("Load receivers error:", err);
+        select.innerHTML = '<option value="">Yükleme hatası!</option>';
+    }
 }
 
 async function handleComposeSubmit(e) {
