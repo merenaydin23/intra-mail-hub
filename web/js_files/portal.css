@@ -2,17 +2,19 @@
    ULTIMATE PORTAL DESIGN SYSTEM
 ============================== */
 :root {
-  --primary: #4338ca;
-  --primary-light: #6366f1;
+  --primary: #0a2e2e;
+  --primary-light: #2a7f7f;
+  --primary-soft: #eef7f7;
   --bg-app: #f8fafc;
   --surface: #ffffff;
-  --text-main: #0f172a;
+  --text-main: #1e293b;
   --text-muted: #64748b;
   --border: #e2e8f0;
   --success: #10b981;
   --radius-xl: 24px;
   --radius-lg: 16px;
   --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+  --accent: #2a7f7f;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
@@ -39,15 +41,15 @@ body {
 }
 
 .logo { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 3rem; font-family: 'Outfit'; font-size: 1.4rem; font-weight: 800; }
-.logo i { color: var(--primary-light); font-size: 1.8rem; }
+.brand-logo-img { max-height: 40px; border-radius: 6px; }
 
 .nav-item {
   display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem;
   color: #94a3b8; text-decoration: none; font-weight: 600; border-radius: 14px;
   margin-bottom: 0.5rem; transition: 0.3s;
 }
-.nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.05); color: white; }
-.nav-item.active { background: var(--primary); box-shadow: 0 10px 20px rgba(67, 56, 202, 0.3); }
+.nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: white; }
+.nav-item.active { background: var(--primary-light); box-shadow: 0 10px 20px rgba(42, 127, 127, 0.2); }
 
 /* MAIN VIEWPORT */
 .main-content {
