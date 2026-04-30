@@ -4,6 +4,7 @@ import {
   collection, query, where, orderBy, onSnapshot, 
   addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { refineMessageWithAI } from './services/ai-service.js';
 
 let currentUserData = null;
 let activeThreadId = null;
@@ -307,7 +308,6 @@ function initCompose() {
         replyBtn.addEventListener('click', handleReplySubmit);
     }
 
-    // Akıllı Düzenle (AI Smart Edit)
     const aiSuggestBtn = document.getElementById('aiSuggestBtn');
     if (aiSuggestBtn) {
         aiSuggestBtn.addEventListener('click', () => {
@@ -324,22 +324,12 @@ function initCompose() {
             const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
             const myCompany = currentUserData.company || "Bellona";
 
-            // Kurumsal Düzenleme Algoritması (Smarter Edit)
-            let refinedText = originalText
-                .replace(/^merhaba/i, "Merhaba,")
-                .replace(/teşekkür ederim/i, "teşekkür eder,")
-                .replace(/ihtiyacım bulunmaktadır/i, "ihtiyacımız bulunmaktadır.")
-                .replace(/kontrol edip/i, "kontrol ederek")
-                .replace(/geri dönüş yaparsınız/i, "tarafımıza bilgi verilmesini rica ederim.")
-                .trim();
-
-            // İlk harfi büyük yap
-            refinedText = refinedText.charAt(0).toUpperCase() + refinedText.slice(1);
-            
-            // Eğer nokta ile bitmiyorsa ekle
-            if (!refinedText.endsWith(".") && !refinedText.endsWith("!")) refinedText += ".";
-
-            const formalText = `Sayın ${receiverName},\n\n${refinedText}\n\nİyi çalışmalar dilerim.\n\nSaygılarımla,\n${myName}\n${myCompany}`;
+            // Use the centralized AI Service
+            const formalText = refineMessageWithAI(originalText, {
+                receiverName,
+                senderName: myName,
+                senderCompany: myCompany
+            });
             
             bodyInput.value = formalText;
             
