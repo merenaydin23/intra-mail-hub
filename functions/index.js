@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
 
-const genAI = new GoogleGenerativeAI("AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8");
+const genAI = new GoogleGenerativeAI("AIzaSyCeJKg6uWXcOSW-8KB1elCnSsWTlnsTBzM");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 exports.processNewMessage = onDocumentCreated("messages/{messageId}", async (event) => {
@@ -68,41 +68,35 @@ exports.refineCorporateMessage = onCall(async (request) => {
     
     if (!text) return { error: "Metin boş olamaz" };
 
-    const systemPrompt = `Sen üst düzey kurumsal iletişim konusunda uzman bir asistansın. Sana verilecek e-posta metni kaba, eksik veya hatalı olabilir.
+    const systemPrompt = `Sen üst düzey bir kurumsal iletişim ve halkla ilişkiler uzmanısın. Görevin, sana iletilen ham, kaba veya doğrudan yazılmış mesajı alıp, anlamını koruyarak EN ÜST DÜZEY nezaket ve profesyonellik ile YENİDEN YAZMAKTIR.
 
-Görevin:
-1. Metni son derece kibar, nazik ve profesyonel bir dile dönüştür
-2. Kurumsal yazışma standartlarına uygun hale getir
-3. Gerekirse ifadeleri daha zarif ve dolaylı şekilde yeniden kur
-4. Eksik veya anlaşılmayan kısımları mantıklı ve yaratıcı biçimde tamamla
-5. Yazım hatalarını tamamen düzelt
+Talimatlar:
+1. Sadece başa sona ekleme yapma; mesajın gövdesini (core body) kurumsal bir üsluba kavuştur.
+2. "Sipariş geç", "Bak", "Yap" gibi emir kiplerini asla kullanma. Bunun yerine "istirahammızdır", "rica ederiz", "bilgilerinize sunarız" gibi ifadeler kullan.
+3. Mesajı daha akıcı, profesyonel ve kurumsal standartlarda bir e-posta haline getir.
+4. Yazım ve noktalama hatalarını gider.
 
 Ton:
-- Resmi ama yumuşak ve saygılı
-- Talepkar değil, rica eden bir üslup
-- Akıcı ve doğal Türkçe
+- Son derece saygılı, nazik ve profesyonel.
+- Talepkar değil, çözüm odaklı ve rica edici.
 
-Mail formatı:
-- “Sayın [Ad Soyad],” ile başla
-- Metni düzgün ve okunabilir paragraflara ayır
-- Gerekirse açıklayıcı kısa ek cümleler ekle
-- Sonuna nazik bir kapanış ekle (örnek: “Bilgilerinize sunar, iyi çalışmalar dilerim.”)
-
-İmza formatı:
+Mail Formatı:
+- Hitap: "Sayın [Alıcı Adı],"
+- Gövde: Mesajın kurumsallaştırılmış, akıcı hali.
+- Kapanış: "Bilgilerinize sunar, verimli çalışmalar dilerim."
+- İmza: 
 Saygılarımla,
-[Ad Soyad]
-[Bayi / Şirket Adı]
-
-Ek kurallar:
-- Kısa ama etkili olsun
-- Gereksiz tekrar yapma
-- Profesyonel görünümü önceliklendir
+[Gönderen Adı]
+[Şirket Adı]
 
 Alıcı: ${context.receiverName || 'Yetkili'}
-Gönderen: ${context.senderName || 'Çalışan'} (${context.senderCompany || 'Bellona'})
+Gönderen: ${context.senderName || 'Çalışan'}
+Şirket: ${context.senderCompany || 'Bellona'}
 
-Şimdi aşağıdaki metni düzenle:
-"${text}"`;
+Düzenlenecek Ham Metin:
+"${text}"
+
+Lütfen sadece düzenlenmiş nihai metni döndür.`;
 
     try {
         const result = await model.generateContent(systemPrompt);
