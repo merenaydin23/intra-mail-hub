@@ -309,41 +309,51 @@ function initCompose() {
     }
 
     const aiSuggestBtn = document.getElementById('aiSuggestBtn');
+    let lastOriginalText = ""; // Sil baştan yapmak için ham metni saklıyoruz
+
     if (aiSuggestBtn) {
         aiSuggestBtn.addEventListener('click', async () => {
             const bodyInput = document.getElementById('messageBodyInput');
             const recSelect = document.getElementById('receiverSelect');
             if (!bodyInput || !recSelect) return;
 
-            const originalText = bodyInput.value.trim();
-            if (!originalText) return;
+            let currentText = bodyInput.value.trim();
+            if (!currentText) return;
+
+            // Eğer metin zaten AI tarafından düzenlenmişse (✨ varsa), 
+            // ve biz hala aynı oturumdaysak, sakladığımız ham metni kullanalım.
+            // Aksi takdirde mevcut metni yeni "ham metin" olarak kabul edelim.
+            if (!currentText.includes("✨") || !lastOriginalText) {
+                lastOriginalText = currentText;
+            }
 
             const receiverText = recSelect.options[recSelect.selectedIndex]?.text || "Yetkili";
             const receiverName = receiverText.split('(')[0].trim();
-            
             const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
             const myCompany = currentUserData.company || "Bellona";
 
-            // Use the centralized AI Service (Real Gemini Call)
             const statusEl = document.getElementById('composeStatus');
-            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yapay zeka düzenliyor...';
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
 
             try {
-                const formalText = await refineMessageWithAI(originalText, {
+                const refinedText = await refineMessageWithAI(lastOriginalText, {
                     receiverName,
                     senderName: myName,
                     senderCompany: myCompany
                 });
                 
-                bodyInput.value = formalText;
+                if (refinedText.error) throw new Error(refinedText.error);
+
+                // Sadece Mesaj Gövdesini Güncelle (Sil Baştan)
+                bodyInput.value = "✨ " + refinedText;
                 
                 if (statusEl) {
-                    statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Metin kurumsallaştırıldı.';
+                    statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Düzenlendi.';
                     setTimeout(() => statusEl.innerHTML = '', 3000);
                 }
             } catch (err) {
                 console.error("AI Refine UI Error:", err);
-                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:var(--danger)"></i> Hata oluştu.';
+                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:var(--danger)"></i> Hata.';
             }
         });
     }
