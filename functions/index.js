@@ -15,6 +15,49 @@ const COHERE_KEYS = [
 const genAI = new GoogleGenerativeAI("AIzaSyCeJKg6uWXcOSW-8KB1elCnSsWTlnsTBzM");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+/**
+ * KULLANICI OLUŞTURMA — Auth + Firestore atomik
+ * Admin panelinden çağrılır. Firebase Auth + Firestore'u birlikte oluşturur.
+ */
+exports.createUser = onCall(async (request) => {
+    // Sadece admin çağırabilsin
+    if (!request.auth) throw new Error("Yetki yok.");
+
+    const data = request.data;
+    if (!data.email || !data.password) throw new Error("E-posta ve şifre zorunludur.");
+
+    try {
+        // 1. Firebase Auth'ta kullanıcı oluştur
+        const userRecord = await admin.auth().createUser({
+            email: data.email,
+            password: data.password,
+            displayName: `${data.name} ${data.surname}`,
+        });
+
+        // 2. Firestore'a aynı UID ile kaydet
+        const { password, ...firestoreData } = data; // şifreyi Firestore'a yazma
+        await admin.firestore().collection("users").doc(userRecord.uid).set({
+            ...firestoreData,
+            uid: userRecord.uid,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        console.log(`[createUser] ${data.email} başarıyla oluşturuldu. UID: ${userRecord.uid}`);
+        return { success: true, uid: userRecord.uid, email: data.email };
+
+    } catch (err) {
+        console.error("[createUser] Hata:", err.message);
+        // Auth hata kodlarını Türkçeleştir
+        const msgs = {
+            "auth/email-already-exists": "Bu e-posta adresi zaten kayıtlı.",
+            "auth/invalid-email": "Geçersiz e-posta formatı.",
+            "auth/weak-password": "Şifre en az 6 karakter olmalı.",
+        };
+        throw new Error(msgs[err.code] || err.message);
+    }
+});
+
+
 exports.processNewMessage = onDocumentCreated("messages/{messageId}", async (event) => {
     const snapshot = event.data;
     if (!snapshot) return;
