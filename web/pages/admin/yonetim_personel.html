@@ -7,99 +7,95 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../../js_files/admin.css">
     <style>
-        /* ── Watermark Logo ── */
+        /* Watermark */
         .main-watermark {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 220px;
-            opacity: 0.04;
-            pointer-events: none;
-            user-select: none;
-            z-index: 0;
+            position: fixed; bottom: 2rem; right: 2rem;
+            width: 200px; opacity: 0.045; pointer-events: none;
+            user-select: none; z-index: 0;
         }
 
-        /* ── Filtre Paneli ── */
-        .filter-shell {
+        /* Filtre Kartı */
+        .filter-card {
             background: #fff;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            margin-bottom: 1.25rem;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.04);
         }
-        .filter-row-1 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.9rem; }
-        .filter-row-2 { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; }
-        .filter-label { font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
-        .filter-group { display: flex; flex-direction: column; }
-
-        .filter-input-box {
+        .filter-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 44px;
+            gap: 0.75rem;
+            align-items: end;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .filter-label {
+            font-size: 0.7rem; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .f-box {
             display: flex; align-items: center; gap: 0.5rem;
             border: 1.5px solid #e2e8f0; border-radius: 10px;
-            padding: 0.55rem 0.8rem; background: #f8fafc;
-            transition: border-color 0.2s;
+            padding: 0.6rem 0.85rem; background: #f8fafc;
+            transition: border-color 0.18s, background 0.18s;
         }
-        .filter-input-box:focus-within { border-color: #007b7b; background: #fff; }
-        .filter-input-box i { color: #94a3b8; font-size: 0.85rem; flex-shrink: 0; }
-        .filter-input-box input, .filter-input-box select {
+        .f-box:focus-within { border-color: #007b7b; background: #fff; }
+        .f-box i { color: #b0bec5; font-size: 0.82rem; flex-shrink: 0; }
+        .f-box input, .f-box select {
             border: none; background: transparent; outline: none;
-            font-size: 0.85rem; width: 100%; color: #1e293b;
+            font-size: 0.85rem; color: #1e293b; width: 100%;
         }
-        .filter-select-box {
-            display: flex; align-items: center; gap: 0.5rem;
-            border: 1.5px solid #e2e8f0; border-radius: 10px;
-            padding: 0.55rem 0.8rem; background: #f8fafc;
-            transition: border-color 0.2s;
-        }
-        .filter-select-box:focus-within { border-color: #007b7b; background: #fff; }
-        .filter-select-box i { color: #94a3b8; font-size: 0.85rem; flex-shrink: 0; }
-        .filter-select-box select { border: none; background: transparent; outline: none; font-size: 0.85rem; width: 100%; color: #1e293b; }
-        .filter-select-box select:disabled { color: #cbd5e1; cursor: not-allowed; }
+        .f-box select:disabled { color: #cbd5e1; cursor: not-allowed; }
 
-        /* Aktif filtre chips */
-        .active-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; min-height: 0; }
-        .filter-chip {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            background: #f0fdfd; border: 1px solid #99f6e4;
-            border-radius: 20px; padding: 0.25rem 0.75rem;
-            font-size: 0.75rem; font-weight: 600; color: #007b7b;
-            cursor: pointer; transition: all 0.15s;
+        /* İkinci filtre satırı: Şehir + Bayi + Yetki */
+        .filter-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f1f5f9;
         }
-        .filter-chip:hover { background: #ccfbf1; }
-        .filter-chip i { font-size: 0.65rem; }
-
-        /* Sonuç banner */
-        .result-banner {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0.6rem 1rem; background: #f8fafc; border-radius: 10px;
-            margin-bottom: 1rem; font-size: 0.82rem; color: #64748b;
-        }
-        .result-banner strong { color: #007b7b; }
-
-        /* Alphabet */
-        .alphabet-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f1f5f9; }
-        .alpha-btn {
-            width: 28px; height: 28px; border-radius: 7px; border: 1px solid #e2e8f0;
-            background: #f8fafc; font-size: 0.72rem; font-weight: 700; color: #64748b;
-            cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center;
-        }
-        .alpha-btn.active { background: #007b7b; color: #fff; border-color: #007b7b; }
-        .alpha-btn:hover:not(.active) { background: #e2e8f0; }
-        .alpha-btn-all { width: auto; padding: 0 10px; font-size: 0.65rem; letter-spacing: 0.04em; }
 
         /* Sıfırla butonu */
         .btn-reset {
-            display: flex; align-items: center; gap: 0.4rem;
-            padding: 0.55rem 1rem; border-radius: 10px; border: 1.5px solid #fca5a5;
-            background: #fff5f5; color: #ef4444; font-size: 0.8rem; font-weight: 700;
-            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            width: 44px; height: 44px; border-radius: 10px;
+            border: 1.5px solid #e2e8f0; background: #f8fafc;
+            color: #94a3b8; cursor: pointer; font-size: 0.9rem;
+            transition: all 0.18s; display: flex; align-items: center; justify-content: center;
+            align-self: end;
         }
-        .btn-reset:hover { background: #fee2e2; }
+        .btn-reset:hover { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+        .btn-reset.has-filter { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+
+        /* Sonuç satırı */
+        .result-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .result-bar h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .result-bar .count-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #007b7b; color: #fff; border-radius: 20px;
+            padding: 2px 10px; font-size: 0.75rem; font-weight: 700; margin-left: 8px;
+        }
+
+        /* Aktif chip'ler */
+        .chips-row { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: #f0fdfd; border: 1px solid #99f6e4;
+            border-radius: 20px; padding: 0.22rem 0.7rem;
+            font-size: 0.72rem; font-weight: 600; color: #007b7b;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .chip:hover { background: #ccfbf1; }
+        .chip i { font-size: 0.6rem; opacity: 0.7; }
     </style>
 </head>
 <body>
-
-    <!-- Şeffaf Watermark Logo -->
+    <!-- Şeffaf Watermark -->
     <img src="../../assets/bellona-logo.svg" class="main-watermark" alt="">
 
     <aside class="sidebar">
@@ -112,7 +108,9 @@
             <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i> Yeni Kayıt</a>
             <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i> Tüm Mesajlar</a>
             <div class="sidebar-logout">
-                <a href="../../index.html" class="nav-item" style="color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</a>
+                <a href="../../index.html" class="nav-item" style="color:#ef4444;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap
+                </a>
             </div>
         </nav>
     </aside>
@@ -121,29 +119,32 @@
         <header>
             <h1>Personel Yönetimi</h1>
             <div class="header-actions">
-                <a href="yonetim_mesajlar.html" class="btn-outline"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</a>
-                <a href="yonetim_ekle.html" class="btn-outline"><i class="fa-solid fa-user-plus"></i> Yeni Personel Ekle</a>
+                <a href="yonetim_mesajlar.html" class="btn-outline">
+                    <i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi
+                </a>
+                <a href="yonetim_ekle.html" class="btn-outline">
+                    <i class="fa-solid fa-user-plus"></i> Yeni Personel Ekle
+                </a>
             </div>
         </header>
 
-        <!-- ── MODÜLER FİLTRE PANELİ ── -->
-        <div class="filter-shell">
-
-            <!-- Satır 1: Arama + Kategori + Bölge + Sıralama -->
-            <div class="filter-row-1">
+        <!-- FİLTRE KARTI -->
+        <div class="filter-card">
+            <!-- Satır 1: Arama + Kategori + Bölge + Sıralama + Sıfırla -->
+            <div class="filter-row">
                 <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-magnifying-glass"></i> Arama</div>
-                    <div class="filter-input-box">
+                    <div class="filter-label">Arama</div>
+                    <div class="f-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchUser" placeholder="İsim, bayi adı, e-posta..." />
+                        <input type="text" id="searchUser" placeholder="İsim, bayi, e-posta..." />
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-sitemap"></i> Kategori</div>
-                    <div class="filter-select-box">
+                    <div class="filter-label">Kategori</div>
+                    <div class="f-box">
                         <i class="fa-solid fa-sitemap"></i>
                         <select id="filterCategory">
-                            <option value="all">Tüm Kategoriler</option>
+                            <option value="all">Tümü</option>
                             <option value="factory">Fabrika</option>
                             <option value="regional">Bölge Bayisi</option>
                             <option value="local">Yerel Bayi</option>
@@ -151,34 +152,8 @@
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-user-shield"></i> Yetki</div>
-                    <div class="filter-select-box">
-                        <i class="fa-solid fa-user-shield"></i>
-                        <select id="filterRole">
-                            <option value="all">Tüm Yetkiler</option>
-                            <option value="manager">Patron / Müdür</option>
-                            <option value="employee">Çalışan</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-arrow-down-a-z"></i> Sıralama</div>
-                    <div class="filter-select-box">
-                        <i class="fa-solid fa-arrow-down-a-z"></i>
-                        <select id="sortUser">
-                            <option value="name-asc">A → Z</option>
-                            <option value="name-desc">Z → A</option>
-                            <option value="newest">En Yeni</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Satır 2: Bölge → Şehir → Bayi zinciri + Sıfırla -->
-            <div class="filter-row-2">
-                <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-map"></i> Bölge</div>
-                    <div class="filter-select-box">
+                    <div class="filter-label">Bölge</div>
+                    <div class="f-box">
                         <i class="fa-solid fa-map-location-dot"></i>
                         <select id="filterRegion">
                             <option value="all">Tüm Bölgeler</option>
@@ -193,8 +168,26 @@
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-city"></i> Şehir</div>
-                    <div class="filter-select-box">
+                    <div class="filter-label">Sıralama</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-arrow-down-a-z"></i>
+                        <select id="sortUser">
+                            <option value="name-asc">A → Z</option>
+                            <option value="name-desc">Z → A</option>
+                            <option value="newest">En Yeni</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-reset" id="btnResetFilters" title="Filtreleri Sıfırla">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+
+            <!-- Satır 2: Şehir + Bayi + Yetki (dinamik) -->
+            <div class="filter-row-2">
+                <div class="filter-group">
+                    <div class="filter-label">Şehir</div>
+                    <div class="f-box">
                         <i class="fa-solid fa-city"></i>
                         <select id="filterCity" disabled>
                             <option value="all">Önce bölge seçin</option>
@@ -202,35 +195,38 @@
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label"><i class="fa-solid fa-store"></i> Bayi</div>
-                    <div class="filter-select-box">
+                    <div class="filter-label">Bayi</div>
+                    <div class="f-box">
                         <i class="fa-solid fa-store"></i>
                         <select id="filterDealer" disabled>
                             <option value="all">Önce şehir seçin</option>
                         </select>
                     </div>
                 </div>
-                <button class="btn-reset" id="btnResetFilters">
-                    <i class="fa-solid fa-rotate-left"></i> Sıfırla
-                </button>
-            </div>
-
-            <!-- Aktif Filtre Chips -->
-            <div class="active-chips" id="activeChips"></div>
-
-            <!-- Alfabe Filtresi -->
-            <div class="alphabet-filter" id="alphabetFilter">
-                <button class="alpha-btn alpha-btn-all active" data-letter="all">HEPSİ</button>
+                <div class="filter-group">
+                    <div class="filter-label">Yetki</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <select id="filterRole">
+                            <option value="all">Tüm Yetkiler</option>
+                            <option value="manager">Patron / Müdür</option>
+                            <option value="employee">Çalışan</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Sonuç Satırı -->
-        <div class="result-banner">
-            <span><strong id="totalPersonnelCount">0</strong> personel listeleniyor</span>
-            <span id="filterSummary" style="font-size:0.78rem; color:#94a3b8;"></span>
+        <!-- SONUÇ SATIRI -->
+        <div class="result-bar">
+            <h3>
+                Personeller
+                <span class="count-badge" id="totalPersonnelCount">0</span>
+            </h3>
+            <div class="chips-row" id="activeChips"></div>
         </div>
 
-        <!-- Tablo -->
+        <!-- TABLO -->
         <div class="card">
             <div class="table-shell">
                 <div class="table-wrapper">
