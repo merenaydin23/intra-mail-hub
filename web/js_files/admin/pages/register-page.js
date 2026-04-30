@@ -25,10 +25,12 @@ export function initRegisterPage() {
     if (!form) return;
     if (pwIn) pwIn.value = generateStrictPassword();
 
+    const companySelectEl = document.getElementById("companySelect");
+
     let allUsersCache = [];
     const loadUsers = async () => {
         allUsersCache = await getAllUsers();
-        updateDealers(); // Veri gelince listeyi bir kez güncelle
+        updateDealers();
     };
     loadUsers();
 
@@ -52,36 +54,85 @@ export function initRegisterPage() {
         }
     };
 
+    // Bayileri şehre göre filtrele ve companySelect dropdown'a doldur
     const updateDealers = () => {
         const selRegion = regionIn.value;
         const selCity = cityIn.value;
 
-        // Sadece yerel bayileri ve şirket ismi olanları al
+        // Sadece yerel bayileri filtrele
         let filtered = allUsersCache.filter(u => u.company && u.category === 'local');
-        
-        if (selRegion) {
-            filtered = filtered.filter(u => u.region === selRegion);
-        }
-        if (selCity) {
-            filtered = filtered.filter(u => u.city === selCity);
-        }
+        if (selRegion) filtered = filtered.filter(u => u.region === selRegion);
+        if (selCity)   filtered = filtered.filter(u => u.city === selCity);
 
-        // Tekil bayi isimlerini ve kodlarını al
-        const dealerPairs = filtered.map(u => ({ name: u.company, code: u.dealerCode || "0000" }));
-        const uniqueDealers = [...new Map(dealerPairs.map(item => [item.name + item.code, item])).values()]
-            .sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'));
+        // Benzersiz bayi adı + kod çiftleri
+        const seen = new Set();
+        const uniqueDealers = [];
+        filtered.forEach(u => {
+            const key = u.company + '|' + (u.dealerCode || '0000');
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueDealers.push({ name: u.company, code: u.dealerCode || '0000' });
+            }
+        });
+        uniqueDealers.sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'));
 
-        const datalist = document.getElementById("companySuggestions");
-        if (datalist) {
-            datalist.innerHTML = "";
+        if (!companySelectEl) return;
+
+        if (uniqueDealers.length > 0 && catIn.value === 'local') {
+            // Dropdown'u göster, serbest alanı gizle
+            companySelectEl.style.display = 'block';
+            companyIn.style.display = 'none';
+            companyIn.removeAttribute('required');
+            companySelectEl.setAttribute('required', '');
+
+            companySelectEl.innerHTML = '<option value="">-- Bayi seçiniz --</option>';
             uniqueDealers.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = `${d.name} (#${d.code})`;
-                datalist.appendChild(opt);
+                const opt = document.createElement('option');
+                opt.value = d.name;
+                opt.dataset.code = d.code;
+                opt.textContent = `${d.name}  —  #${d.code}`;
+                companySelectEl.appendChild(opt);
             });
+            // "Yeni bayi ekle" seçeneği
+            const newOpt = document.createElement('option');
+            newOpt.value = '__NEW__';
+            newOpt.textContent = '➕ Yeni bayi ekle (elle yaz)';
+            companySelectEl.appendChild(newOpt);
+        } else {
+            // Kayıtlı bayi yok veya başka kategori: sadece serbest alan göster
+            companySelectEl.style.display = 'none';
+            companyIn.style.display = 'block';
+            companyIn.setAttribute('required', '');
+            companySelectEl.removeAttribute('required');
         }
-        console.log(`${selCity || selRegion || 'Tüm'} bölge/şehir için ${uniqueDealers.length} bayi kodlarıyla listelendi.`);
     };
+
+    // companySelect değişince ad + kod alanlarını otomatik doldur
+    if (companySelectEl) {
+        companySelectEl.addEventListener('change', () => {
+            const selected = companySelectEl.options[companySelectEl.selectedIndex];
+            if (companySelectEl.value === '__NEW__') {
+                // "Yeni bayi ekle" seçildi: serbest alana geç
+                companySelectEl.style.display = 'none';
+                companyIn.style.display = 'block';
+                companyIn.setAttribute('required', '');
+                companySelectEl.removeAttribute('required');
+                companyIn.value = '';
+                dealerCodeIn.value = '';
+                dealerCodeIn.disabled = false;
+                companyIn.focus();
+            } else if (selected && selected.dataset.code) {
+                companyIn.value = companySelectEl.value;   // gizli input'a ismi de yaz
+                dealerCodeIn.value = selected.dataset.code;
+                dealerCodeIn.disabled = true;              // kodu kilitle
+            } else {
+                companyIn.value = '';
+                dealerCodeIn.value = '';
+                dealerCodeIn.disabled = false;
+            }
+            updateUI();
+        });
+    }
 
     let lastRegion = "";
 
@@ -132,6 +183,7 @@ export function initRegisterPage() {
 
         if (catIn.value === "factory") {
             companyIn.value = "Bellona Genel Müdürlük";
+            companySelectEl && (companySelectEl.style.display = 'none');
             companyIn.style.display = "block";
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = true;
@@ -152,6 +204,7 @@ export function initRegisterPage() {
                 dealerCodeIn.disabled = true;
             }
         } else if (catIn.value === "regional") {
+            companySelectEl && (companySelectEl.style.display = 'none');
             companyIn.style.display = "none";
             regionCompanyIn.style.display = "block";
             companyIn.readOnly = false;
@@ -164,11 +217,11 @@ export function initRegisterPage() {
                 }
             }
         } else {
-            companyIn.style.display = "block";
+            // Yerel bayi modu: updateDealers zaten companySelect/companyIn görünürlüğünü yönetiyor
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
-            
+
             if (lockedByDealer) {
                 regionIn.disabled = true;
                 cityIn.disabled = true;
@@ -182,7 +235,10 @@ export function initRegisterPage() {
                         lastRegion = regionIn.value;
                     }
                 }
-                if (dealerCodeIn) dealerCodeIn.disabled = false;
+                // dealer kodu sadece companySelect kullanılmıyorsa açık kalsın
+                if (!companySelectEl || companySelectEl.style.display === 'none') {
+                    if (dealerCodeIn) dealerCodeIn.disabled = false;
+                }
             }
         }
 
@@ -209,15 +265,30 @@ export function initRegisterPage() {
         updateDealers();
         updateUI();
     });
-    cityIn?.addEventListener("change", updateDealers);
-    catIn?.addEventListener("change", updateDealers);
+    cityIn?.addEventListener("change", () => {
+        updateDealers();
+        updateUI();
+    });
+    catIn?.addEventListener("change", () => {
+        updateDealers();
+        updateUI();
+    });
     updateUI();
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const dealerCode = dealerCodeIn?.value || "0000";
         const email = await generateEnterpriseEmail(nameIn.value, surnameIn.value, dealerCode);
-        const finalCompany = catIn.value === "regional" ? regionCompanyIn.value : companyIn.value;
+        
+        // Bayi adını: eğer companySelect görünürse oradan al, yoksa companyIn'den
+        let finalCompany;
+        if (catIn.value === "regional") {
+            finalCompany = regionCompanyIn.value;
+        } else if (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') {
+            finalCompany = companySelectEl.value;
+        } else {
+            finalCompany = companyIn.value;
+        }
         
         const data = {
             name: nameIn.value,

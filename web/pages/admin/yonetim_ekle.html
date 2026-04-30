@@ -94,10 +94,12 @@
                         <label>Bayi / Şirket Adı</label>
                         <div class="input-box">
                             <i class="fa-solid fa-building"></i>
-                            <!-- Yerel Bayi için normal input + datalist -->
-                            <input type="text" id="newCompany" name="company" list="companySuggestions" placeholder="Bayi adını giriniz" required />
-                            <datalist id="companySuggestions"></datalist>
-                            
+                            <!-- Yerel Bayi: Dinamik select dropdown -->
+                            <select id="companySelect" style="display:none;">
+                                <option value="">Şehir seçince bayiler yüklenir...</option>
+                            </select>
+                            <!-- Yerel Bayi: Elle yazma alanı (yeni bayi eklemek için) -->
+                            <input type="text" id="newCompany" name="company" placeholder="Bayi adını giriniz veya yukarıdan seçin" required />
                             <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
                             <select id="newRegionCompany" name="regionCompany" style="display:none;">
                                 <option value="" disabled selected>Grup seçiniz</option>
