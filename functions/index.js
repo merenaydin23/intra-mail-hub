@@ -1,13 +1,12 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onCall } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const { GoogleGenAI } = require("@google/genai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
 
-// Gemini API istemcisini başlatıyoruz.
-// Not: Gerçek senaryoda API anahtarını process.env ortam değişkenlerinden alacağız.
-const ai = new GoogleGenAI({ apiKey: "AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8" }); 
-// ÖNEMLİ: Eğer GEMINI_API_KEY ortam değişkenlerinde tanımlıysa GoogleGenAI otomatik algılar.
+const genAI = new GoogleGenerativeAI("AIzaSyD_O076TZRdbjrzF5z3n-QPfY8KJC3ios8");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 exports.processNewMessage = onDocumentCreated("messages/{messageId}", async (event) => {
     const snapshot = event.data;
@@ -39,16 +38,9 @@ Lütfen bana yanıtı SADECE aşağıdaki gibi katı bir JSON formatında dönd�
   "isSpam": false
 }`;
 
-        // Gemini API'ye istek atıyoruz (gemini-2.5-flash modeli hızlı ve maliyetsizdir)
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                 responseMimeType: "application/json",
-            }
-        });
-
-        const aiResultText = response.text();
+        // Gemini API'ye istek atıyoruz
+        const result = await model.generateContent(prompt);
+        const aiResultText = result.response.text();
         console.log("Gemini Yanıtı:", aiResultText);
         
         const aiData = JSON.parse(aiResultText);
@@ -65,5 +57,51 @@ Lütfen bana yanıtı SADECE aşağıdaki gibi katı bir JSON formatında dönd�
 
     } catch (error) {
         console.error("AI Analizi sırasında hata oluştu:", error);
+    }
+});
+
+/**
+ * Yeni Eklenen: Akıllı Düzenle (AI Refinement) Fonksiyonu
+ */
+exports.refineCorporateMessage = onCall(async (request) => {
+    const { text, context } = request.data;
+    
+    if (!text) return { error: "Metin boş olamaz" };
+
+    const systemPrompt = `Sen kurumsal iletişim konusunda uzman bir asistansın. Sana birazdan kaba, eksik ve düzensiz yazılmış bir e-posta metni vereceğim.
+
+Görevin:
+1. Metni profesyonel, akıcı ve kurumsal bir dile çevir
+2. Anlamı bozma, ama ifadeyi güçlendir
+3. Eksik yerleri mantıklı şekilde tamamla
+4. Gerekirse yaratıcı ama iş ahlakına uygun eklemeler yap
+5. Resmi ama samimi bir ton kullan
+
+Mail formatı:
+- Başta uygun bir hitap ekle (örnek: “Sayın [İsim],”)
+- Paragrafları düzenli hale getir
+- Sonuna uygun bir kapanış ekle (örnek: “İyi çalışmalar dilerim” vb.)
+- En sonda:
+Saygılarımla,
+[Ad Soyad]
+[Pozisyon/Birim]
+
+Ekstra kurallar:
+- Gereksiz uzatma yapma
+- Net ve anlaşılır olsun
+- Türkçe dil bilgisi kusursuz olsun
+
+Alıcı: ${context.receiverName || 'Yetkili'}
+Gönderen: ${context.senderName || 'Çalışan'} (${context.senderCompany || 'Bellona'})
+
+Düzenlenecek Metni:
+"${text}"`;
+
+    try {
+        const result = await model.generateContent(systemPrompt);
+        return { refinedText: result.response.text() };
+    } catch (error) {
+        console.error("AI Refine Error:", error);
+        return { error: "AI işlemi sırasında bir hata oluştu." };
     }
 });

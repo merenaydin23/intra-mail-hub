@@ -310,7 +310,7 @@ function initCompose() {
 
     const aiSuggestBtn = document.getElementById('aiSuggestBtn');
     if (aiSuggestBtn) {
-        aiSuggestBtn.addEventListener('click', () => {
+        aiSuggestBtn.addEventListener('click', async () => {
             const bodyInput = document.getElementById('messageBodyInput');
             const recSelect = document.getElementById('receiverSelect');
             if (!bodyInput || !recSelect) return;
@@ -324,19 +324,26 @@ function initCompose() {
             const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
             const myCompany = currentUserData.company || "Bellona";
 
-            // Use the centralized AI Service
-            const formalText = refineMessageWithAI(originalText, {
-                receiverName,
-                senderName: myName,
-                senderCompany: myCompany
-            });
-            
-            bodyInput.value = formalText;
-            
+            // Use the centralized AI Service (Real Gemini Call)
             const statusEl = document.getElementById('composeStatus');
-            if (statusEl) {
-                statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Metin kurumsallaştırıldı.';
-                setTimeout(() => statusEl.innerHTML = '', 3000);
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yapay zeka düzenliyor...';
+
+            try {
+                const formalText = await refineMessageWithAI(originalText, {
+                    receiverName,
+                    senderName: myName,
+                    senderCompany: myCompany
+                });
+                
+                bodyInput.value = formalText;
+                
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Metin kurumsallaştırıldı.';
+                    setTimeout(() => statusEl.innerHTML = '', 3000);
+                }
+            } catch (err) {
+                console.error("AI Refine UI Error:", err);
+                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:var(--danger)"></i> Hata oluştu.';
             }
         });
     }
