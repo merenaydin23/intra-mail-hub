@@ -33,7 +33,7 @@ Lütfen sadece düzenlenmiş nihai metni döndür. Hiçbir açıklama ekleme.`;
             },
             body: JSON.stringify({
                 message: prompt,
-                model: "command-r",
+                model: "command-nightly",
                 preamble: CORPORATE_SYSTEM_PROMPT
             })
         });
