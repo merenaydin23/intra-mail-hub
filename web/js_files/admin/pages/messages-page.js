@@ -1,131 +1,196 @@
 import { getAuditLogs } from "../services/audit-service.js";
 import { getAllMessages } from "../services/message-service.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
 let allMessages = [];
 let activeFilter = 'all';
 let activeSearch = '';
+let activeTab = 'today'; // 'today' | 'archive'
 
 export async function initMessagesPage() {
-    // Mesajları yükle
     allMessages = await getAllMessages(200);
-
-    // İstatistikleri güncelle
     await updateStats(allMessages);
+    renderTodayList();
+    initTabs();
+    initSearch();
+    initFilters();
+    initExport();
+}
 
-    // Listeyi ilk defa çiz
-    renderList();
+// ─────────────────────────────────────────
+// SEKME SİSTEMİ
+// ─────────────────────────────────────────
+function initTabs() {
+    document.querySelectorAll('.hub-tab').forEach(tab => {
+        tab.addEventListener('click', async () => {
+            document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            activeTab = tab.dataset.tab;
+            clearDetail();
 
-    // Arama
-    const searchInput = document.getElementById('msgSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            activeSearch = e.target.value.trim().toLocaleLowerCase('tr-TR');
-            renderList();
+            if (activeTab === 'today') {
+                showPanel('todayPanel');
+                renderTodayList();
+            } else {
+                showPanel('archivePanel');
+                await renderArchiveList();
+            }
         });
-    }
+    });
+}
 
-    // Filtre butonları
+function showPanel(id) {
+    document.getElementById('todayPanel').style.display = id === 'todayPanel' ? 'contents' : 'none';
+    document.getElementById('archivePanel').style.display = id === 'archivePanel' ? 'contents' : 'none';
+}
+
+// ─────────────────────────────────────────
+// BUGÜN PANELİ
+// ─────────────────────────────────────────
+function initSearch() {
+    document.getElementById('msgSearch')?.addEventListener('input', e => {
+        activeSearch = e.target.value.trim().toLocaleLowerCase('tr-TR');
+        renderTodayList();
+    });
+}
+
+function initFilters() {
     document.querySelectorAll('.msg-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.msg-filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             activeFilter = btn.dataset.filter;
-            renderList();
+            renderTodayList();
         });
     });
-
-    // CSV Export
-    const exportBtn = document.getElementById('btnExportCSV');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => exportToCSV(allMessages));
-    }
 }
 
-function getFilteredMessages() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+function getTodayStart() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
 
+function getFilteredToday() {
+    const today = getTodayStart();
     return allMessages.filter(m => {
-        // Arama filtresi
-        if (activeSearch) {
-            const haystack = [m.senderName, m.receiverName, m.subject, m.content]
-                .join(' ').toLocaleLowerCase('tr-TR');
-            if (!haystack.includes(activeSearch)) return false;
-        }
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp || 0);
+        if (ts < today) return false; // sadece bugün
 
-        // Tür filtresi
+        if (activeSearch) {
+            const hay = [m.senderName, m.receiverName, m.subject, m.content].join(' ').toLocaleLowerCase('tr-TR');
+            if (!hay.includes(activeSearch)) return false;
+        }
         if (activeFilter === 'bulk') return m.subject?.startsWith('[TOPLU]');
         if (activeFilter === 'attach') return !!m.attachmentUrl;
-        if (activeFilter === 'today') {
-            const ts = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp || 0);
-            return ts >= today;
-        }
-
         return true;
     });
 }
 
-function formatTime(ts) {
-    if (!ts) return '—';
-    const dt = ts?.toDate ? ts.toDate() : new Date(ts);
-    const today = new Date();
-    if (dt.toDateString() === today.toDateString()) {
-        return dt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    }
-    return dt.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: '2-digit' });
-}
-
-function formatFullDate(ts) {
-    if (!ts) return '—';
-    const dt = ts?.toDate ? ts.toDate() : new Date(ts);
-    return dt.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function renderList() {
+function renderTodayList() {
     const container = document.getElementById('msgListBody');
     if (!container) return;
-
-    const filtered = getFilteredMessages();
+    const filtered = getFilteredToday();
+    window.__filteredMessages = filtered;
 
     if (!filtered.length) {
-        container.innerHTML = `
-            <div class="msg-empty">
-                <i class="fa-regular fa-envelope-open"></i>
-                <p>${activeSearch ? 'Aramayla eşleşen mesaj bulunamadı.' : 'Bu kategoride mesaj yok.'}</p>
-            </div>`;
+        container.innerHTML = `<div class="msg-empty"><i class="fa-regular fa-envelope-open"></i><p>${activeSearch ? 'Eşleşen mesaj yok.' : 'Bugün henüz mesaj yok.'}</p></div>`;
         return;
     }
+    container.innerHTML = filtered.map((m, i) => buildMsgCard(m, i)).join('');
+}
 
-    container.innerHTML = filtered.map((m, i) => {
-        const isBulk = m.subject?.startsWith('[TOPLU]');
-        const hasAttach = !!m.attachmentUrl;
-        const preview = (m.content || '').replace(/✨\s?/, '').substring(0, 60);
+// ─────────────────────────────────────────
+// ARŞİV PANELİ
+// ─────────────────────────────────────────
+async function renderArchiveList() {
+    const container = document.getElementById('archiveDayList');
+    if (!container) return;
+    container.innerHTML = `<div class="msg-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Arşiv yükleniyor...</p></div>`;
 
-        return `
-        <div class="msg-card" onclick="selectMessage(${i})" id="msgCard_${i}">
-            <div class="msg-card-top">
-                <div class="msg-card-sender">
-                    <i class="fa-solid fa-user-circle" style="color:#007b7b; margin-right:4px; font-size:0.75rem;"></i>
-                    ${m.senderName || 'Bilinmiyor'}
+    try {
+        const archSnap = await getDocs(collection(db, 'message_archives'));
+
+        if (archSnap.empty) {
+            container.innerHTML = `<div class="msg-empty"><i class="fa-solid fa-box-archive"></i><p>Henüz arşivlenmiş gün yok.<br><small>Her gece 00:05'te dünün mesajları buraya taşınır.</small></p></div>`;
+            return;
+        }
+
+        // Günleri tarihe göre ters sırala (en yeni üstte)
+        const days = archSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => b.id.localeCompare(a.id));
+
+        container.innerHTML = days.map(day => {
+            const label = formatDateKey(day.id);
+            return `
+            <div class="archive-day-card" onclick="loadArchiveDay('${day.id}', this)">
+                <div class="archive-day-icon"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="archive-day-info">
+                    <div class="archive-day-label">${label}</div>
+                    <div class="archive-day-count">${day.messageCount || '?'} mesaj</div>
                 </div>
-                <div class="msg-card-time">${formatTime(m.timestamp)}</div>
-            </div>
-            <div class="msg-card-subject">${m.subject || 'Konu Yok'}</div>
-            <div class="msg-card-preview">
-                <span style="color:#007b7b; font-size:0.72rem; margin-right:4px;">→ ${m.receiverName || '?'}</span>
-                ${preview}...
-            </div>
-            <div style="margin-top:5px;">
-                ${isBulk ? '<span class="tag-bulk"><i class="fa-solid fa-bullhorn"></i> TOPLU</span>' : ''}
-                ${hasAttach ? '<span class="tag-attach"><i class="fa-solid fa-paperclip"></i> DOSYA</span>' : ''}
-            </div>
-        </div>`;
-    }).join('');
+                <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; margin-left:auto;"></i>
+            </div>`;
+        }).join('');
+    } catch (err) {
+        console.error('Archive load error:', err);
+        container.innerHTML = `<div class="msg-empty"><i class="fa-solid fa-circle-exclamation"></i><p>Arşiv yüklenemedi.</p></div>`;
+    }
+}
 
-    // window'a bağla ki onclick çalışsın
-    window.__filteredMessages = filtered;
+window.loadArchiveDay = async function(dateKey, el) {
+    // Aktif kart stili
+    document.querySelectorAll('.archive-day-card').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    const container = document.getElementById('archiveMsgList');
+    container.innerHTML = `<div class="msg-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Yükleniyor...</p></div>`;
+    clearDetail();
+
+    try {
+        const snap = await getDocs(collection(db, `message_archives/${dateKey}/messages`));
+        if (snap.empty) {
+            container.innerHTML = `<div class="msg-empty"><i class="fa-solid fa-inbox"></i><p>Bu güne ait mesaj bulunamadı.</p></div>`;
+            return;
+        }
+        const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+
+        window.__filteredMessages = msgs;
+        container.innerHTML = msgs.map((m, i) => buildMsgCard(m, i, 'archive')).join('');
+    } catch (err) {
+        container.innerHTML = `<div class="msg-empty"><p>Yükleme hatası.</p></div>`;
+    }
+};
+
+function formatDateKey(key) {
+    const [y, mo, d] = key.split('-');
+    const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    return `${parseInt(d)} ${months[parseInt(mo)-1]} ${y}`;
+}
+
+// ─────────────────────────────────────────
+// ORTAK KART & DETAY
+// ─────────────────────────────────────────
+function buildMsgCard(m, i, context = 'today') {
+    const isBulk = m.subject?.startsWith('[TOPLU]');
+    const hasAttach = !!m.attachmentUrl;
+    const preview = (m.content || '').replace(/✨\s?/, '').substring(0, 55);
+    return `
+    <div class="msg-card" onclick="selectMessage(${i})" id="msgCard_${context}_${i}">
+        <div class="msg-card-top">
+            <div class="msg-card-sender"><i class="fa-solid fa-user-circle" style="color:#007b7b; margin-right:4px; font-size:0.75rem;"></i>${m.senderName || 'Bilinmiyor'}</div>
+            <div class="msg-card-time">${formatTime(m.timestamp)}</div>
+        </div>
+        <div class="msg-card-subject">${m.subject || 'Konu Yok'}</div>
+        <div class="msg-card-preview"><span style="color:#007b7b; font-size:0.72rem; margin-right:4px;">→ ${m.receiverName || '?'}</span>${preview}...</div>
+        <div style="margin-top:5px;">
+            ${isBulk ? '<span class="tag-bulk"><i class="fa-solid fa-bullhorn"></i> TOPLU</span>' : ''}
+            ${hasAttach ? '<span class="tag-attach"><i class="fa-solid fa-paperclip"></i> DOSYA</span>' : ''}
+        </div>
+    </div>`;
 }
 
 window.selectMessage = function(index) {
@@ -133,24 +198,20 @@ window.selectMessage = function(index) {
     const m = msgs[index];
     if (!m) return;
 
-    // Kart aktif stilini güncelle
     document.querySelectorAll('.msg-card').forEach(c => c.classList.remove('active'));
-    const card = document.getElementById(`msgCard_${index}`);
-    if (card) card.classList.add('active');
+    const cards = document.querySelectorAll(`[id^="msgCard_"]`);
+    cards.forEach(c => { if (c.getAttribute('onclick') === `selectMessage(${index})`) c.classList.add('active'); });
 
-    // Placeholder gizle, detay göster
     document.getElementById('msgPlaceholder').style.display = 'none';
     document.getElementById('msgDetailView').style.display = 'flex';
 
-    // Alanları doldur
     document.getElementById('detSubject').textContent = m.subject || 'Konu Yok';
     document.getElementById('detSender').textContent = m.senderName || '—';
     document.getElementById('detReceiver').textContent = m.receiverName || '—';
     document.getElementById('detTime').textContent = formatFullDate(m.timestamp);
-    document.getElementById('detStatus').textContent = m.status || 'active';
+    document.getElementById('detStatus').textContent = m._archiveDate ? `📦 Arşiv: ${formatDateKey(m._archiveDate)}` : (m.status || 'active');
     document.getElementById('detBody').textContent = (m.content || '').replace(/✨\s?/, '');
 
-    // Ek dosya
     const attachBox = document.getElementById('detAttachment');
     if (m.attachmentUrl) {
         document.getElementById('detAttachName').textContent = m.attachmentName || 'Ekli Dosya';
@@ -160,45 +221,42 @@ window.selectMessage = function(index) {
         attachBox.style.display = 'none';
     }
 
-    // Yanıtlar
     const repliesSection = document.getElementById('detReplies');
     const repliesBody = document.getElementById('detRepliesBody');
     if (m.replies && m.replies.length > 0) {
         repliesSection.style.display = 'block';
         repliesBody.innerHTML = m.replies.map(r => {
             const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-            return `
-            <div class="reply-item">
-                <div class="reply-item-header">
-                    <span class="reply-item-author"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
-                    <span class="reply-item-time">${rDate}</span>
-                </div>
-                <div class="reply-item-text">${r.text}</div>
-            </div>`;
+            return `<div class="reply-item"><div class="reply-item-header"><span class="reply-item-author"><i class="fa-solid fa-reply"></i> ${r.authorName}</span><span class="reply-item-time">${rDate}</span></div><div class="reply-item-text">${r.text}</div></div>`;
         }).join('');
     } else {
         repliesSection.style.display = 'none';
     }
 };
 
-async function updateStats(messages) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+function clearDetail() {
+    document.getElementById('msgPlaceholder').style.display = 'flex';
+    document.getElementById('msgDetailView').style.display = 'none';
+}
 
+// ─────────────────────────────────────────
+// İSTATİSTİKLER
+// ─────────────────────────────────────────
+async function updateStats(messages) {
+    const today = getTodayStart();
     const todayMsgs = messages.filter(m => {
         const ts = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp || 0);
         return ts >= today;
     });
 
-    const todayEl = document.getElementById('todayCount');
-    const totalEl = document.getElementById('totalCount');
-    if (todayEl) todayEl.textContent = todayMsgs.length;
-    if (totalEl) totalEl.textContent = messages.length;
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setEl('todayCount', todayMsgs.length);
+    setEl('totalCount', messages.length);
 
     try {
         const usersSnap = await getDocs(collection(db, 'users'));
         const userRegions = {};
-        usersSnap.forEach(doc => { userRegions[doc.id] = doc.data().region || 'Bilinmiyor'; });
+        usersSnap.forEach(d => { userRegions[d.id] = d.data().region || 'Bilinmiyor'; });
 
         const regionCounts = {};
         messages.forEach(m => {
@@ -210,17 +268,18 @@ async function updateStats(messages) {
         for (const [reg, count] of Object.entries(regionCounts)) {
             if (count > maxCount) { maxCount = count; topRegion = reg; }
         }
+        setEl('activeRegion', topRegion);
 
-        const regionEl = document.getElementById('activeRegion');
-        if (regionEl) regionEl.textContent = topRegion;
-
-        const intensityEl = document.getElementById('liveIntensity');
-        if (intensityEl) {
-            if (todayMsgs.length > 20) { intensityEl.textContent = 'Yüksek 🔴'; }
-            else if (todayMsgs.length > 5) { intensityEl.textContent = 'Orta 🟡'; }
-            else { intensityEl.textContent = 'Düşük 🟢'; }
-        }
+        const intensity = todayMsgs.length > 20 ? 'Yüksek 🔴' : todayMsgs.length > 5 ? 'Orta 🟡' : 'Düşük 🟢';
+        setEl('liveIntensity', intensity);
     } catch (err) { console.error('Stats error:', err); }
+}
+
+// ─────────────────────────────────────────
+// CSV EXPORT & YARDIMCILAR
+// ─────────────────────────────────────────
+function initExport() {
+    document.getElementById('btnExportCSV')?.addEventListener('click', () => exportToCSV(allMessages));
 }
 
 function exportToCSV(messages) {
@@ -238,4 +297,18 @@ function exportToCSV(messages) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+function formatTime(ts) {
+    if (!ts) return '—';
+    const dt = ts?.toDate ? ts.toDate() : new Date(ts);
+    const today = new Date();
+    if (dt.toDateString() === today.toDateString()) return dt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    return dt.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: '2-digit' });
+}
+
+function formatFullDate(ts) {
+    if (!ts) return '—';
+    const dt = ts?.toDate ? ts.toDate() : new Date(ts);
+    return dt.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }

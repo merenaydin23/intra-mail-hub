@@ -1,5 +1,6 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onCall } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -112,3 +113,60 @@ Lütfen sadece düzenlenmiş nihai metni döndür.`;
         return { error: "AI işlemi sırasında bir hata oluştu." };
     }
 });
+
+/**
+ * GECEYARıSı OTOMATİK ARŞİVLEME
+ * Her gece 00:05'te çalışır.
+ * Dünkü mesajları message_archives/{YYYY-MM-DD}/messages altına taşır.
+ */
+exports.archiveDailyMessages = onSchedule(
+    { schedule: "5 0 * * *", timeZone: "Europe/Istanbul" },
+    async () => {
+        const db = admin.firestore();
+
+        // Dünün başı ve sonu
+        const now = new Date();
+        const startOfYesterday = new Date(now);
+        startOfYesterday.setDate(now.getDate() - 1);
+        startOfYesterday.setHours(0, 0, 0, 0);
+
+        const endOfYesterday = new Date(now);
+        endOfYesterday.setDate(now.getDate() - 1);
+        endOfYesterday.setHours(23, 59, 59, 999);
+
+        // Arşiv tarihi anahtarı: YYYY-MM-DD
+        const pad = n => String(n).padStart(2, '0');
+        const dateKey = `${startOfYesterday.getFullYear()}-${pad(startOfYesterday.getMonth() + 1)}-${pad(startOfYesterday.getDate())}`;
+
+        console.log(`[Archive] ${dateKey} tarihli mesajlar arşivleniyor...`);
+
+        const snapshot = await db.collection("messages")
+            .where("timestamp", ">=", admin.firestore.Timestamp.fromDate(startOfYesterday))
+            .where("timestamp", "<=", admin.firestore.Timestamp.fromDate(endOfYesterday))
+            .get();
+
+        if (snapshot.empty) {
+            console.log(`[Archive] ${dateKey} için arşivlenecek mesaj bulunamadı.`);
+            return;
+        }
+
+        const archiveRef = db.collection("message_archives").doc(dateKey);
+
+        // Arşiv günü meta verisini yaz
+        await archiveRef.set({
+            date: dateKey,
+            messageCount: snapshot.size,
+            archivedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Her mesajı alt koleksiyona kopyala
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            const archiveMsgRef = archiveRef.collection("messages").doc(doc.id);
+            batch.set(archiveMsgRef, { ...doc.data(), _archivedFrom: "messages", _archiveDate: dateKey });
+        });
+        await batch.commit();
+
+        console.log(`[Archive] ${snapshot.size} mesaj ${dateKey} arşivine başarıyla yazıldı.`);
+    }
+);
