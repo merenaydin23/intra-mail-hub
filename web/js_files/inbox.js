@@ -430,13 +430,21 @@ async function loadReceiversByCategory(category) {
 
     try {
         const snap = await getDocs(q);
-        select.innerHTML = `<option value="">${snap.empty ? 'Alıcı bulunamadı' : 'Alıcı seçiniz...'}</option>`;
-        
+        const users = [];
         snap.forEach(doc => {
-            const u = doc.data();
             if (doc.id !== currentUserData.id) {
-                select.innerHTML += `<option value="${doc.id}">${u.name} ${u.surname || ''} (${u.role === 'admin' ? 'Sistem' : (u.company || 'Bellona')})</option>`;
+                users.push({ id: doc.id, ...doc.data() });
             }
+        });
+
+        select.innerHTML = `<option value="">${users.length === 0 ? 'Alıcı bulunamadı' : 'Alıcı seçiniz...'}</option>`;
+        
+        if (users.length > 1) {
+            select.innerHTML += `<option value="ALL_IN_CATEGORY" style="font-weight:bold; color:var(--primary);">📢 --- TÜMÜNE GÖNDER (${users.length} Kişi) ---</option>`;
+        }
+
+        users.forEach(u => {
+            select.innerHTML += `<option value="${u.id}">${u.name} ${u.surname || ''} (${u.role === 'admin' ? 'Sistem' : (u.company || 'Bellona')})</option>`;
         });
     } catch (err) {
         console.error("Load receivers error:", err);
@@ -446,15 +454,6 @@ async function loadReceiversByCategory(category) {
 
 async function handleComposeSubmit(e) {
     e.preventDefault();
-    const receiverId = document.getElementById('receiverSelect').value;
-    const subject = document.getElementById('subjectInput')?.value || "Konu Yok";
-    const body = document.getElementById('messageBodyInput')?.value;
-
-    if (!receiverId || !body) return;
-
-    const receiverDoc = await getDoc(doc(db, "users", receiverId));
-    const rData = receiverDoc.data();
-
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.disabled = true;
 
@@ -462,7 +461,7 @@ async function handleComposeSubmit(e) {
         let attachmentUrl = null;
         let attachmentName = null;
 
-        // Dosya Yükleme İşlemi
+        // Dosya Yükleme (Varsa)
         const fileInput = document.getElementById('fileInput');
         if (fileInput && fileInput.files[0]) {
             const file = fileInput.files[0];
@@ -472,25 +471,59 @@ async function handleComposeSubmit(e) {
             attachmentUrl = await getDownloadURL(uploadResult.ref);
         }
 
-        await addDoc(collection(db, "messages"), {
-            senderId: currentUserData.id,
-            senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
-            receiverId: receiverId,
-            receiverName: `${rData.name} ${rData.surname || ''}`,
-            participants: [currentUserData.id, receiverId],
-            subject: subject,
-            content: body,
-            lastMessage: body,
-            status: 'active',
-            isRead: false,
-            timestamp: serverTimestamp(),
-            attachmentUrl: attachmentUrl,
-            attachmentName: attachmentName
-        });
+        // Toplu Gönderim Kontrolü
+        if (receiverId === "ALL_IN_CATEGORY") {
+            const select = document.getElementById('receiverSelect');
+            const targetIds = Array.from(select.options)
+                .map(opt => opt.value)
+                .filter(val => val && val !== "" && val !== "ALL_IN_CATEGORY");
+
+            const promises = targetIds.map(async (tid) => {
+                const rOpt = Array.from(select.options).find(o => o.value === tid);
+                return addDoc(collection(db, "messages"), {
+                    senderId: currentUserData.id,
+                    senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
+                    receiverId: tid,
+                    receiverName: rOpt ? rOpt.text.split('(')[0].trim() : 'Bilinmeyen',
+                    participants: [currentUserData.id, tid],
+                    subject: `[TOPLU] ${subject}`,
+                    content: body,
+                    lastMessage: body,
+                    status: 'active',
+                    isRead: false,
+                    timestamp: serverTimestamp(),
+                    attachmentUrl,
+                    attachmentName
+                });
+            });
+
+            await Promise.all(promises);
+            alert(`${targetIds.length} kişiye toplu mesaj başarıyla gönderildi!`);
+        } else {
+            // Tekli Gönderim
+            const receiverDoc = await getDoc(doc(db, "users", receiverId));
+            const rData = receiverDoc.data();
+
+            await addDoc(collection(db, "messages"), {
+                senderId: currentUserData.id,
+                senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
+                receiverId: receiverId,
+                receiverName: `${rData.name} ${rData.surname || ''}`,
+                participants: [currentUserData.id, receiverId],
+                subject: subject,
+                content: body,
+                lastMessage: body,
+                status: 'active',
+                isRead: false,
+                timestamp: serverTimestamp(),
+                attachmentUrl,
+                attachmentName
+            });
+            alert("Mesaj başarıyla gönderildi!");
+        }
         
         if (fileInput) fileInput.value = '';
         resetDetailView();
-        alert("Mesaj ve dosya başarıyla gönderildi!");
     } catch (err) { 
         console.error("Send error:", err); 
         alert("Gönderim sırasında hata oluştu.");
