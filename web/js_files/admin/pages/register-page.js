@@ -28,6 +28,7 @@ export function initRegisterPage() {
     let allUsersCache = [];
     const loadUsers = async () => {
         allUsersCache = await getAllUsers();
+        updateDealers(); // Veri gelince listeyi bir kez güncelle
     };
     loadUsers();
 
@@ -55,7 +56,8 @@ export function initRegisterPage() {
         const selRegion = regionIn.value;
         const selCity = cityIn.value;
 
-        let filtered = allUsersCache.filter(u => u.company && u.category !== 'factory');
+        // Sadece yerel bayileri ve şirket ismi olanları al
+        let filtered = allUsersCache.filter(u => u.company && u.category === 'local');
         
         if (selRegion) {
             filtered = filtered.filter(u => u.region === selRegion);
@@ -64,7 +66,8 @@ export function initRegisterPage() {
             filtered = filtered.filter(u => u.city === selCity);
         }
 
-        const dealers = [...new Set(filtered.map(u => u.company))];
+        // Tekil bayi isimlerini al
+        const dealers = [...new Set(filtered.map(u => u.company))].sort();
 
         const datalist = document.getElementById("companySuggestions");
         if (datalist) {
@@ -75,6 +78,7 @@ export function initRegisterPage() {
                 datalist.appendChild(opt);
             });
         }
+        console.log(`${selCity || selRegion || 'Tüm'} bölge/şehir için ${dealers.length} bayi listelendi.`);
     };
 
     let lastRegion = "";
