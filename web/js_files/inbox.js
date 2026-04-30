@@ -30,8 +30,27 @@ onAuthStateChanged(auth, async (user) => {
   updateUI();
   initNavigation();
   initCompose();
+  initUnreadCounter(); // Okunmamış sayacını başlat
   loadFolder(currentFolder);
 });
+
+function initUnreadCounter() {
+    const q = query(
+        collection(db, "messages"), 
+        where("receiverId", "==", currentUserData.id),
+        where("status", "==", "active"),
+        where("isRead", "==", false)
+    );
+
+    onSnapshot(q, (snapshot) => {
+        const count = snapshot.size;
+        const badge = document.getElementById('unreadCount');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+    });
+}
 
 function updateUI() {
     let roleLabel = currentUserData.subRole === 'manager' ? 'Yönetici / Patron' : 'Mağaza Personeli';
@@ -125,8 +144,8 @@ function loadFolder(folder) {
         } else if (['spam', 'archive', 'trash'].includes(folder)) {
             q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder));
         } else {
-            // Inbox: Sadece bana gelen aktif mesajlar
-            q = query(baseRef, where("receiverId", "==", currentUserData.id), where("status", "==", "active"));
+            // Inbox (Gelen Kutusu): Dahil olduğum tüm aktif mesajlar
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"));
         }
 
         onSnapshot(q, (snapshot) => {
@@ -173,7 +192,9 @@ function loadFolder(folder) {
                     }
                 }
                 
-                const senderDisplay = folder === 'sent' ? `Alıcı: ${m.receiverName || 'Bilinmiyor'}` : (m.senderName || 'Bilinmiyor');
+                
+                const isSentByMe = m.senderId === currentUserData.id;
+                const senderDisplay = isSentByMe ? `<i class="fa-solid fa-share" style="font-size:0.7rem; color:var(--primary)"></i> Alıcı: ${m.receiverName}` : m.senderName;
                 
                 return `
                     <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
@@ -461,6 +482,7 @@ async function handleComposeSubmit(e) {
             content: body,
             lastMessage: body,
             status: 'active',
+            isRead: false,
             timestamp: serverTimestamp(),
             attachmentUrl: attachmentUrl,
             attachmentName: attachmentName
