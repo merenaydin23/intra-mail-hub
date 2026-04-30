@@ -6,7 +6,10 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
  * This service handles text processing and corporate communication refinements via Firebase Cloud Functions.
  */
 
-export const CORPORATE_SYSTEM_PROMPT = `Sen kurumsal iletişim konusunda uzman bir asistansın... (Prompt Cloud Function tarafında saklanıyor)`;
+export const CORPORATE_SYSTEM_PROMPT = `Sen üst düzey kurumsal iletişim konusunda uzman bir asistansın.
+Görevin: Metni son derece kibar, nazik ve profesyonel bir dile dönüştür.
+Ton: Resmi ama yumuşak ve saygılı, talepkar değil rica eden bir üslup.
+Format: Sayın [Ad Soyad] ile başla, düzenli paragraflar kullan, nazik bir kapanış ve profesyonel imza ekle.`;
 
 /**
  * Refines the given text using corporate rules via Real AI (Gemini).
