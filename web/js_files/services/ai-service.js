@@ -1,53 +1,38 @@
 /**
- * AI Service for Intra Mail Hub - FAILOVER COHERE VERSION
+ * AI Service for Intra Mail Hub - REFINED VERSION
  */
 
 const COHERE_KEYS = [
-    "REDACTED_COHERE_KEY", // Mevcut Anahtar
-    "nVycIJVNLnVwYiWReqftZg6YYBmJKhRHvVxOqPSx", // Yedek 1
-    "OEDhvaCBWLQWE6qx7ldJXUOS0jsKnEwrPwlRrPXz", // Yedek 2
-    "Ld5d59Zrld2jIoFh3rN4w5Y5n6NAa1y0iSpDLrA9"  // Yedek 3
+    "REDACTED_COHERE_KEY",
+    "nVycIJVNLnVwYiWReqftZg6YYBmJKhRHvVxOqPSx",
+    "OEDhvaCBWLQWE6qx7ldJXUOS0jsKnEwrPwlRrPXz",
+    "Ld5d59Zrld2jIoFh3rN4w5Y5n6NAa1y0iSpDLrA9"
 ];
 
-export const CORPORATE_SYSTEM_PROMPT = `Sen üst düzey bir kurumsal iletişim uzmanısın. Görevin, kaba veya düzensiz mesajları EN ÜST DÜZEY nezaketle YENİDEN YAZMAKTIR.
+export const CORPORATE_SYSTEM_PROMPT = `Sen üst düzey bir kurumsal iletişim uzmanısın. Görevin, iletilen ham metni en profesyonel hale getirmektir.
 
-Kurallar:
-1. Mesajın gövdesini (core body) kurumsal bir üsluba kavuştur.
-2. "Sipariş geç", "Bak" gibi emir kiplerini asla kullanma, "istirahammızdır", "rica ederiz" gibi ifadeler kullan.
-3. Mesajı KISA ve ÖZ tut (Gereksiz uzatmalardan kaçın).
-4. Yazım hatalarını düzelt.
-5. İçeriğe uygun, profesyonel bir KONU BAŞLIĞI oluştur.
+TALİMATLAR:
+1. Yazım hatalarını düzelt ve emir kiplerini profesyonel ricalara dönüştür.
+2. KISA VE NET OL. Aynı anlama gelen nezaket cümlelerini (örneğin "saygılar sunarım" ve "saygılarımla") üst üste kullanma.
+3. Sadece TEK bir kapanış cümlesi ve TEK bir imza bloğu kullan.
 
-Mail Formatı:
+FORMAT:
 - Hitap: "Sayın [Alıcı Adı],"
-- Gövde: Kurumsal, akıcı ve kısa metin.
+- Gövde: Mesajın profesyonel ve kısa hali.
 - Kapanış: "Bilgilerinize sunar, iyi çalışmalar dilerim."
-- İmza: Saygılarımla, [Gönderen Adı] / [Şirket Adı]
+- İmza: Saygılarımla, [Gönderen Adı] / [Şirket Adı]`;
 
-Yanıt Formatı (Sadece bu JSON formatında dön):
-{
-  "subject": "Oluşturulan Konu Başlığı",
-  "body": "Düzenlenmiş Mesaj Metni"
-}`;
-
-/**
- * Refines the given text using corporate rules with automatic key failover.
- */
 export async function refineMessageWithAI(originalText, context) {
     const url = "https://api.cohere.ai/v1/chat";
-    const prompt = `Alıcı: ${context.receiverName}\nGönderen: ${context.senderName}\nŞirket: ${context.senderCompany}\nMetin: "${originalText}"\n\nLütfen sadece yukarıdaki JSON formatında yanıt ver. Hiçbir açıklama ekleme.`;
+    const prompt = `Alıcı: ${context.receiverName}\nGönderen: ${context.senderName}\nŞirket: ${context.senderCompany}\nMetin: "${originalText}"\n\nLütfen sadece düzenlenmiş nihai metni döndür.`;
 
-    // Anahtar havuzundaki her bir anahtarı sırayla deniyoruz
     for (let i = 0; i < COHERE_KEYS.length; i++) {
-        const currentKey = COHERE_KEYS[i];
-        console.log(`AI Denemesi: ${i + 1}/${COHERE_KEYS.length} - Anahtar: ${currentKey.substring(0, 5)}...`);
-
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentKey}`
+                    'Authorization': `Bearer ${COHERE_KEYS[i]}`
                 },
                 body: JSON.stringify({
                     message: prompt,
@@ -57,32 +42,13 @@ export async function refineMessageWithAI(originalText, context) {
             });
 
             const data = await response.json();
-            
-            // Başarılı yanıt kontrolü
             if (data.text) {
-                try {
-                    const jsonStr = data.text.substring(data.text.indexOf('{'), data.text.lastIndexOf('}') + 1);
-                    const aiResult = JSON.parse(jsonStr);
-                    return {
-                        subject: aiResult.subject,
-                        body: "✨ " + aiResult.body
-                    };
-                } catch (e) {
-                    return {
-                        subject: "Bilgilendirme",
-                        body: "✨ " + data.text.trim()
-                    };
-                }
-            } else {
-                console.warn(`Anahtar ${i + 1} hata verdi:`, data.message || "Bilinmeyen hata");
-                // Eğer son anahtar da bittiyse hata dön
-                if (i === COHERE_KEYS.length - 1) return { error: data.message || "Tüm AI anahtarları tükendi." };
-                continue; // Bir sonraki anahtarı dene
+                return data.text.trim();
             }
+            continue;
         } catch (error) {
-            console.error(`Bağlantı hatası (Anahtar ${i + 1}):`, error.message);
-            if (i === COHERE_KEYS.length - 1) return { error: "İnternet bağlantısı veya sunucu hatası." };
-            continue; // Bir sonraki anahtarı dene
+            if (i === COHERE_KEYS.length - 1) return { error: "Bağlantı Hatası" };
+            continue;
         }
     }
 }
