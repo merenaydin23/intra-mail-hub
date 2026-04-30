@@ -151,6 +151,7 @@ export function initRegisterPage() {
             if (lockedByDealer) {
                 regionIn.disabled = true;
                 cityIn.disabled = true;
+                if (dealerCodeIn) dealerCodeIn.disabled = true;
             } else {
                 if (regionIn) regionIn.disabled = false;
                 if (cityIn) {
@@ -196,6 +197,7 @@ export function initRegisterPage() {
         const dealerCode = dealerCodeIn?.value || "0000";
         const email = await generateEnterpriseEmail(nameIn.value, surnameIn.value, dealerCode);
         const finalCompany = catIn.value === "regional" ? regionCompanyIn.value : companyIn.value;
+        
         const data = {
             name: nameIn.value,
             surname: surnameIn.value,
@@ -205,7 +207,7 @@ export function initRegisterPage() {
             category: catIn.value,
             region: regionIn.value,
             company: finalCompany,
-            dealerCode: dealerCodeIn?.value || "0000",
+            dealerCode: dealerCode,
             subRole: roleIn.value,
             email: emailPreview.value,
             department: roleIn.value === "manager"
@@ -216,6 +218,18 @@ export function initRegisterPage() {
             role: "user",
             isActive: true
         };
+
+        // FINAL CONSISTENCY CHECK
+        const duplicateDealer = allUsersCache.find(u => 
+            u.company?.toLocaleLowerCase('tr-TR') === data.company.toLocaleLowerCase('tr-TR') && 
+            u.city?.toLocaleLowerCase('tr-TR') === data.city.toLocaleLowerCase('tr-TR') &&
+            u.dealerCode !== data.dealerCode
+        );
+
+        if (duplicateDealer) {
+            alert(`HATA: "${data.company}" bayisi "${data.city}" şehrinde zaten #${duplicateDealer.dealerCode} kodu ile kayıtlı.\n\nSiz #${data.dealerCode} kodu ile kaydetmeye çalışıyorsunuz. Lütfen bayi kodunu kontrol ediniz!`);
+            return;
+        }
 
         const created = await createUserRecord(data);
         const actor = await getSessionActor();
