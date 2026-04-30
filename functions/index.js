@@ -5,6 +5,12 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
 
+const COHERE_KEYS = [
+    "REDACTED_COHERE_KEY",
+    "nVycIJVNLnVwYiWReqftZg6YYBmJKhRHvVxOqPSx",
+    "OEDhvaCBWLQWE6qx7ldJXUOS0jsKnEwrPwlRrPXz",
+    "Ld5d59Zrld2jIoFh3rN4w5Y5n6NAa1y0iSpDLrA9"
+];
 const genAI = new GoogleGenerativeAI("AIzaSyCeJKg6uWXcOSW-8KB1elCnSsWTlnsTBzM");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
