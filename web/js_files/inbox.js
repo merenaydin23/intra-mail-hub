@@ -1,9 +1,9 @@
-import { auth, db } from './firebase/config.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-  collection, query, where, orderBy, onSnapshot, 
   addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  ref, uploadBytes, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { auth, db, storage } from './firebase/config.js';
 import { refineMessageWithAI } from './services/ai-service.js';
 
 let currentUserData = null;
@@ -245,22 +245,30 @@ window.selectThread = async (id) => {
     });
 
     // Render Replies (Threading)
-    const detailBody = document.getElementById('detailBody');
-    if (data.replies && data.replies.length > 0) {
-        let repliesHtml = '<div class="thread-divider">Yazışma Geçmişi</div>';
-        data.replies.forEach(r => {
-            const rDate = new Date(r.timestamp).toLocaleString('tr-TR', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short'});
-            repliesHtml += `
-                <div class="reply-bubble">
-                    <div class="reply-header">
-                        <span class="reply-author">${r.authorName}</span>
-                        <span class="reply-time">${rDate}</span>
+        detailBody.innerHTML += repliesHtml;
+    }
+
+    // Ekli Dosya Görüntüleme
+    const attachmentsArea = document.getElementById('attachmentsArea');
+    const attachmentsList = document.getElementById('attachmentsList');
+    if (attachmentsArea && attachmentsList) {
+        if (data.attachmentUrl) {
+            attachmentsArea.classList.remove('hidden');
+            attachmentsList.innerHTML = `
+                <div class="attachment-item">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <div class="attachment-info">
+                        <span class="file-name">${data.attachmentName || 'Ekli Dosya'}</span>
+                        <a href="${data.attachmentUrl}" target="_blank" class="btn-download">
+                            <i class="fa-solid fa-download"></i> İndir / Görüntüle
+                        </a>
                     </div>
-                    <div class="reply-text">${r.text}</div>
                 </div>
             `;
-        });
-        detailBody.innerHTML += repliesHtml;
+        } else {
+            attachmentsArea.classList.add('hidden');
+            attachmentsList.innerHTML = '';
+        }
     }
 };
 
@@ -426,7 +434,23 @@ async function handleComposeSubmit(e) {
     const receiverDoc = await getDoc(doc(db, "users", receiverId));
     const rData = receiverDoc.data();
 
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.disabled = true;
+
     try {
+        let attachmentUrl = null;
+        let attachmentName = null;
+
+        // Dosya Yükleme İşlemi
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            attachmentName = file.name;
+            const fileRef = ref(storage, `messages/${Date.now()}_${file.name}`);
+            const uploadResult = await uploadBytes(fileRef, file);
+            attachmentUrl = await getDownloadURL(uploadResult.ref);
+        }
+
         await addDoc(collection(db, "messages"), {
             senderId: currentUserData.id,
             senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
@@ -437,11 +461,20 @@ async function handleComposeSubmit(e) {
             content: body,
             lastMessage: body,
             status: 'active',
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            attachmentUrl: attachmentUrl,
+            attachmentName: attachmentName
         });
+        
+        if (fileInput) fileInput.value = '';
         resetDetailView();
-        alert("Mesaj başarıyla gönderildi!");
-    } catch (err) { console.error("Send error:", err); }
+        alert("Mesaj ve dosya başarıyla gönderildi!");
+    } catch (err) { 
+        console.error("Send error:", err); 
+        alert("Gönderim sırasında hata oluştu.");
+    } finally {
+        if (sendBtn) sendBtn.disabled = false;
+    }
 }
 
 async function handleReplySubmit() {
