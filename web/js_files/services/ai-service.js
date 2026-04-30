@@ -2,11 +2,13 @@
  * AI Service for Intra Mail Hub - REFINED VERSION
  */
 
+// API anahtarları güvenlik nedeniyle kaldırıldı.
+// Kendi Cohere anahtarlarınızı buraya ekleyin: https://dashboard.cohere.com/api-keys
 const COHERE_KEYS = [
-    "REDACTED_COHERE_KEY",
-    "nVycIJVNLnVwYiWReqftZg6YYBmJKhRHvVxOqPSx",
-    "OEDhvaCBWLQWE6qx7ldJXUOS0jsKnEwrPwlRrPXz",
-    "Ld5d59Zrld2jIoFh3rN4w5Y5n6NAa1y0iSpDLrA9"
+    "YOUR_COHERE_KEY_1",
+    "YOUR_COHERE_KEY_2",
+    "YOUR_COHERE_KEY_3",
+    "YOUR_COHERE_KEY_4"
 ];
 
 export const CORPORATE_SYSTEM_PROMPT = `Sen üst düzey bir kurumsal iletişim uzmanısın. Görevin, iletilen ham metni en profesyonel hale getirmektir.
