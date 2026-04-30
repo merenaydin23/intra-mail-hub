@@ -66,19 +66,21 @@ export function initRegisterPage() {
             filtered = filtered.filter(u => u.city === selCity);
         }
 
-        // Tekil bayi isimlerini al
-        const dealers = [...new Set(filtered.map(u => u.company))].sort();
+        // Tekil bayi isimlerini ve kodlarını al
+        const dealerPairs = filtered.map(u => ({ name: u.company, code: u.dealerCode || "0000" }));
+        const uniqueDealers = [...new Map(dealerPairs.map(item => [item.name + item.code, item])).values()]
+            .sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'));
 
         const datalist = document.getElementById("companySuggestions");
         if (datalist) {
             datalist.innerHTML = "";
-            dealers.forEach(d => {
+            uniqueDealers.forEach(d => {
                 const opt = document.createElement("option");
-                opt.value = d;
+                opt.value = `${d.name} (#${d.code})`;
                 datalist.appendChild(opt);
             });
         }
-        console.log(`${selCity || selRegion || 'Tüm'} bölge/şehir için ${dealers.length} bayi listelendi.`);
+        console.log(`${selCity || selRegion || 'Tüm'} bölge/şehir için ${uniqueDealers.length} bayi kodlarıyla listelendi.`);
     };
 
     let lastRegion = "";
@@ -87,15 +89,30 @@ export function initRegisterPage() {
         // Dealer Consistency Check
         let lockedByDealer = false;
         if (catIn.value === "local" && companyIn.value.trim()) {
-            const companyName = companyIn.value.trim();
-            const existingDealer = allUsersCache.find(u => u.company === companyName && u.city && u.region);
+            let companyName = companyIn.value.trim();
+
+            // OTOMATİK PARÇALAMA: Eğer listeden "İsim (#Kod)" formatında seçildiyse ayır
+            const match = companyName.match(/^(.+)\s\(#(\d+)\)$/);
+            if (match) {
+                const realName = match[1];
+                const realCode = match[2];
+                companyIn.value = realName;
+                dealerCodeIn.value = realCode;
+                companyName = realName;
+            }
+
+            const existingDealer = allUsersCache.find(u => 
+                u.company?.toLocaleLowerCase('tr-TR') === companyName.toLocaleLowerCase('tr-TR') && 
+                u.city && u.region
+            );
+            
             if (existingDealer) {
                 regionIn.value = existingDealer.region;
                 if (lastRegion !== existingDealer.region) {
                     updateCities();
                     lastRegion = existingDealer.region;
                 }
-                // Find the city in the select options to ensure exact match
+                
                 const targetCity = existingDealer.city;
                 const options = Array.from(cityIn.options);
                 const matchingOption = options.find(opt => 
