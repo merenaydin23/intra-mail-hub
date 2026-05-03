@@ -19,7 +19,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
  * KULLANICI OLUŞTURMA — Auth + Firestore atomik
  * Admin panelinden çağrılır. Firebase Auth + Firestore'u birlikte oluşturur.
  */
-exports.createUser = onCall(async (request) => {
+exports.createUser = onCall({ cors: true }, async (request) => {
     // Sadece admin çağırabilsin
     if (!request.auth) throw new Error("Yetki yok.");
 
@@ -113,7 +113,7 @@ Lütfen bana yanıtı SADECE aşağıdaki gibi katı bir JSON formatında dönd�
 /**
  * Yeni Eklenen: Akıllı Düzenle (AI Refinement) Fonksiyonu
  */
-exports.refineCorporateMessage = onCall(async (request) => {
+exports.refineCorporateMessage = onCall({ cors: true }, async (request) => {
     const { text, context } = request.data;
     
     if (!text) return { error: "Metin boş olamaz" };
