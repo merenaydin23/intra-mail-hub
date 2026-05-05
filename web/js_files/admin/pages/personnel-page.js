@@ -78,12 +78,17 @@ function refreshDealers() {
         el.innerHTML = '<option value="all">Önce şehir seçin</option>';
         el.disabled = true; return;
     }
-    const dealers = unique(allUsers.filter(u => u.city === state.city && u.category === 'local').map(u => u.company)).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr'));
+    const dealerMap = new Map();
+    allUsers.filter(u => u.city === state.city && u.category === 'local' && u.company).forEach(u => {
+        dealerMap.set(u.company, u.dealerCode || '0000');
+    });
+    const dealers = Array.from(dealerMap.keys()).sort((a,b)=>a.localeCompare(b,'tr'));
+    
     if (!dealers.length) {
         el.innerHTML = '<option value="all">Kayıtlı bayi yok</option>';
         el.disabled = true; return;
     }
-    el.innerHTML = `<option value="all">Tüm Bayiler (${dealers.length})</option>` + dealers.map(d=>`<option value="${d}">${d}</option>`).join('');
+    el.innerHTML = `<option value="all">Tüm Bayiler (${dealers.length})</option>` + dealers.map(d=>`<option value="${d}">${d} — #${dealerMap.get(d)}</option>`).join('');
     el.disabled = false;
     el.value = 'all';
 }

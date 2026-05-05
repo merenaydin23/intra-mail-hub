@@ -38,7 +38,7 @@ export function renderTableRows(tbody, users) {
                         <strong>${fullName || "-"}</strong>
                     </div>
                 </td>
-                <td>${u.company || "-"}</td>
+                <td>${u.company ? `<strong>${u.company}</strong> <small style="color:#64748b; margin-left:4px;">(#${u.dealerCode || '0000'})</small>` : "-"}</td>
                 <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || "-"}</span></td>
                 <td><span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
             </tr>
