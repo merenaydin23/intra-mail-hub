@@ -84,28 +84,62 @@
         }
         .btn-reset:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
 
-        /* Sonuç satırı */
+        /* Tablo Tasarımı */
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.02);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left; padding: 1rem 1.5rem;
+            background: #f8fafc; font-size: 0.7rem;
+            font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+        td {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+            font-size: 0.88rem; color: #334155;
+            vertical-align: middle;
+        }
+        tr.personnel-main-row:hover { background: #fbfdfe; }
+        tr.personnel-main-row:last-child td { border-bottom: none; }
+        
+        .personnel-name-wrap strong { color: #1e293b; font-weight: 700; }
+        .badge-role {
+            font-size: 0.65rem; font-weight: 800;
+            padding: 4px 10px; border-radius: 8px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .badge-role-manager { background: #ecfdf5; color: #059669; }
+        .badge-role-employee { background: #f1f5f9; color: #475569; }
+
+        .detail-chevron { color: #cbd5e1; font-size: 0.6rem; margin-right: 0.5rem; transition: 0.2s; }
+        .is-open .detail-chevron { transform: rotate(90deg); color: var(--brand); }
+
+        /* Sonuç satırı & Chips */
         .result-bar {
             display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 1.25rem; padding: 0 0.5rem;
+            margin-top: 0.5rem; margin-bottom: 1.25rem; padding: 0 0.5rem;
         }
         .result-bar h3 { font-size: 1rem; font-weight: 800; color: #1e293b; }
         .result-bar .count-badge {
             background: var(--brand); color: #fff; border-radius: 8px;
             padding: 2px 8px; font-size: 0.75rem; font-weight: 800; margin-left: 6px;
         }
-
-        /* Aktif chip'ler */
         .chips-row { display: flex; gap: 0.45rem; flex-wrap: wrap; }
         .chip {
             display: inline-flex; align-items: center; gap: 0.35rem;
-            background: #f0fdfd; border: 1px solid #99f6e4;
-            border-radius: 20px; padding: 0.22rem 0.7rem;
-            font-size: 0.72rem; font-weight: 600; color: #007b7b;
-            cursor: pointer; transition: background 0.15s;
+            background: #f1f7f7; border: 1px solid #d7e7ea;
+            border-radius: 20px; padding: 0.25rem 0.8rem;
+            font-size: 0.72rem; font-weight: 700; color: var(--brand);
+            cursor: pointer; transition: 0.2s;
         }
-        .chip:hover { background: #ccfbf1; }
-        .chip i { font-size: 0.6rem; opacity: 0.7; }
+        .chip:hover { background: #e8f4f4; border-color: var(--brand); }
+        .chip i { font-size: 0.65rem; opacity: 0.8; }
     </style>
 </head>
 <body>
