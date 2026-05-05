@@ -73,6 +73,9 @@
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Kurumsal iletişimi izleyin ve geçmiş kayıtları analiz edin.</p>
             </div>
             <div class="header-actions">
+                <button id="btnOpenBroadcast" class="btn-submit-premium" style="padding: 0.65rem 1.25rem; font-size: 0.85rem;">
+                    <i class="fa-solid fa-bullhorn"></i> Duyuru Yayınla
+                </button>
                 <button id="btnExportCSV" class="btn-outline"><i class="fa-solid fa-file-export"></i> Rapor Al</button>
             </div>
         </header>
@@ -164,6 +167,46 @@
             </div>
         </div>
     </main>
+
+    <!-- DUYURU MODAL -->
+    <div id="broadcastModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div class="card" style="width:100%; max-width:600px; margin:2rem; animation:fadeIn 0.3s ease;">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-bullhorn" style="color:var(--brand); margin-right:0.5rem;"></i> Toplu Duyuru Yayınla</h3>
+                <button id="btnCloseBroadcast" style="border:none; background:none; cursor:pointer; color:var(--text-light); font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding:2rem;">
+                <form id="broadcastForm">
+                    <div class="form-group" style="margin-bottom:1.5rem;">
+                        <label>Hedef Kitle</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-users"></i>
+                            <select id="broadcastTarget" required>
+                                <option value="all">Tüm Personel & Bayiler</option>
+                                <option value="factory">Sadece Fabrika Personeli</option>
+                                <option value="regional">Sadece Bölge Bayileri</option>
+                                <option value="local">Sadece Yerel Bayiler</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:1.5rem;">
+                        <label>Duyuru Konusu</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-heading"></i>
+                            <input type="text" id="broadcastSubject" placeholder="Duyuru başlığını girin..." required />
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:2rem;">
+                        <label>Mesaj İçeriği</label>
+                        <textarea id="broadcastBody" style="width:100%; height:150px; padding:1rem; border:1.5px solid var(--border); border-radius:12px; font-family:inherit; font-size:0.9rem; resize:none; outline:none;" placeholder="Duyuru metnini buraya yazın..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit-premium">
+                        <i class="fa-solid fa-paper-plane"></i> Duyuruyu Gönder
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="../../js_files/admin_logic.js" type="module"></script>
 </body>
