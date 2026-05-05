@@ -1,6 +1,7 @@
 import { getAuditLogs } from "../services/audit-service.js";
 import { getAllMessages } from "../services/message-service.js";
 import { sendBroadcast } from "../services/broadcast-service.js";
+import { refineMessageWithAI } from "../../services/ai-service.js";
 import { collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -24,6 +25,7 @@ function initBroadcast() {
     const modal = document.getElementById('broadcastModal');
     const btnOpen = document.getElementById('btnOpenBroadcast');
     const btnClose = document.getElementById('btnCloseBroadcast');
+    const btnAI = document.getElementById('btnBroadcastAI');
     const form = document.getElementById('broadcastForm');
 
     if (btnOpen) btnOpen.onclick = () => modal.style.display = 'flex';
@@ -33,6 +35,29 @@ function initBroadcast() {
     window.addEventListener('click', (e) => {
         if (e.target === modal) modal.style.display = 'none';
     });
+
+    if (btnAI) {
+        btnAI.onclick = async () => {
+            const bodyEl = document.getElementById('broadcastBody');
+            const draft = bodyEl.value.trim();
+            if (!draft) return alert('Önce bir taslak metin yazmalısınız.');
+
+            btnAI.disabled = true;
+            btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
+
+            try {
+                // Duyuruya özel kurumsal prompt
+                const prompt = "Bu bir kurumsal şirket duyurusu. Metni resmi, profesyonel, güven veren ve net bir dile çevir. Gereksiz kelimeleri at, hitabeti güçlendir. Sadece düzenlenen metni döndür.";
+                const refined = await refineMessageWithAI(draft, prompt);
+                bodyEl.value = refined;
+            } catch (err) {
+                alert('AI Hatası: ' + err.message);
+            } finally {
+                btnAI.disabled = false;
+                btnAI.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI İLE DÜZENLE';
+            }
+        };
+    }
 
     if (form) {
         form.onsubmit = async (e) => {
