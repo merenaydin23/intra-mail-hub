@@ -2,6 +2,7 @@ import { initDashboardPage } from "./admin/pages/dashboard-page.js";
 import { initPersonnelPage } from "./admin/pages/personnel-page.js";
 import { initRegisterPage, generateStrictPassword } from "./admin/pages/register-page.js";
 import { initMessagesPage } from "./admin/pages/messages-page.js";
+import { initAuditPage } from "./admin/pages/audit-page.js";
 
 export { generateStrictPassword };
 
@@ -11,4 +12,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (path.includes("yonetim_personel.html")) initPersonnelPage();
     if (path.includes("yonetim_ekle.html")) initRegisterPage();
     if (path.includes("yonetim_mesajlar.html")) initMessagesPage();
+    if (path.includes("yonetim_audit.html")) initAuditPage();
 });
