@@ -78,28 +78,32 @@ export function initRegisterPage() {
 
         if (!companySelectEl) return;
 
-        if (uniqueDealers.length > 0 && catIn.value === 'local') {
-            // Dropdown'u göster, serbest alanı gizle
+        if (catIn.value === 'local') {
+            // Dropdown'u HER ZAMAN göster, serbest alanı gizle (bayi olsa da olmasa da)
             companySelectEl.style.display = 'block';
             companyIn.style.display = 'none';
             companyIn.removeAttribute('required');
             companySelectEl.setAttribute('required', '');
 
             companySelectEl.innerHTML = '<option value="">-- Bayi seçiniz --</option>';
-            uniqueDealers.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.name;
-                opt.dataset.code = d.code;
-                opt.textContent = `${d.name}  —  #${d.code}`;
-                companySelectEl.appendChild(opt);
-            });
-            // "Yeni bayi ekle" seçeneği
+            
+            if (uniqueDealers.length > 0) {
+                uniqueDealers.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.name;
+                    opt.dataset.code = d.code;
+                    opt.textContent = `${d.name}  —  #${d.code}`;
+                    companySelectEl.appendChild(opt);
+                });
+            }
+            
+            // "Yeni bayi ekle" seçeneğini her zaman ekle
             const newOpt = document.createElement('option');
             newOpt.value = '__NEW__';
             newOpt.textContent = '➕ Yeni bayi ekle (elle yaz)';
             companySelectEl.appendChild(newOpt);
         } else {
-            // Kayıtlı bayi yok veya başka kategori: sadece serbest alan göster
+            // Diğer kategoriler: sadece serbest alan göster
             companySelectEl.style.display = 'none';
             companyIn.style.display = 'block';
             companyIn.setAttribute('required', '');
