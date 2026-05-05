@@ -1,20 +1,35 @@
-import { getAllUsers, removeUserRecord, updateUserStatus } from "../services/user-service.js";
+import { removeUserRecord, updateUserStatus } from "../services/user-service.js";
 import { renderTableRows } from "../ui/renderers.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
+import { collection, query, onSnapshot, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../../firebase/config.js";
 
 let allUsers = [];
 
 const state = {
-    search: '', category: 'all', role: 'all', status: 'active',
+    search: '', category: 'all', role: 'all',
     region: 'all', city: 'all', dealer: 'all', sort: 'name-asc',
 };
 
 export async function initPersonnelPage() {
-    const users = await getAllUsers();
-    allUsers = users.filter(u => u.role !== 'admin');
+    setupRealtimeListener();
     setupListeners();
-    applyFilters();
+}
+
+/**
+ * FIREBASE REAL-TIME LISTENER
+ */
+function setupRealtimeListener() {
+    const q = query(collection(db, "users"), where("role", "!=", "admin"));
+    
+    // Unsubscribe previous if any (though not strictly needed here)
+    onSnapshot(q, (snapshot) => {
+        allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        applyFilters();
+    }, (error) => {
+        console.error("Firestore Listener Error:", error);
+    });
 }
 
 // ── Event Listeners ──────────────────────────────────────
@@ -22,7 +37,6 @@ function setupListeners() {
     bind('searchUser',    'input',  'search',   'value');
     bind('filterCategory','change', 'category', 'value');
     bind('filterRole',    'change', 'role',     'value');
-    bind('filterStatus',  'change', 'status',   'value');
     bind('sortUser',      'change', 'sort',     'value');
 
     document.getElementById('filterRegion')?.addEventListener('change', e => {
@@ -56,6 +70,7 @@ function setupListeners() {
     });
 
     document.getElementById('userTableBody')?.addEventListener('click', handleTableClick);
+    document.getElementById('passiveUserList')?.addEventListener('click', handleTableClick); // Side panel click support
     document.getElementById('btnCloseDrawer')?.addEventListener('click', closeDrawer);
     document.getElementById('userDrawerOverlay')?.addEventListener('click', closeDrawer);
 }
@@ -115,11 +130,8 @@ async function toggleUserStatus(userId, newStatus) {
             targetId:userId, 
             detail:`${user.name} ${user.surname} durumu ${newStatus ? 'Aktif' : 'Pasif'} olarak güncellendi.` 
         });
-        
-        user.isActive = newStatus;
-        applyFilters();
+        // We don't need to manually update user.isActive here because the Realtime Listener will catch it
         closeDrawer();
-        alert(`Personel başarıyla ${newStatus ? 'aktif edildi' : 'pasife alındı'}.`);
     } catch (err) {
         alert('Hata: Durum güncellenemedi.');
     }
@@ -133,10 +145,7 @@ async function deleteUser(userId) {
         await removeUserRecord(userId);
         const actor = await getSessionActor();
         await writeAuditLog({ actor, action:'PERSONEL_SILME', targetType:'users', targetId:userId, detail:`${user.name} ${user.surname} silindi.` });
-        allUsers = allUsers.filter(x => x.id !== userId);
-        applyFilters();
         closeDrawer();
-        alert('Personel silindi.');
     } catch { alert('Hata: Kayıt silinemedi.'); }
 }
 
@@ -187,16 +196,15 @@ function unique(arr) { return [...new Set(arr)]; }
 function applyFilters() {
     const term = state.search.toLocaleLowerCase('tr-TR');
 
-    let filtered = allUsers.filter(u => {
-        const txt = `${u.name} ${u.surname} ${u.company} ${u.dealerCode} ${u.email}`.toLocaleLowerCase('tr-TR');
-        const isActive = u.isActive !== false;
-        const statusMatch = state.status === 'all' || 
-                           (state.status === 'active' && isActive) || 
-                           (state.status === 'passive' && !isActive);
+    // 1. Split Active and Passive
+    const activePool = allUsers.filter(u => u.isActive !== false);
+    const passivePool = allUsers.filter(u => u.isActive === false);
 
+    // 2. Filter Active List
+    let filteredActive = activePool.filter(u => {
+        const txt = `${u.name} ${u.surname} ${u.company} ${u.dealerCode} ${u.email}`.toLocaleLowerCase('tr-TR');
         return (
             (!term || txt.includes(term)) &&
-            statusMatch &&
             (state.category === 'all' || u.category === state.category) &&
             (state.role     === 'all' || u.subRole  === state.role) &&
             (state.region   === 'all' || u.region   === state.region) &&
@@ -205,38 +213,41 @@ function applyFilters() {
         );
     });
 
-    if (state.sort === 'name-asc')  filtered.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-    if (state.sort === 'name-desc') filtered.sort((a,b) => (b.name||'').localeCompare(a.name||'','tr'));
+    if (state.sort === 'name-asc')  filteredActive.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
+    if (state.sort === 'name-desc') filteredActive.sort((a,b) => (b.name||'').localeCompare(a.name||'','tr'));
 
-    renderTableRows(document.getElementById('userTableBody'), filtered);
-    document.getElementById('totalPersonnelCount').textContent = filtered.length;
+    renderTableRows(document.getElementById('userTableBody'), filteredActive);
+    document.getElementById('totalPersonnelCount').textContent = filteredActive.length;
 
-    const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && k !== 'status' && (v !== 'all' && v !== ''));
+    // 3. Render Passive List (Always Updated Real-time)
+    renderPassiveList(passivePool);
+
+    const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && (v !== 'all' && v !== ''));
     document.getElementById('btnResetFilters')?.classList.toggle('has-filter', hasFilter);
-
-    renderChips();
 }
 
-function renderChips() {
-    const container = document.getElementById('activeChips');
-    if (!container) return;
-    const chips = Object.entries(state)
-        .filter(([k,v]) => k !== 'sort' && k !== 'status' && v !== 'all' && v !== '')
-        .map(([k,v]) => `<span class="chip" data-key="${k}"><i class="fa-solid fa-magnifying-glass"></i> ${v} <i class="fa-solid fa-xmark"></i></span>`);
+function renderPassiveList(users) {
+    const container = document.getElementById('passiveUserList');
+    const badge = document.getElementById('passiveCountBadge');
+    if (!container || !badge) return;
 
-    container.innerHTML = chips.join('');
-    container.querySelectorAll('.chip').forEach(c => {
-        c.addEventListener('click', () => {
-            const k = c.dataset.key;
-            state[k] = k === 'search' ? '' : 'all';
-            syncUI();
-            applyFilters();
-        });
-    });
+    badge.textContent = users.length;
+
+    if (!users.length) {
+        container.innerHTML = '<div class="side-empty-state">Pasif personel yok.</div>';
+        return;
+    }
+
+    container.innerHTML = users.map(u => `
+        <div class="side-user-item personnel-main-row" data-user-id="${u.id}">
+            <div class="side-user-name">${u.name} ${u.surname}</div>
+            <div class="side-user-meta">${u.company || 'Birim Yok'} · ${u.city || '-'}</div>
+        </div>
+    `).join('');
 }
 
 function resetAll() {
-    Object.assign(state, { search:'', category:'all', role:'all', status:'active', region:'all', city:'all', dealer:'all', sort:'name-asc' });
+    Object.assign(state, { search:'', category:'all', role:'all', region:'all', city:'all', dealer:'all', sort:'name-asc' });
     refreshCities();
     refreshDealers();
     syncUI();
@@ -244,7 +255,7 @@ function resetAll() {
 }
 
 function syncUI() {
-    const map = { searchUser:'search', filterCategory:'category', filterRole:'role', filterStatus:'status', filterRegion:'region', filterCity:'city', filterDealer:'dealer', sortUser:'sort' };
+    const map = { searchUser:'search', filterCategory:'category', filterRole:'role', filterRegion:'region', filterCity:'city', filterDealer:'dealer', sortUser:'sort' };
     for (const [id, key] of Object.entries(map)) {
         const el = document.getElementById(id);
         if (el) el.value = state[key];

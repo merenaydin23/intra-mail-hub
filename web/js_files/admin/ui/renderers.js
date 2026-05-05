@@ -27,7 +27,6 @@ export function renderTableRows(tbody, users) {
             <tr class="personnel-main-row" data-user-id="${u.id}" style="cursor:pointer;">
                 <td>
                     <div class="personnel-name-wrap">
-                        <div class="user-list-avatar">${fullName[0] || '?'}</div>
                         <strong>${fullName || "-"}</strong>
                     </div>
                 </td>

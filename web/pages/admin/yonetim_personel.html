@@ -180,6 +180,23 @@
             </div>
         </header>
 
+        <div class="personnel-layout">
+            <!-- SOL PANEL: Pasif Personeller -->
+            <div class="personnel-side-panel">
+                <div class="side-panel-card card">
+                    <div class="side-panel-header">
+                        <h3><i class="fa-solid fa-user-slash"></i> Pasif Listesi</h3>
+                        <span class="badge" id="passiveCountBadge" style="background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">0</span>
+                    </div>
+                    <div class="side-panel-list" id="passiveUserList">
+                        <div class="side-empty-state">Pasif personel yok.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ PANEL: Ana İçerik -->
+            <div class="personnel-main-content">
+
         <div class="filter-card">
             <div class="main-filter-bar">
                 <div class="filter-group">
@@ -276,30 +293,29 @@
             </div>
         </div>
 
-        <!-- SONUÇ SATIRI -->
-        <div class="result-bar">
-            <h3>
-                Personeller
-                <span class="count-badge" id="totalPersonnelCount">0</span>
-            </h3>
-            <div class="chips-row" id="activeChips"></div>
-        </div>
+                <div class="result-bar" style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="font-family:'Outfit'; font-weight:700; color:var(--brand-ink); margin:0;">
+                        Aktif Personeller <span class="count-badge" id="totalPersonnelCount" style="background:var(--brand); color:white;">0</span>
+                    </h3>
+                    <div id="activeChips" class="chips-row"></div>
+                </div>
 
-        <!-- TABLO -->
-        <div class="card">
-            <div class="table-shell">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Ad Soyad</th>
-                                <th>Bayi / Kurum</th>
-                                <th>Departman</th>
-                                <th>Yetki</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody"></tbody>
-                    </table>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div class="table-shell">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>AD SOYAD</th>
+                                        <th>BAYİ / KURUM</th>
+                                        <th>DEPARTMAN</th>
+                                        <th>YETKİ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -443,3 +443,83 @@ main > * { animation: fadeIn 0.5s ease-out forwards; }
         grid-template-columns: 1fr;
     }
 }
+/* ===== PERSONNEL PAGE LAYOUT ===== */
+.personnel-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 1.5rem;
+}
+
+.personnel-side-panel {
+    position: sticky;
+    top: 1.5rem;
+}
+
+.side-panel-card {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 12rem);
+}
+
+.side-panel-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.side-panel-header h3 {
+    font-family: 'Outfit';
+    font-size: 0.95rem;
+    color: var(--brand-ink);
+    margin: 0;
+}
+
+.side-panel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+}
+
+.side-user-item {
+    padding: 0.85rem;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.side-user-item:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.side-user-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+    margin-bottom: 0.25rem;
+}
+
+.side-user-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.side-empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
