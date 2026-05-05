@@ -278,10 +278,10 @@ window.selectMessage = function(index) {
     document.getElementById('msgDetailView').style.display = 'flex';
 
     document.getElementById('detSubject').textContent = m.subject || 'Konu Yok';
-    document.getElementById('detSender').textContent = m.senderName || '—';
-    document.getElementById('detReceiver').textContent = m.receiverName || '—';
+    document.getElementById('detSender').textContent = `Gönderen: ${m.senderName || '—'}`;
+    document.getElementById('detReceiver').textContent = `Alıcı: ${m.receiverName || '—'}`;
     document.getElementById('detTime').textContent = formatFullDate(m.timestamp);
-    document.getElementById('detStatus').textContent = m._archiveDate ? `📦 Arşiv: ${formatDateKey(m._archiveDate)}` : (m.status || 'active');
+    document.getElementById('detStatus').textContent = m._archiveDate ? `📦 Arşiv: ${formatDateKey(m._archiveDate)}` : (m.status || 'Aktif');
     document.getElementById('detBody').textContent = (m.content || '').replace(/✨\s?/, '');
 
     const attachBox = document.getElementById('detAttachment');
