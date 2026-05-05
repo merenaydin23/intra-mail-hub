@@ -16,6 +16,51 @@ export async function initMessagesPage() {
     initSearch();
     initFilters();
     initExport();
+    initBroadcast();
+}
+
+function initBroadcast() {
+    const modal = document.getElementById('broadcastModal');
+    const btnOpen = document.getElementById('btnOpenBroadcast');
+    const btnClose = document.getElementById('btnCloseBroadcast');
+    const form = document.getElementById('broadcastForm');
+
+    if (btnOpen) btnOpen.onclick = () => modal.style.display = 'flex';
+    if (btnClose) btnClose.onclick = () => modal.style.display = 'none';
+    
+    // Close on backdrop click
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    if (form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const target = document.getElementById('broadcastTarget').value;
+            const subject = document.getElementById('broadcastSubject').value;
+            const body = document.getElementById('broadcastBody').value;
+
+            const confirmMsg = `Bu duyuru seçilen gruba (${target}) gönderilecektir. Onaylıyor musunuz?`;
+            if (!confirm(confirmMsg)) return;
+
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+
+            try {
+                // Logic will be implemented in the next step
+                alert('Duyuru sistemi henüz hazır değil (Mantıksal bağlantı kuruluyor).');
+            } catch (err) {
+                console.error('Broadcast error:', err);
+                alert('Hata: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Duyuruyu Gönder';
+                modal.style.display = 'none';
+                form.reset();
+            }
+        };
+    }
 }
 
 // ─────────────────────────────────────────
