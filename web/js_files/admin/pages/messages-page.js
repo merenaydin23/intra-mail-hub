@@ -1,5 +1,6 @@
 import { getAuditLogs } from "../services/audit-service.js";
 import { getAllMessages } from "../services/message-service.js";
+import { sendBroadcast } from "../services/broadcast-service.js";
 import { collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -48,8 +49,9 @@ function initBroadcast() {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
 
             try {
-                // Logic will be implemented in the next step
-                alert('Duyuru sistemi henüz hazır değil (Mantıksal bağlantı kuruluyor).');
+                const sentCount = await sendBroadcast({ target, subject, body });
+                alert(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`);
+                location.reload(); // Refresh to see new messages
             } catch (err) {
                 console.error('Broadcast error:', err);
                 alert('Hata: ' + err.message);
