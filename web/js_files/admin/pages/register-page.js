@@ -244,7 +244,7 @@ export function initRegisterPage() {
                     "İç Anadolu": "0003",
                     "Akdeniz": "0004",
                     "Karadeniz": "0005",
-                    "Doğu Anadolu": "0000",
+                    "Doğu Anadolu": "0007",
                     "Güneydoğu Anadolu": "0006"
                 };
                 dealerCodeIn.value = codeMap[regionIn.value] || "0000";

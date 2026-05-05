@@ -1,4 +1,8 @@
-  addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs
+import { 
+    onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
   ref, uploadBytes, getDownloadURL 
@@ -266,7 +270,24 @@ window.selectThread = async (id) => {
     });
 
     // Render Replies (Threading)
-        detailBody.innerHTML += repliesHtml;
+    const repliesBody = document.getElementById('detailBody');
+    if (data.replies && data.replies.length > 0) {
+        let repliesHtml = '<div class="replies-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1rem;">';
+        repliesHtml += '<h4 style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase;">Yanıtlar</h4>';
+        data.replies.forEach(r => {
+            const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+            repliesHtml += `
+                <div class="reply-item" style="margin-bottom:1.5rem; background:var(--bg-app); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+                    <div class="reply-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.85rem;">
+                        <span style="font-weight:700; color:var(--primary);"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
+                        <span style="color:var(--text-muted);">${rDate}</span>
+                    </div>
+                    <div class="reply-text" style="line-height:1.6; color:var(--text-main); font-size:0.95rem;">${r.text}</div>
+                </div>
+            `;
+        });
+        repliesHtml += '</div>';
+        if (repliesBody) repliesBody.innerHTML += repliesHtml;
     }
 
     // Ekli Dosya Görüntüleme
@@ -420,7 +441,12 @@ async function loadReceiversByCategory(category) {
         // Bağlı olduğu bölgedeki diğer bayi sorumluları/çalışanları
         q = query(usersRef, 
             where("region", "==", currentUserData.region),
-            where("category", "==", "region")
+            where("category", "==", "regional")
+        );
+    } else if (category === 'factory_hq') {
+        // Fabrika Genel Müdürlük kullanıcıları
+        q = query(usersRef, 
+            where("category", "==", "factory")
         );
     } else {
         // Fallback or restricted access
@@ -458,6 +484,16 @@ async function handleComposeSubmit(e) {
     if (sendBtn) sendBtn.disabled = true;
 
     try {
+        const receiverId = document.getElementById('receiverSelect').value;
+        const subject = document.getElementById('subjectInput').value.trim() || 'Konu Yok';
+        const body = document.getElementById('messageBodyInput').value.trim();
+
+        if (!receiverId || !body) {
+            alert("Lütfen alıcı ve mesaj içeriğini doldurunuz.");
+            if (sendBtn) sendBtn.disabled = false;
+            return;
+        }
+
         let attachmentUrl = null;
         let attachmentName = null;
 

@@ -1,11 +1,11 @@
 import { getAllUsers } from "../services/user-service.js";
 
 const CHART_PALETTE = {
-    region: ["#2a7f7f", "#56a3a3", "#8ec5c5", "#6b9fbf", "#8ea7c7", "#8093a9", "#a3b0be"],
-    category: ["#2a7f7f", "#72b3c7", "#7b8ea6"],
-    company: ["#2a7f7f", "#4f9f9f", "#7dc3be", "#6fa8c4", "#8fa6c2", "#9eb8c8", "#7b8ea6"],
-    role: ["#2a7f7f", "#a8cfd0"],
-    department: "#6f90ad"
+    region: ["#155e75", "#0891b2", "#22d3ee", "#67e8f9", "#0e7490", "#164e63", "#06b6d4"],
+    category: ["#155e75", "#06b6d4", "#a5f3fc"],
+    company: ["#155e75", "#0e7490", "#0891b2", "#06b6d4", "#22d3ee", "#67e8f9", "#a5f3fc"],
+    role: ["#155e75", "#a5f3fc"],
+    department: "#0e7490"
 };
 
 export async function initDashboardPage() {
