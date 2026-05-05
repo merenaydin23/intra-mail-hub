@@ -50,15 +50,6 @@ function updateDashboardUI(users) {
     setHtml("statRegionalSub", `${[...new Set(regionalUsers.map((u) => u.company).filter(Boolean))].length} firma`);
     setHtml("statLocalSub", `${[...new Set(localUsers.map((u) => u.company).filter(Boolean))].length} mağaza`);
 
-    const hlMgr = document.querySelector("#hlManagerCount .hl-value");
-    const hlEmp = document.querySelector("#hlEmployeeCount .hl-value");
-    const hlComp = document.querySelector("#hlCompanyCount .hl-value");
-    const hlDept = document.querySelector("#hlDeptCount .hl-value");
-    if (hlMgr) hlMgr.textContent = managers.length;
-    if (hlEmp) hlEmp.textContent = employees.length;
-    if (hlComp) hlComp.textContent = companies.length;
-    if (hlDept) hlDept.textContent = departments.length;
-
     const regionStats = {};
     activeUsers.forEach((u) => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
     const sortedRegions = Object.entries(regionStats).sort((a, b) => b[1] - a[1]);
