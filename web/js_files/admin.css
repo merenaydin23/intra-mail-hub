@@ -523,3 +523,19 @@ main > * { animation: fadeIn 0.5s ease-out forwards; }
     color: var(--text-light);
     font-size: 0.85rem;
 }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .personnel-layout {
+        grid-template-columns: 1fr;
+    }
+    .personnel-side-panel {
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-filter-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
