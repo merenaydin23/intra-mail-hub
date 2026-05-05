@@ -2,6 +2,7 @@ import { getAuditLogs } from "../services/audit-service.js";
 import { getAllMessages } from "../services/message-service.js";
 import { sendBroadcast } from "../services/broadcast-service.js";
 import { refineMessageWithAI } from "../../services/ai-service.js";
+import { showToast } from "../ui/notifications.js";
 import { collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -40,7 +41,7 @@ function initBroadcast() {
         btnAI.onclick = async () => {
             const bodyEl = document.getElementById('broadcastBody');
             const draft = bodyEl.value.trim();
-            if (!draft) return alert('Önce bir taslak metin yazmalısınız.');
+            if (!draft) return showToast('Önce bir taslak metin yazmalısınız.', 'info');
 
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
@@ -50,8 +51,9 @@ function initBroadcast() {
                 const prompt = "Bu bir kurumsal şirket duyurusu. Metni resmi, profesyonel, güven veren ve net bir dile çevir. Gereksiz kelimeleri at, hitabeti güçlendir. Sadece düzenlenen metni döndür.";
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
+                showToast('Metin başarıyla düzenlendi.', 'success');
             } catch (err) {
-                alert('AI Hatası: ' + err.message);
+                showToast('AI Hatası: ' + err.message, 'error');
             } finally {
                 btnAI.disabled = false;
                 btnAI.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI İLE DÜZENLE';
@@ -75,11 +77,11 @@ function initBroadcast() {
 
             try {
                 const sentCount = await sendBroadcast({ target, subject, body });
-                alert(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`);
-                location.reload(); // Refresh to see new messages
+                showToast(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`, 'success');
+                setTimeout(() => location.reload(), 1500); // Refresh to see new messages
             } catch (err) {
                 console.error('Broadcast error:', err);
-                alert('Hata: ' + err.message);
+                showToast('Hata: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Duyuruyu Gönder';
