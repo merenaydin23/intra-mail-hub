@@ -316,9 +316,7 @@ export function initRegisterPage() {
         
         // Bayi adını: eğer companySelect görünürse oradan al, yoksa companyIn'den
         let finalCompany;
-        if (catIn.value === "regional") {
-            finalCompany = regionCompanyIn.value;
-        } else if (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') {
+        if (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') {
             finalCompany = companySelectEl.value;
         } else {
             finalCompany = companyIn.value;
@@ -339,22 +337,23 @@ export function initRegisterPage() {
             department: roleIn.value === "manager"
                 ? (catIn.value === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi")
                 : document.getElementById("newDept").value,
-            email,
             password: pwIn.value,
             role: "user",
             isActive: true
         };
 
-        // FINAL CONSISTENCY CHECK
-        const duplicateDealer = allUsersCache.find(u => 
-            u.company?.toLocaleLowerCase('tr-TR') === data.company.toLocaleLowerCase('tr-TR') && 
-            u.city?.toLocaleLowerCase('tr-TR') === data.city.toLocaleLowerCase('tr-TR') &&
-            u.dealerCode !== data.dealerCode
-        );
+        // FINAL CONSISTENCY CHECK (Sadece Yerel Bayiler için)
+        if (data.category === "local" && data.company && data.city) {
+            const duplicateDealer = allUsersCache.find(u => 
+                u.company?.toLocaleLowerCase('tr-TR') === data.company.toLocaleLowerCase('tr-TR') && 
+                u.city?.toLocaleLowerCase('tr-TR') === data.city.toLocaleLowerCase('tr-TR') &&
+                u.dealerCode !== data.dealerCode
+            );
 
-        if (duplicateDealer) {
-            alert(`HATA: "${data.company}" bayisi "${data.city}" şehrinde zaten #${duplicateDealer.dealerCode} kodu ile kayıtlı.\n\nSiz #${data.dealerCode} kodu ile kaydetmeye çalışıyorsunuz. Lütfen bayi kodunu kontrol ediniz!`);
-            return;
+            if (duplicateDealer) {
+                alert(`HATA: "${data.company}" bayisi "${data.city}" şehrinde zaten #${duplicateDealer.dealerCode} kodu ile kayıtlı.\n\nSiz #${data.dealerCode} kodu ile kaydetmeye çalışıyorsunuz. Lütfen bayi kodunu kontrol ediniz!`);
+                return;
+            }
         }
 
         try {
