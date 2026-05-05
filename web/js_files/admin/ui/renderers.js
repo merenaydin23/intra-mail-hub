@@ -33,7 +33,12 @@ export function renderTableRows(tbody, users) {
                 </td>
                 <td>${u.company ? `<strong>${u.company}</strong> <small style="color:#64748b; margin-left:4px;">(#${u.dealerCode || '0000'})</small>` : "-"}</td>
                 <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || u.city || "-"}</span></td>
-                <td><span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
+                <td>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span>
+                        ${u.isActive === false ? '<span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">PASİF</span>' : ''}
+                    </div>
+                </td>
             </tr>
         `;
     }).join("");

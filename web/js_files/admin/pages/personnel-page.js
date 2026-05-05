@@ -1,4 +1,4 @@
-import { getAllUsers, removeUserRecord } from "../services/user-service.js";
+import { getAllUsers, removeUserRecord, updateUserStatus } from "../services/user-service.js";
 import { renderTableRows } from "../ui/renderers.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
@@ -6,7 +6,7 @@ import { writeAuditLog } from "../services/audit-service.js";
 let allUsers = [];
 
 const state = {
-    search: '', category: 'all', role: 'all',
+    search: '', category: 'all', role: 'all', status: 'active',
     region: 'all', city: 'all', dealer: 'all', sort: 'name-asc',
 };
 
@@ -22,6 +22,7 @@ function setupListeners() {
     bind('searchUser',    'input',  'search',   'value');
     bind('filterCategory','change', 'category', 'value');
     bind('filterRole',    'change', 'role',     'value');
+    bind('filterStatus',  'change', 'status',   'value');
     bind('sortUser',      'change', 'sort',     'value');
 
     document.getElementById('filterRegion')?.addEventListener('change', e => {
@@ -89,7 +90,7 @@ function openDrawer(user) {
 
     const btnToggle = document.getElementById('btnToggleStatus');
     btnToggle.innerHTML = isActive ? '<i class="fa-solid fa-ban"></i> Pasife Al' : '<i class="fa-solid fa-check-circle"></i> Aktif Et';
-    btnToggle.onclick = () => alert('Durum güncelleme yakında eklenecektir.');
+    btnToggle.onclick = () => toggleUserStatus(user.id, !isActive);
 
     const btnDelete = document.getElementById('btnEditUser');
     btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i> Kaydı Sil';
@@ -98,6 +99,30 @@ function openDrawer(user) {
 
     overlay.style.display = 'block';
     setTimeout(() => { drawer.style.right = '0'; }, 10);
+}
+
+async function toggleUserStatus(userId, newStatus) {
+    const user = allUsers.find(x => x.id === userId);
+    if (!user) return;
+
+    try {
+        await updateUserStatus(userId, newStatus);
+        const actor = await getSessionActor();
+        await writeAuditLog({ 
+            actor, 
+            action: newStatus ? 'PERSONEL_AKTIF_ETME' : 'PERSONEL_PASIFE_ALMA', 
+            targetType:'users', 
+            targetId:userId, 
+            detail:`${user.name} ${user.surname} durumu ${newStatus ? 'Aktif' : 'Pasif'} olarak güncellendi.` 
+        });
+        
+        user.isActive = newStatus;
+        applyFilters();
+        closeDrawer();
+        alert(`Personel başarıyla ${newStatus ? 'aktif edildi' : 'pasife alındı'}.`);
+    } catch (err) {
+        alert('Hata: Durum güncellenemedi.');
+    }
 }
 
 async function deleteUser(userId) {
@@ -164,8 +189,14 @@ function applyFilters() {
 
     let filtered = allUsers.filter(u => {
         const txt = `${u.name} ${u.surname} ${u.company} ${u.dealerCode} ${u.email}`.toLocaleLowerCase('tr-TR');
+        const isActive = u.isActive !== false;
+        const statusMatch = state.status === 'all' || 
+                           (state.status === 'active' && isActive) || 
+                           (state.status === 'passive' && !isActive);
+
         return (
             (!term || txt.includes(term)) &&
+            statusMatch &&
             (state.category === 'all' || u.category === state.category) &&
             (state.role     === 'all' || u.subRole  === state.role) &&
             (state.region   === 'all' || u.region   === state.region) &&
@@ -180,7 +211,7 @@ function applyFilters() {
     renderTableRows(document.getElementById('userTableBody'), filtered);
     document.getElementById('totalPersonnelCount').textContent = filtered.length;
 
-    const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && (v !== 'all' && v !== ''));
+    const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && k !== 'status' && (v !== 'all' && v !== ''));
     document.getElementById('btnResetFilters')?.classList.toggle('has-filter', hasFilter);
 
     renderChips();
@@ -190,7 +221,7 @@ function renderChips() {
     const container = document.getElementById('activeChips');
     if (!container) return;
     const chips = Object.entries(state)
-        .filter(([k,v]) => k !== 'sort' && v !== 'all' && v !== '')
+        .filter(([k,v]) => k !== 'sort' && k !== 'status' && v !== 'all' && v !== '')
         .map(([k,v]) => `<span class="chip" data-key="${k}"><i class="fa-solid fa-magnifying-glass"></i> ${v} <i class="fa-solid fa-xmark"></i></span>`);
 
     container.innerHTML = chips.join('');
@@ -205,7 +236,7 @@ function renderChips() {
 }
 
 function resetAll() {
-    Object.assign(state, { search:'', category:'all', role:'all', region:'all', city:'all', dealer:'all', sort:'name-asc' });
+    Object.assign(state, { search:'', category:'all', role:'all', status:'active', region:'all', city:'all', dealer:'all', sort:'name-asc' });
     refreshCities();
     refreshDealers();
     syncUI();
@@ -213,7 +244,7 @@ function resetAll() {
 }
 
 function syncUI() {
-    const map = { searchUser:'search', filterCategory:'category', filterRole:'role', filterRegion:'region', filterCity:'city', filterDealer:'dealer', sortUser:'sort' };
+    const map = { searchUser:'search', filterCategory:'category', filterRole:'role', filterStatus:'status', filterRegion:'region', filterCity:'city', filterDealer:'dealer', sortUser:'sort' };
     for (const [id, key] of Object.entries(map)) {
         const el = document.getElementById(id);
         if (el) el.value = state[key];

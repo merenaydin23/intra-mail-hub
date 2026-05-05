@@ -5,6 +5,7 @@ import {
     getDocs,
     orderBy,
     query,
+    updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { db, functions } from "../../firebase/config.js";
@@ -61,8 +62,17 @@ export async function createUserRecord(data) {
 
 /**
  * Kullanıcıyı Firestore'dan siler.
- * NOT: Firebase Auth kaydını silmek için ayrı bir Cloud Function gerekir (opsiyonel).
  */
 export async function removeUserRecord(userId) {
     return deleteDoc(doc(db, "users", userId));
+}
+
+/**
+ * Kullanıcının aktiflik durumunu günceller.
+ */
+export async function updateUserStatus(userId, isActive) {
+    return updateDoc(doc(db, "users", userId), {
+        isActive: isActive,
+        updatedAt: serverTimestamp()
+    });
 }
