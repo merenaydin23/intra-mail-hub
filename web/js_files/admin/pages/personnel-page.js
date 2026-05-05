@@ -47,6 +47,17 @@ function setupListeners() {
 
     document.getElementById('btnResetFilters')?.addEventListener('click', resetAll);
 
+    // Gelişmiş filtreleri aç/kapat
+    document.getElementById('btnToggleAdvanced')?.addEventListener('click', () => {
+        const panel = document.getElementById('advancedFilters');
+        const btn = document.getElementById('btnToggleAdvanced');
+        const isShow = panel?.classList.toggle('show');
+        btn?.classList.toggle('active', isShow);
+        
+        // Panel kapandığında içindeki özel filtreleri de sıfırlayabiliriz (isteğe bağlı)
+        // ama kullanıcı deneyimi açısından açık kalması daha iyi olabilir.
+    });
+
     document.getElementById('userTableBody')?.addEventListener('click', handleTableClick);
 }
 
