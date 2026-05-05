@@ -14,71 +14,85 @@
             user-select: none; z-index: 0;
         }
 
-        /* Filtre Kartı */
+        /* Filtre Kartı Revize */
         .filter-card {
             background: #fff;
             border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
-        .filter-row {
+        .main-filter-bar {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 44px;
+            grid-template-columns: 1.5fr 120px 150px auto 40px;
             gap: 0.75rem;
-            align-items: end;
+            align-items: center;
         }
-        .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.2rem; }
         .filter-label {
-            font-size: 0.7rem; font-weight: 700; color: #94a3b8;
+            font-size: 0.65rem; font-weight: 800; color: #94a3b8;
             text-transform: uppercase; letter-spacing: 0.05em;
+            margin-left: 0.5rem;
         }
         .f-box {
             display: flex; align-items: center; gap: 0.5rem;
-            border: 1.5px solid #e2e8f0; border-radius: 10px;
-            padding: 0.6rem 0.85rem; background: #f8fafc;
-            transition: border-color 0.18s, background 0.18s;
+            border: 1.5px solid #f1f5f9; border-radius: 12px;
+            padding: 0.5rem 0.85rem; background: #f8fafc;
+            transition: all 0.2s;
         }
-        .f-box:focus-within { border-color: #007b7b; background: #fff; }
-        .f-box i { color: #b0bec5; font-size: 0.82rem; flex-shrink: 0; }
+        .f-box:focus-within { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 4px var(--brand-glow); }
+        .f-box i { color: #94a3b8; font-size: 0.8rem; }
         .f-box input, .f-box select {
             border: none; background: transparent; outline: none;
             font-size: 0.85rem; color: #1e293b; width: 100%;
+            font-weight: 500;
         }
-        .f-box select:disabled { color: #cbd5e1; cursor: not-allowed; }
-
-        /* İkinci filtre satırı: Şehir + Bayi + Yetki */
-        .filter-row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+        
+        /* Advanced Panel */
+        .advanced-filters {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.75rem;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
             border-top: 1px solid #f1f5f9;
+            animation: slideDown 0.3s ease-out forwards;
+        }
+        .advanced-filters.show { display: grid; }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Sıfırla butonu */
-        .btn-reset {
-            width: 44px; height: 44px; border-radius: 10px;
-            border: 1.5px solid #e2e8f0; background: #f8fafc;
-            color: #94a3b8; cursor: pointer; font-size: 0.9rem;
-            transition: all 0.18s; display: flex; align-items: center; justify-content: center;
-            align-self: end;
+        .btn-toggle-adv {
+            background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 10px; color: #64748b; font-size: 0.8rem;
+            font-weight: 700; padding: 0.6rem 1rem; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;
+            height: 42px;
         }
-        .btn-reset:hover { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
-        .btn-reset.has-filter { border-color: #ef4444; color: #ef4444; background: #fff5f5; }
+        .btn-toggle-adv:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+        .btn-toggle-adv.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+        .btn-reset {
+            width: 42px; height: 42px; border-radius: 10px;
+            border: 1.5px solid #f1f5f9; background: #f8fafc;
+            color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-reset:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
 
         /* Sonuç satırı */
         .result-bar {
             display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem; padding: 0 0.5rem;
         }
-        .result-bar h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .result-bar h3 { font-size: 1rem; font-weight: 800; color: #1e293b; }
         .result-bar .count-badge {
-            display: inline-flex; align-items: center; justify-content: center;
-            background: #007b7b; color: #fff; border-radius: 20px;
-            padding: 2px 10px; font-size: 0.75rem; font-weight: 700; margin-left: 8px;
+            background: var(--brand); color: #fff; border-radius: 8px;
+            padding: 2px 8px; font-size: 0.75rem; font-weight: 800; margin-left: 6px;
         }
 
         /* Aktif chip'ler */
@@ -128,23 +142,18 @@
             </div>
         </header>
 
-        <!-- FİLTRE KARTI -->
         <div class="filter-card">
-            <!-- Satır 1: Arama + Kategori + Bölge + Sıralama + Sıfırla -->
-            <div class="filter-row">
+            <div class="main-filter-bar">
                 <div class="filter-group">
-                    <div class="filter-label">Arama</div>
                     <div class="f-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchUser" placeholder="İsim, bayi, e-posta..." />
+                        <input type="text" id="searchUser" placeholder="İsim, bayi veya e-posta ile ara..." />
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label">Kategori</div>
                     <div class="f-box">
-                        <i class="fa-solid fa-sitemap"></i>
                         <select id="filterCategory">
-                            <option value="all">Tümü</option>
+                            <option value="all">Tüm Birimler</option>
                             <option value="factory">Fabrika</option>
                             <option value="regional">Bölge Bayisi</option>
                             <option value="local">Yerel Bayi</option>
@@ -152,9 +161,7 @@
                     </div>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-label">Bölge</div>
                     <div class="f-box">
-                        <i class="fa-solid fa-map-location-dot"></i>
                         <select id="filterRegion">
                             <option value="all">Tüm Bölgeler</option>
                             <option value="Marmara">Marmara</option>
@@ -167,30 +174,22 @@
                         </select>
                     </div>
                 </div>
-                <div class="filter-group">
-                    <div class="filter-label">Sıralama</div>
-                    <div class="f-box">
-                        <i class="fa-solid fa-arrow-down-a-z"></i>
-                        <select id="sortUser">
-                            <option value="name-asc">A → Z</option>
-                            <option value="name-desc">Z → A</option>
-                            <option value="newest">En Yeni</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-reset" id="btnResetFilters" title="Filtreleri Sıfırla">
+                <button class="btn-toggle-adv" id="btnToggleAdvanced">
+                    <i class="fa-solid fa-sliders"></i> Gelişmiş
+                </button>
+                <button class="btn-reset" id="btnResetFilters" title="Sıfırla">
                     <i class="fa-solid fa-rotate-left"></i>
                 </button>
             </div>
 
-            <!-- Satır 2: Şehir + Bayi + Yetki (dinamik) -->
-            <div class="filter-row-2">
+            <!-- Advanced Panel -->
+            <div class="advanced-filters" id="advancedFilters">
                 <div class="filter-group">
                     <div class="filter-label">Şehir</div>
                     <div class="f-box">
                         <i class="fa-solid fa-city"></i>
                         <select id="filterCity" disabled>
-                            <option value="all">Önce bölge seçin</option>
+                            <option value="all">Tümü</option>
                         </select>
                     </div>
                 </div>
@@ -199,7 +198,7 @@
                     <div class="f-box">
                         <i class="fa-solid fa-store"></i>
                         <select id="filterDealer" disabled>
-                            <option value="all">Önce şehir seçin</option>
+                            <option value="all">Tümü</option>
                         </select>
                     </div>
                 </div>
@@ -208,9 +207,20 @@
                     <div class="f-box">
                         <i class="fa-solid fa-user-shield"></i>
                         <select id="filterRole">
-                            <option value="all">Tüm Yetkiler</option>
+                            <option value="all">Tümü</option>
                             <option value="manager">Patron / Müdür</option>
                             <option value="employee">Çalışan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Sıralama</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-arrow-down-a-z"></i>
+                        <select id="sortUser">
+                            <option value="name-asc">A → Z</option>
+                            <option value="name-desc">Z → A</option>
+                            <option value="newest">En Yeni</option>
                         </select>
                     </div>
                 </div>
