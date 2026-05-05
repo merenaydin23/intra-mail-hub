@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | İşlem Geçmişi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+    <style>
+        .audit-timeline {
+            position: relative;
+            padding: 1rem 0;
+            max-width: 1000px;
+        }
+
+        .audit-item {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .audit-item::before {
+            content: '';
+            position: absolute;
+            left: 59px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .audit-item:last-child::before {
+            display: none;
+        }
+
+        .audit-time {
+            width: 60px;
+            text-align: right;
+            padding-top: 0.5rem;
+        }
+
+        .audit-time-clock {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--brand-ink);
+        }
+
+        .audit-time-date {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .audit-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            z-index: 2;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .audit-content {
+            flex: 1;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+        }
+
+        .audit-content:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .audit-actor {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--brand);
+        }
+
+        .audit-action-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .tag-add { background: #ecfdf5; color: #059669; }
+        .tag-delete { background: #fef2f2; color: #dc2626; }
+        .tag-update { background: #eff6ff; color: #2563eb; }
+        .tag-auth { background: #fffbeb; color: #d97706; }
+
+        .audit-detail {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .audit-target {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .audit-target i { color: var(--text-light); }
+
+        .empty-audit {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users"></i> Personel Listesi</a>
+            <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-user-plus"></i> Yeni Kayıt</a>
+            <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i> Tüm Mesajlar</a>
+            <a href="yonetim_audit.html" class="nav-item active"><i class="fa-solid fa-timeline"></i> İşlem Geçmişi</a>
+            <div class="sidebar-logout">
+                <a href="../../index.html" class="nav-item" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <div>
+                <h1>İşlem Geçmişi</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Sistem üzerindeki tüm idari hareketleri ve değişiklikleri izleyin.</p>
+            </div>
+            <div class="header-actions">
+                <button id="btnRefreshAudit" class="btn-outline"><i class="fa-solid fa-rotate"></i> Yenile</button>
+            </div>
+        </header>
+
+        <div id="auditTimeline" class="audit-timeline">
+            <!-- Dinamik olarak yüklenecek -->
+            <div class="empty-audit"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:1rem;">Kayıtlar yükleniyor...</p></div>
+        </div>
+    </main>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+</body>
+</html>
