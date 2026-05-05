@@ -14,10 +14,10 @@ export async function initMessagesPage() {
 
 async function initBroadcast() {
     const modal = document.getElementById('broadcastModal');
-    const btnOpen = document.getElementById('btnNewBroadcast');
+    const btnOpen = document.getElementById('btnOpenBroadcast');
     const btnClose = document.getElementById('btnCloseBroadcast');
     const form = document.getElementById('broadcastForm');
-    const btnAI = document.getElementById('btnRefineAI');
+    const btnAI = document.getElementById('btnBroadcastAI');
 
     if (btnOpen) btnOpen.onclick = () => modal.style.display = 'block';
     if (btnClose) btnClose.onclick = () => modal.style.display = 'none';
