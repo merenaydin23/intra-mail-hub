@@ -29,138 +29,86 @@
 
     <main>
         <header>
-            <div>
-                <h1>Genel Bakış</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Kurumsal ağınızdaki güncel personel verilerini ve analizleri takip edin.</p>
+            <div style="display:flex; align-items:center; gap:1.5rem;">
+                <div style="background:var(--brand-glow); width:64px; height:64px; border-radius:18px; display:flex; align-items:center; justify-content:center; color:var(--brand); font-size:1.8rem;">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                </div>
+                <div>
+                    <h1 style="font-family:'Outfit'; font-weight:800; font-size:1.8rem; letter-spacing:-0.02em;">Sistem Özeti</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">Canlı personel verileri ve kurumsal ağ analizi.</p>
+                </div>
             </div>
             <div class="header-actions">
-                <a href="yonetim_mesajlar.html" class="btn-outline"><i class="fa-solid fa-timeline"></i> İşlem Akışı</a>
-                <div class="user-pill" style="display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; background:white; border:1.5px solid var(--border); border-radius:12px; font-weight:700; font-size:0.85rem; color:var(--brand);">
-                    <i class="fa-solid fa-circle-user"></i> Bellona Admin
+                <div style="display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; background:rgba(16, 185, 129, 0.1); color:#059669; border-radius:100px; font-weight:800; font-size:0.75rem;">
+                    <i class="fa-solid fa-circle" style="font-size:0.5rem; animation: pulse 2s infinite;"></i> SİSTEM CANLI
+                </div>
+                <div class="user-pill" style="display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; background:white; border:1px solid var(--border); border-radius:12px; font-weight:700; font-size:0.85rem; color:var(--brand-ink);">
+                    <i class="fa-solid fa-shield-halved"></i> Bellona Admin
                 </div>
             </div>
         </header>
 
-        <!-- ROW 1: Ana İstatistik Kartları -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card stat-card--gradient" id="cardTotal">
-                <div class="stat-icon-circle"><i class="fa-solid fa-users"></i></div>
-                <span class="stat-label">Toplam Personel</span>
-                <span class="stat-value" id="statTotal">—</span>
-                <div class="stat-sub" id="statTotalSub"></div>
+        <!-- DASHBOARD GRID -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1.5rem; margin-bottom:2rem;">
+            <!-- TOPLAM -->
+            <div class="card" style="padding:1.5rem; position:relative; overflow:hidden;">
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Toplam Personel</div>
+                <div id="statTotal" style="font-family:'Outfit'; font-size:2.5rem; font-weight:900; color:var(--brand-ink);">0</div>
+                <div id="statTotalSub" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Yükleniyor...</div>
+                <i class="fa-solid fa-users" style="position:absolute; right:-10px; bottom:-10px; font-size:5rem; opacity:0.03;"></i>
             </div>
-            <div class="stat-card stat-card--amber" id="cardFactory">
-                <div class="stat-icon-circle stat-icon--amber"><i class="fa-solid fa-industry"></i></div>
-                <span class="stat-label">Fabrika Kadrosu</span>
-                <span class="stat-value" id="statFactory">—</span>
-                <div class="stat-sub" id="statFactorySub"></div>
+            <!-- FABRIKA -->
+            <div class="card" style="padding:1.5rem; position:relative; overflow:hidden;">
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Merkez & Fabrika</div>
+                <div id="statFactory" style="font-family:'Outfit'; font-size:2.5rem; font-weight:900; color:var(--brand-ink);">0</div>
+                <div id="statFactorySub" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">-</div>
+                <i class="fa-solid fa-industry" style="position:absolute; right:-10px; bottom:-10px; font-size:5rem; opacity:0.03;"></i>
             </div>
-            <div class="stat-card stat-card--blue" id="cardRegional">
-                <div class="stat-icon-circle stat-icon--blue"><i class="fa-solid fa-map-location-dot"></i></div>
-                <span class="stat-label">Bölge Bayileri</span>
-                <span class="stat-value" id="statRegional">—</span>
-                <div class="stat-sub" id="statRegionalSub"></div>
+            <!-- BOLGE -->
+            <div class="card" style="padding:1.5rem; position:relative; overflow:hidden;">
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Bölge Bayileri</div>
+                <div id="statRegional" style="font-family:'Outfit'; font-size:2.5rem; font-weight:900; color:var(--brand-ink);">0</div>
+                <div id="statRegionalSub" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">-</div>
+                <i class="fa-solid fa-map-location-dot" style="position:absolute; right:-10px; bottom:-10px; font-size:5rem; opacity:0.03;"></i>
             </div>
-            <div class="stat-card stat-card--purple" id="cardLocal">
-                <div class="stat-icon-circle stat-icon--purple"><i class="fa-solid fa-store"></i></div>
-                <span class="stat-label">Yerel Bayiler</span>
-                <span class="stat-value" id="statLocal">—</span>
-                <div class="stat-sub" id="statLocalSub"></div>
-            </div>
-        </div>
-
-        <!-- ROW 2: Highlight Strip -->
-        <div class="highlight-strip" id="highlightStrip">
-            <div class="highlight-item" id="hlManagerCount">
-                <i class="fa-solid fa-crown"></i>
-                <div class="hl-content">
-                    <span class="hl-value">—</span>
-                    <span class="hl-label">Toplam Yönetici</span>
-                </div>
-            </div>
-            <div class="highlight-item" id="hlEmployeeCount">
-                <i class="fa-solid fa-user-tie"></i>
-                <div class="hl-content">
-                    <span class="hl-value">—</span>
-                    <span class="hl-label">Toplam Çalışan</span>
-                </div>
-            </div>
-            <div class="highlight-item" id="hlCompanyCount">
-                <i class="fa-solid fa-building"></i>
-                <div class="hl-content">
-                    <span class="hl-value">—</span>
-                    <span class="hl-label">Farklı Şirket</span>
-                </div>
-            </div>
-            <div class="highlight-item" id="hlDeptCount">
-                <i class="fa-solid fa-sitemap"></i>
-                <div class="hl-content">
-                    <span class="hl-value">—</span>
-                    <span class="hl-label">Farklı Departman</span>
-                </div>
+            <!-- YEREL -->
+            <div class="card" style="padding:1.5rem; position:relative; overflow:hidden;">
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Yerel Bayiler</div>
+                <div id="statLocal" style="font-family:'Outfit'; font-size:2.5rem; font-weight:900; color:var(--brand-ink);">0</div>
+                <div id="statLocalSub" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">-</div>
+                <i class="fa-solid fa-store" style="position:absolute; right:-10px; bottom:-10px; font-size:5rem; opacity:0.03;"></i>
             </div>
         </div>
 
-        <div class="card city-coverage-card">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-location-dot" style="color:var(--primary-light);margin-right:8px;"></i> Şehir Bazlı Çalışan Yoğunluğu</h3>
-                <span class="badge badge-primary" id="cityCoverageLead">Hesaplanıyor...</span>
-            </div>
-            <div class="table-shell">
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Şehir</th><th>Toplam Çalışan</th><th>Not</th></tr></thead>
-                        <tbody id="cityCoverageList"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ROW 3: Grafikler -->
         <div class="dashboard-grid-2col">
-            <!-- Bölgesel Dağılım -->
-            <div class="card card--elevated">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-globe" style="color:var(--primary-light);margin-right:8px;"></i> Bölgesel Dağılım</h3>
+            <!-- BOLGESEL ANALIZ -->
+            <div class="card" style="display:flex; flex-direction:column;">
+                <div class="card-header" style="border-bottom:none;">
+                    <h3>Bölgesel Personel Dağılımı</h3>
                 </div>
-                <div class="chart-split">
-                    <div class="chart-table-side">
-                        <table class="region-table">
-                            <thead><tr><th>Bölge</th><th>Personel</th><th>Oran</th></tr></thead>
+                <div style="flex:1; display:grid; grid-template-columns: 1.2fr 1fr; gap:1.5rem; padding:0 1.5rem 1.5rem;">
+                    <div style="height:250px;">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                    <div class="table-responsive" style="max-height:250px;">
+                        <table style="font-size:0.85rem;">
                             <tbody id="regionTableBody"></tbody>
                         </table>
                     </div>
-                    <div class="chart-canvas-side">
-                        <canvas id="regionChart"></canvas>
-                    </div>
                 </div>
             </div>
 
-            <!-- Kategori Dağılımı (Doughnut) -->
-            <div class="card card--elevated">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-chart-pie" style="color:var(--primary-light);margin-right:8px;"></i> Kategori Dağılımı</h3>
+            <!-- KATEGORİ ANALİZ -->
+            <div class="card" style="display:flex; flex-direction:column;">
+                <div class="card-header" style="border-bottom:none;">
+                    <h3>Kategori Analizi</h3>
                 </div>
-                <div class="chart-center">
+                <div style="flex:1; padding:0 1.5rem 1.5rem; height:250px;">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- ROW 4: Öne Çıkan İstatistikler -->
-        <div class="dashboard-grid-3col">
-            <!-- En Kalabalık Yerel Bayi -->
-            <div class="card card--elevated insight-card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-trophy" style="color:#f59e0b;margin-right:8px;"></i> En Kalabalık Yerel Bayi</h3>
-                </div>
-                <div class="insight-body" id="insightBusiestLocal">
-                    <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
-                </div>
-            </div>
-
-            <!-- En Kalabalık Bölge Bayisi -->
-            <div class="card card--elevated insight-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-medal" style="color:#3b82f6;margin-right:8px;"></i> En Kalabalık Bölge Bayisi</h3>
                 </div>
