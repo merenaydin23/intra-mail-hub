@@ -47,11 +47,17 @@ function initBroadcast() {
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
 
             try {
-                // Duyuruya özel kurumsal prompt
-                const prompt = "Bu bir kurumsal şirket duyurusu. Metni resmi, profesyonel, güven veren ve net bir dile çevir. Gereksiz kelimeleri at, hitabeti güçlendir. Sadece düzenlenen metni döndür.";
+                // Bellona Özel Kurumsal Prompt
+                const prompt = `Bu bir Bellona kurumsal duyurusudur. Metni şu kurallara göre düzenle:
+                1. Başlangıç her zaman 'Sayın Bellona Ailesinin üyeleri' olmalıdır.
+                2. Bitiş her zaman 'Saygılarımla, Bellona Genel Merkezi' olmalıdır.
+                3. İçerik profesyonel, nazik, kurumsal ve güven veren bir dille yazılmalıdır.
+                4. Gelen taslak metni bu formata sadık kalarak, anlamını bozmadan profesyonelleştir.
+                Sadece düzenlenen metni döndür.`;
+                
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
-                showToast('Metin başarıyla düzenlendi.', 'success');
+                showToast('Metin kurumsal formata göre düzenlendi.', 'success');
             } catch (err) {
                 showToast('AI Hatası: ' + err.message, 'error');
             } finally {
