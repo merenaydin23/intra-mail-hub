@@ -32,8 +32,6 @@ async function initBroadcast() {
             if (!draft) return showToast('Önce bir taslak metin yazmalısınız.', 'info');
 
             const targetValue = targetEl.value;
-            
-            // Kullanıcının istediği özel kitle eşleşmeleri
             const targetMapping = {
                 'all': 'Sayın Bellona Ailesi Üyeleri,',
                 'factory': 'Değerli Fabrika Çalışanlarımız,',
@@ -44,40 +42,36 @@ async function initBroadcast() {
             const autoGreeting = targetMapping[targetValue] || 'Sayın Bellona Ailesi Üyeleri,';
 
             btnAI.disabled = true;
-            btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uzman Hazırlıyor...';
+            btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
 
             try {
-                // Bellona Üst Düzey Kurumsal İletişim Uzmanı Promptu
-                const prompt = `Sen Bellona Genel Merkezi adına çalışan üst düzey bir kurumsal iletişim uzmanısın.
+                const actor = await getSessionActor();
+                const senderName = actor ? `${actor.name} ${actor.surname}` : 'Bellona Genel Merkezi';
+
+                // DAHA SERT VE NET PROMPT
+                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın.
                 
-                Görevin:
-                Seçilen hedef kitleye göre otomatik olarak DOĞRU hitap cümlesini belirleyip buna uygun profesyonel, yaratıcı ve kurumsal bir e-posta oluşturmak.
+                GÖREVİN: Aşağıdaki taslağı profesyonel bir duyuruya dönüştürmek.
                 
-                HEDEF KİTLE: ${targetValue}
-                OTOMATİK HİTAP: ${autoGreeting}
-                KONU: ${subject || 'Kurumsal Duyuru'}
-                TASLAK İÇERİK: ${draft}
+                KRİTİK KURAL:
+                - Çıktıda ASLA [Alıcı Adı], [Gönderen Adı], [Şirket Adı] gibi köşeli parantezli yer tutucular bırakma!
+                - Hitap olarak SADECE şunu kullan: ${autoGreeting}
+                - İmza olarak SADECE şunu kullan: Saygılarımızla, Bellona Genel Merkezi
                 
-                DAVRANIŞ KURALLARI:
-                - Hitabı mutlaka '${autoGreeting}' olarak kullan.
-                - Metin kurumsal, akıcı ve etkileyici olsun.
-                - Samimi ama profesyonel bir ton kullan.
-                - Marka gücü, birlik ve motivasyon vurgusu yap.
-                - Gelecek vizyonu ve kurumsal öngörü ekleyerek zenginleştir.
-                - Mail çok uzun olmasın (2-3 paragraf ideal).
+                PARAMETRELER:
+                - Hitap: ${autoGreeting}
+                - Konu: ${subject || 'Kurumsal Bilgilendirme'}
+                - İçerik Taslağı: ${draft}
                 
-                ÇIKTI FORMATI:
-                - (Gerekliyse) Güçlü bir başlık
-                - ${autoGreeting}
-                - [Düzenlenmiş İçerik]
-                - Kapanış: 'Saygılarımızla,' veya 'İyi çalışmalar dileriz,'
-                - İmza: Bellona Genel Merkezi
+                DİL VE ÜSLUP:
+                - 2-3 paragraf, kurumsal, etkileyici, marka gücü vurgulayan bir dil.
+                - Motivasyonel ve birlik mesajı içeren profesyonel bir ton.
                 
-                Sadece düzenlenen nihai metni döndür.`;
+                Sadece nihai, temiz ve gönderilmeye hazır metni döndür. Hiçbir açıklama veya yer tutucu ekleme.`;
                 
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
-                showToast('Kurumsal uzman metni hazırladı.', 'success');
+                showToast('Mesaj başarıyla hazırlandı.', 'success');
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
