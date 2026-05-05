@@ -3,6 +3,7 @@ import { generateEnterpriseEmail, generateStrictPassword, normalizeTr } from "..
 import { getRandomCityForRegion, getCitiesForRegion } from "../utils/location-utils.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
+import { showToast } from "../ui/notifications.js";
 
 export { generateStrictPassword };
 
@@ -29,16 +30,18 @@ export function initRegisterPage() {
 
     let allUsersCache = [];
     const loadUsers = async () => {
-        allUsersCache = await getAllUsers();
-        updateDealers();
+        try {
+            allUsersCache = await getAllUsers();
+            updateDealers();
+        } catch (e) {
+            console.error("User load error:", e);
+        }
     };
     loadUsers();
 
     const updateCities = () => {
         const selectedRegion = regionIn.value;
         const cities = getCitiesForRegion(selectedRegion);
-        
-        // Clear and populate city select
         const currentCity = cityIn.value;
         cityIn.innerHTML = '<option value="" disabled selected>Şehir seçiniz</option>';
         cities.forEach(city => {
@@ -47,24 +50,16 @@ export function initRegisterPage() {
             opt.textContent = city;
             cityIn.appendChild(opt);
         });
-
-        // Re-select if possible (for initial load/factory mode)
-        if (cities.includes(currentCity)) {
-            cityIn.value = currentCity;
-        }
+        if (cities.includes(currentCity)) cityIn.value = currentCity;
     };
 
-    // Bayileri şehre göre filtrele ve companySelect dropdown'a doldur
     const updateDealers = () => {
         const selRegion = regionIn.value;
         const selCity = cityIn.value;
-
-        // Sadece yerel bayileri filtrele
         let filtered = allUsersCache.filter(u => u.company && u.category === 'local');
         if (selRegion) filtered = filtered.filter(u => u.region === selRegion);
         if (selCity)   filtered = filtered.filter(u => u.city === selCity);
 
-        // Benzersiz bayi adı + kod çiftleri
         const seen = new Set();
         const uniqueDealers = [];
         filtered.forEach(u => {
@@ -79,14 +74,11 @@ export function initRegisterPage() {
         if (!companySelectEl) return;
 
         if (catIn.value === 'local') {
-            // Dropdown'u HER ZAMAN göster, serbest alanı gizle (bayi olsa da olmasa da)
             companySelectEl.style.display = 'block';
             companyIn.style.display = 'none';
             companyIn.removeAttribute('required');
             companySelectEl.setAttribute('required', '');
-
             companySelectEl.innerHTML = '<option value="">-- Bayi seçiniz --</option>';
-            
             if (uniqueDealers.length > 0) {
                 uniqueDealers.forEach(d => {
                     const opt = document.createElement('option');
@@ -96,14 +88,11 @@ export function initRegisterPage() {
                     companySelectEl.appendChild(opt);
                 });
             }
-            
-            // "Yeni bayi ekle" seçeneğini her zaman ekle
             const newOpt = document.createElement('option');
             newOpt.value = '__NEW__';
             newOpt.textContent = '➕ Yeni bayi ekle (elle yaz)';
             companySelectEl.appendChild(newOpt);
         } else {
-            // Diğer kategoriler: sadece serbest alan göster
             companySelectEl.style.display = 'none';
             companyIn.style.display = 'block';
             companyIn.setAttribute('required', '');
@@ -111,12 +100,10 @@ export function initRegisterPage() {
         }
     };
 
-    // companySelect değişince ad + kod alanlarını otomatik doldur
     if (companySelectEl) {
         companySelectEl.addEventListener('change', () => {
             const selected = companySelectEl.options[companySelectEl.selectedIndex];
             if (companySelectEl.value === '__NEW__') {
-                // "Yeni bayi ekle" seçildi: serbest alana geç
                 companySelectEl.style.display = 'none';
                 companyIn.style.display = 'block';
                 companyIn.setAttribute('required', '');
@@ -126,9 +113,9 @@ export function initRegisterPage() {
                 dealerCodeIn.disabled = false;
                 companyIn.focus();
             } else if (selected && selected.dataset.code) {
-                companyIn.value = companySelectEl.value;   // gizli input'a ismi de yaz
+                companyIn.value = companySelectEl.value;
                 dealerCodeIn.value = selected.dataset.code;
-                dealerCodeIn.disabled = true;              // kodu kilitle
+                dealerCodeIn.disabled = true;
             } else {
                 companyIn.value = '';
                 dealerCodeIn.value = '';
@@ -141,12 +128,9 @@ export function initRegisterPage() {
     let lastRegion = "";
 
     const updateUI = () => {
-        // Dealer Consistency Check
         let lockedByDealer = false;
         if (catIn.value === "local" && companyIn.value.trim()) {
             let companyName = companyIn.value.trim();
-
-            // OTOMATİK PARÇALAMA: Eğer listeden "İsim (#Kod)" formatında seçildiyse ayır
             const match = companyName.match(/^(.+)\s\(#(\d+)\)$/);
             if (match) {
                 const realName = match[1];
@@ -167,19 +151,13 @@ export function initRegisterPage() {
                     updateCities();
                     lastRegion = existingDealer.region;
                 }
-                
                 const targetCity = existingDealer.city;
                 const options = Array.from(cityIn.options);
                 const matchingOption = options.find(opt => 
                     opt.value.toLocaleLowerCase('tr-TR') === targetCity.toLocaleLowerCase('tr-TR')
                 );
-                
-                if (matchingOption) {
-                    cityIn.value = matchingOption.value;
-                } else {
-                    cityIn.value = targetCity;
-                }
-                
+                if (matchingOption) cityIn.value = matchingOption.value;
+                else cityIn.value = targetCity;
                 dealerCodeIn.value = existingDealer.dealerCode || "";
                 lockedByDealer = true;
             }
@@ -188,7 +166,6 @@ export function initRegisterPage() {
         if (catIn.value === "factory") {
             const cityGroupEl = document.getElementById("cityGroup");
             if (cityGroupEl) cityGroupEl.style.display = "block";
-
             companyIn.value = "Bellona Genel Müdürlük";
             companySelectEl && (companySelectEl.style.display = 'none');
             companyIn.style.display = "block";
@@ -214,52 +191,28 @@ export function initRegisterPage() {
         } else if (catIn.value === "regional") {
             const cityGroupEl = document.getElementById("cityGroup");
             if (cityGroupEl) cityGroupEl.style.display = "none";
-            
             companySelectEl && (companySelectEl.style.display = 'none');
             companyIn.style.display = "block";
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = true;
-            
-            if (cityIn) {
-                cityIn.removeAttribute("required");
-            }
+            if (cityIn) cityIn.removeAttribute("required");
             if (regionIn) {
                 regionIn.disabled = false;
-                // Bölgeye göre otomatik bayi ata
-                const regionMap = {
-                    "Marmara": "Karavil Marmara",
-                    "Ege": "Atasaylar Group",
-                    "İç Anadolu": "Aydın Group",
-                    "Akdeniz": "Yılmaz Group",
-                    "Karadeniz": "Gümüşbağlar Şirket Birliği",
-                    "Doğu Anadolu": "Karavil Group",
-                    "Güneydoğu Anadolu": "Kırklar Şirketler Birliği"
-                };
+                const regionMap = { "Marmara": "Karavil Marmara", "Ege": "Atasaylar Group", "İç Anadolu": "Aydın Group", "Akdeniz": "Yılmaz Group", "Karadeniz": "Gümüşbağlar Şirket Birliği", "Doğu Anadolu": "Karavil Group", "Güneydoğu Anadolu": "Kırklar Şirketler Birliği" };
                 companyIn.value = regionMap[regionIn.value] || "Bölge Bayisi Seçiniz";
             }
             if (dealerCodeIn) {
-                const codeMap = {
-                    "Marmara": "0001",
-                    "Ege": "0002",
-                    "İç Anadolu": "0003",
-                    "Akdeniz": "0004",
-                    "Karadeniz": "0005",
-                    "Doğu Anadolu": "0007",
-                    "Güneydoğu Anadolu": "0006"
-                };
+                const codeMap = { "Marmara": "0001", "Ege": "0002", "İç Anadolu": "0003", "Akdeniz": "0004", "Karadeniz": "0005", "Doğu Anadolu": "0007", "Güneydoğu Anadolu": "0006" };
                 dealerCodeIn.value = codeMap[regionIn.value] || "0000";
                 dealerCodeIn.disabled = true;
             }
         } else {
-            // Yerel bayi modu: updateDealers zaten companySelect/companyIn görünürlüğünü yönetiyor
             const cityGroupEl = document.getElementById("cityGroup");
             if (cityGroupEl) cityGroupEl.style.display = "block";
-
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
             if (cityIn) cityIn.setAttribute("required", "");
-
             if (lockedByDealer) {
                 regionIn.disabled = true;
                 cityIn.disabled = true;
@@ -273,7 +226,6 @@ export function initRegisterPage() {
                         lastRegion = regionIn.value;
                     }
                 }
-                // dealer kodu sadece companySelect kullanılmıyorsa açık kalsın
                 if (!companySelectEl || companySelectEl.style.display === 'none') {
                     if (dealerCodeIn) dealerCodeIn.disabled = false;
                 }
@@ -281,7 +233,6 @@ export function initRegisterPage() {
         }
 
         deptGroup.style.display = roleIn.value === "manager" ? "none" : "block";
-
         const optF = document.getElementById("optFactory");
         const optR = document.getElementById("optRegional");
         const optL = document.getElementById("optLocal");
@@ -290,7 +241,6 @@ export function initRegisterPage() {
         if (optL) optL.style.display = catIn.value === "local" ? "block" : "none";
         const deptInput = document.getElementById("newDept");
         if (deptInput && roleIn.value !== "manager") deptInput.value = "";
-
         if (nameIn.value && surnameIn.value) {
             const code = dealerCodeIn?.value || "xxxx";
             emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}.${code}@bellona.com.tr`;
@@ -298,84 +248,53 @@ export function initRegisterPage() {
     };
 
     [nameIn, surnameIn, catIn, roleIn, companyIn, dealerCodeIn].forEach((el) => el?.addEventListener("input", updateUI));
-    regionIn?.addEventListener("change", () => {
-        updateCities();
-        updateDealers();
-        updateUI();
-    });
-    cityIn?.addEventListener("change", () => {
-        updateDealers();
-        updateUI();
-    });
-    catIn?.addEventListener("change", () => {
-        updateDealers();
-        updateUI();
-    });
+    regionIn?.addEventListener("change", () => { updateCities(); updateDealers(); updateUI(); });
+    cityIn?.addEventListener("change", () => { updateDealers(); updateUI(); });
+    catIn?.addEventListener("change", () => { updateDealers(); updateUI(); });
     updateUI();
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+
         const dealerCode = dealerCodeIn?.value || "0000";
-        const email = await generateEnterpriseEmail(nameIn.value, surnameIn.value, dealerCode);
-        
-        // Bayi adını: eğer companySelect görünürse oradan al, yoksa companyIn'den
-        let finalCompany;
-        if (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') {
-            finalCompany = companySelectEl.value;
-        } else {
-            finalCompany = companyIn.value;
-        }
+        let finalCompany = (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') ? companySelectEl.value : companyIn.value;
         
         const data = {
-            name: nameIn.value,
-            surname: surnameIn.value,
+            name: nameIn.value, surname: surnameIn.value,
             birthDate: document.getElementById("newBirth").value,
-            phone: phoneIn?.value.trim() || "",
-            city: cityIn?.value || "",
-            category: catIn.value,
-            region: regionIn.value,
-            company: finalCompany,
-            dealerCode: dealerCode,
-            subRole: roleIn.value,
-            email: emailPreview.value,
-            department: roleIn.value === "manager"
-                ? (catIn.value === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi")
-                : document.getElementById("newDept").value,
-            password: pwIn.value,
-            role: "user",
-            isActive: true
+            phone: phoneIn?.value.trim() || "", city: cityIn?.value || "",
+            category: catIn.value, region: regionIn.value, company: finalCompany,
+            dealerCode: dealerCode, subRole: roleIn.value, email: emailPreview.value,
+            department: roleIn.value === "manager" ? (catIn.value === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi") : document.getElementById("newDept").value,
+            password: pwIn.value, role: "user", isActive: true
         };
 
-        // FINAL CONSISTENCY CHECK (Sadece Yerel Bayiler için)
         if (data.category === "local" && data.company && data.city) {
             const duplicateDealer = allUsersCache.find(u => 
                 u.company?.toLocaleLowerCase('tr-TR') === data.company.toLocaleLowerCase('tr-TR') && 
                 u.city?.toLocaleLowerCase('tr-TR') === data.city.toLocaleLowerCase('tr-TR') &&
                 u.dealerCode !== data.dealerCode
             );
-
             if (duplicateDealer) {
-                alert(`HATA: "${data.company}" bayisi "${data.city}" şehrinde zaten #${duplicateDealer.dealerCode} kodu ile kayıtlı.\n\nSiz #${data.dealerCode} kodu ile kaydetmeye çalışıyorsunuz. Lütfen bayi kodunu kontrol ediniz!`);
-                return;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Personeli Kaydet';
+                return showToast(`HATA: Bu bayi zaten #${duplicateDealer.dealerCode} kodu ile kayıtlı.`, 'error');
             }
         }
 
         try {
             const created = await createUserRecord(data);
             const actor = await getSessionActor();
-            await writeAuditLog({
-                actor,
-                action: "PERSONEL_EKLEME",
-                targetType: "users",
-                targetId: created.uid || created.id || data.email, // using whatever is returned
-                detail: `${data.name} ${data.surname} (${data.email}) eklendi.`
-            });
-
-            alert(`Personel başarıyla kaydedildi!\nE-posta: ${email}`);
-            location.reload();
+            writeAuditLog({ actor, action: "PERSONEL_EKLEME", targetType: "users", targetId: created.uid || created.id || data.email, detail: `${data.name} ${data.surname} eklendi.` });
+            showToast(`${data.name} başarıyla kaydedildi!`, 'success');
+            setTimeout(() => location.reload(), 1500);
         } catch (error) {
-            console.error("Kayıt İşlemi Hatası:", error);
-            alert("KAYIT HATASI:\n" + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Personeli Kaydet';
+            showToast("Kayıt Hatası: " + error.message, 'error');
         }
     });
 }
