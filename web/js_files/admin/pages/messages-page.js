@@ -9,7 +9,6 @@ import { db } from "../../firebase/config.js";
 
 export async function initMessagesPage() {
     initBroadcast();
-    // Diğer mesaj listeleme mantıkları buraya gelebilir
 }
 
 async function initBroadcast() {
@@ -26,39 +25,61 @@ async function initBroadcast() {
         btnAI.onclick = async () => {
             const bodyEl = document.getElementById('broadcastBody');
             const targetEl = document.getElementById('broadcastTarget');
+            const subjectEl = document.getElementById('broadcastSubject');
             const draft = bodyEl.value.trim();
+            const subject = subjectEl.value.trim();
             
             if (!draft) return showToast('Önce bir taslak metin yazmalısınız.', 'info');
 
             const targetValue = targetEl.value;
-            const targetNames = {
-                'all': 'Bellona Ailesinin Üyeleri',
-                'factory': 'Fabrika Çalışanlarımız',
-                'regional': 'Bölge Bayilerimiz',
-                'local': 'Yerel Bayilerimiz'
+            
+            // Kullanıcının istediği özel kitle eşleşmeleri
+            const targetMapping = {
+                'all': 'Sayın Bellona Ailesi Üyeleri,',
+                'factory': 'Değerli Fabrika Çalışanlarımız,',
+                'regional': 'Sayın Bölge Bayilerimiz,',
+                'local': 'Değerli Yerel Bayilerimiz,',
+                'management': 'Sayın Yönetim Ekibi,'
             };
-            const selectedTarget = targetNames[targetValue] || 'Bellona Ailesi Üyeleri';
+            const autoGreeting = targetMapping[targetValue] || 'Sayın Bellona Ailesi Üyeleri,';
 
             btnAI.disabled = true;
-            btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
+            btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uzman Hazırlıyor...';
 
             try {
-                const actor = await getSessionActor();
-                const senderName = actor ? `${actor.name} ${actor.surname}` : 'Bellona Genel Merkezi';
-
-                // Bellona Dinamik Kurumsal Prompt
-                const prompt = `Bu bir Bellona kurumsal duyurusudur. Metni şu kurallara göre düzenle:
-                1. Başlangıç her zaman 'Sayın ${selectedTarget},' olmalıdır.
-                2. Bitiş her zaman 'Saygılarımla, ${senderName} / Bellona Genel Merkezi' olmalıdır.
-                3. İçerik profesyonel, nazik ve kurumsal bir dille yazılmalıdır.
-                4. Taslak metni bu formata sadık kalarak, anlamını bozmadan resmi bir duyuruya çevir.
-                Sadece düzenlenen metni döndür.`;
+                // Bellona Üst Düzey Kurumsal İletişim Uzmanı Promptu
+                const prompt = `Sen Bellona Genel Merkezi adına çalışan üst düzey bir kurumsal iletişim uzmanısın.
+                
+                Görevin:
+                Seçilen hedef kitleye göre otomatik olarak DOĞRU hitap cümlesini belirleyip buna uygun profesyonel, yaratıcı ve kurumsal bir e-posta oluşturmak.
+                
+                HEDEF KİTLE: ${targetValue}
+                OTOMATİK HİTAP: ${autoGreeting}
+                KONU: ${subject || 'Kurumsal Duyuru'}
+                TASLAK İÇERİK: ${draft}
+                
+                DAVRANIŞ KURALLARI:
+                - Hitabı mutlaka '${autoGreeting}' olarak kullan.
+                - Metin kurumsal, akıcı ve etkileyici olsun.
+                - Samimi ama profesyonel bir ton kullan.
+                - Marka gücü, birlik ve motivasyon vurgusu yap.
+                - Gelecek vizyonu ve kurumsal öngörü ekleyerek zenginleştir.
+                - Mail çok uzun olmasın (2-3 paragraf ideal).
+                
+                ÇIKTI FORMATI:
+                - (Gerekliyse) Güçlü bir başlık
+                - ${autoGreeting}
+                - [Düzenlenmiş İçerik]
+                - Kapanış: 'Saygılarımızla,' veya 'İyi çalışmalar dileriz,'
+                - İmza: Bellona Genel Merkezi
+                
+                Sadece düzenlenen nihai metni döndür.`;
                 
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
-                showToast(`Mesaj ${selectedTarget} için düzenlendi.`, 'success');
+                showToast('Kurumsal uzman metni hazırladı.', 'success');
             } catch (err) {
-                showToast('AI Hatası: ' + err.message, 'error');
+                showToast('Hata: ' + err.message, 'error');
             } finally {
                 btnAI.disabled = false;
                 btnAI.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI İLE DÜZENLE';
