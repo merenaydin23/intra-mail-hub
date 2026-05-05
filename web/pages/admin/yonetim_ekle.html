@@ -25,163 +25,157 @@
 
     <main>
         <header>
-            <h1>Onboarding / Personel Kaydı</h1>
+            <div>
+                <h1>Yeni Personel Kaydı</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Sisteme yeni bir kullanıcı ekleyin. E-posta ve şifre otomatik olarak oluşturulacaktır.</p>
+            </div>
             <a href="yonetim_mesajlar.html" class="btn-outline"><i class="fa-solid fa-timeline"></i> Audit Akışı</a>
         </header>
 
-        <div class="card form-shell" style="padding: 2.5rem;">
+        <div class="form-shell">
             <form id="addUserForm">
-                <div class="form-section-head"><i class="fa-solid fa-user"></i> Kişisel Bilgiler</div>
-                <div class="form-grid">
-                    <div class="form-group form-group-card">
-                        <label>Ad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newName" name="newName" placeholder="Adını giriniz" required /></div>
-                    </div>
-                    <div class="form-group form-group-card">
-                        <label>Soyad</label>
-                        <div class="input-box"><i class="fa-solid fa-user-tag"></i>                        <input type="text" id="newSurname" name="newSurname" placeholder="Soyadını giriniz" required /></div>
-                    </div>
-                    <div class="form-group form-group-card">
-                        <label>Doğum Tarihi</label>
-                        <div class="input-box"><i class="fa-solid fa-calendar-days"></i>                        <input type="date" id="newBirth" name="newBirth" required /></div>
-                    </div>
-                    <div class="form-group form-group-card">
-                        <label>Telefon Numarası</label>
-                        <div class="input-box">
-                            <i class="fa-solid fa-phone"></i>
-                            <input type="tel" id="newPhone" name="newPhone" placeholder="+90 5xx xxx xx xx" pattern="^\+90\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$" required />
+                <!-- 1. KİŞİSEL BİLGİLER -->
+                <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-user-plus"></i> Kişisel Bilgiler</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ad</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="newName" name="newName" placeholder="Örn: Ahmet" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Soyad</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="newSurname" name="newSurname" placeholder="Örn: Yılmaz" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Doğum Tarihi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-calendar-day"></i>
+                                <input type="date" id="newBirth" name="newBirth" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefon</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="tel" id="newPhone" name="newPhone" placeholder="+90 5xx xxx xx xx" pattern="^\+90\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$" required />
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-section-head"><i class="fa-solid fa-building"></i> İş Bilgileri</div>
-                <div class="form-grid">
-                    <div class="form-group form-group-card">
-                        <label>Hizmet Kategorisi</label>
-                        <div class="input-box"><i class="fa-solid fa-sitemap"></i>
-                                                        <select id="newCategory" name="category">
-                                <option value="factory">Fabrika (Merkez)</option>
-                                <option value="regional">Bölge Bayisi</option>
-                                <option value="local">Yerel Bayi</option>
-                            </select>
+                <!-- 2. İŞ BİLGİLERİ -->
+                <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-building-user"></i> İş & Görev Bilgileri</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Hizmet Kategorisi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-sitemap"></i>
+                                <select id="newCategory" name="category">
+                                    <option value="factory">Fabrika (Merkez)</option>
+                                    <option value="regional">Bölge Bayisi</option>
+                                    <option value="local">Yerel Bayi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Bölge</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-map"></i>
+                                <select id="newRegion" name="region" required>
+                                    <option value="" disabled selected>Seçiniz...</option>
+                                    <option value="Marmara">Marmara</option>
+                                    <option value="Ege">Ege</option>
+                                    <option value="İç Anadolu">İç Anadolu</option>
+                                    <option value="Akdeniz">Akdeniz</option>
+                                    <option value="Karadeniz">Karadeniz</option>
+                                    <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                    <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="cityGroup">
+                            <label>Şehir</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-city"></i>
+                                <select id="newCity" name="city" required>
+                                    <option value="" disabled selected>Önce bölge seçin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="companyGroup">
+                            <label>Bayi / Şirket Adı</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-store"></i>
+                                <select id="companySelect" style="display:none;"></select>
+                                <input type="text" id="newCompany" name="company" placeholder="Şirket adını yazın" required />
+                                <select id="newRegionCompany" name="regionCompany" style="display:none;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="dealerCodeGroup">
+                            <label>Bayi Kodu</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-hashtag"></i>
+                                <input type="number" id="newDealerCode" name="dealerCode" placeholder="Kod girin" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Yetki Seviyesi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user-shield"></i>
+                                <select id="newSubRole" name="subRole">
+                                    <option value="manager">Yönetici / Patron</option>
+                                    <option value="employee">Çalışan / Personel</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group form-group-card">
-                        <label>Bölge</label>
-                        <div class="input-box"><i class="fa-solid fa-map-location-dot"></i>
-                                                        <select id="newRegion" name="region" required>
-                                <option value="" disabled selected>Bölge seçiniz</option>
-                                <option value="Marmara">Marmara</option>
-                                <option value="Ege">Ege</option>
-                                <option value="İç Anadolu">İç Anadolu</option>
-                                <option value="Akdeniz">Akdeniz</option>
-                                <option value="Karadeniz">Karadeniz</option>
-                                <option value="Doğu Anadolu">Doğu Anadolu</option>
-                                <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group form-group-card" id="cityGroup">
-                        <label>Şehir</label>
-                        <div class="input-box">
-                            <i class="fa-solid fa-city"></i>
-                            <select id="newCity" name="city" required>
-                                <option value="" disabled selected>Önce bölge seçiniz</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group form-group-card" id="companyGroup">
-                        <label>Bayi / Şirket Adı</label>
-                        <div class="input-box">
-                            <i class="fa-solid fa-building"></i>
-                            <!-- Yerel Bayi: Dinamik select dropdown -->
-                            <select id="companySelect" style="display:none;">
-                                <option value="">Şehir seçince bayiler yüklenir...</option>
-                            </select>
-                            <!-- Yerel Bayi: Elle yazma alanı (yeni bayi eklemek için) -->
-                            <input type="text" id="newCompany" name="company" placeholder="Bayi adını giriniz veya yukarıdan seçin" required />
-                            <!-- Bölge Bayi için özel dropdown (başlangıçta gizli) -->
-                            <select id="newRegionCompany" name="regionCompany" style="display:none;">
-                                <option value="" disabled selected>Grup seçiniz</option>
-                                <option value="Karavil Group">Karavil Group (Abdulkadir Karavil)</option>
-                                <option value="Yılmaz Group">Yılmaz Group (Ercan Yılmaz)</option>
-                                <option value="Gümüşbağlar Şirket Birliği">Gümüşbağlar Şirket Birliği (Abdullah Gümüşbağlar)</option>
-                                <option value="Aydın Group">Aydın Group (Kenan Aydın)</option>
-                                <option value="Karavil Marmara">Karavil Marmara (Yılmaz Karavil)</option>
-                                <option value="Atasaylar Group">Atasaylar Group (Kenan Atasay)</option>
-                                <option value="Kırklar Şirketler Birliği">Kırklar Şirketler Birliği (Hakan Kırklar)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group form-group-card" id="dealerCodeGroup">
-                        <label>Bayi Kodu <small>(Örn: 2145)</small></label>
-                        <div class="input-box">
-                            <i class="fa-solid fa-hashtag"></i>
-                            <input type="number" id="newDealerCode" name="dealerCode" placeholder="Bayi kodunu giriniz" required />
-                        </div>
-                    </div>
-                    <div class="form-group form-group-card">
-                        <label>Rol & Yetki Hiyerarşisi</label>
-                        <div class="input-box"><i class="fa-solid fa-user-shield"></i>
-                                                    <select id="newSubRole" name="subRole">
-                                <option value="manager">Yönetici / Müdür / Patron</option>
-                                <option value="employee">Personel / Çalışan</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group form-group-card" id="deptGroup" style="display: none;">
+                    
+                    <div class="form-group" id="deptGroup" style="display: none; margin-top: 1.5rem;">
                         <label>Departman / Birim</label>
                         <div class="input-box">
                             <i class="fa-solid fa-briefcase"></i>
                             <select id="newDept" name="newDept">
-                                <option value="">Departman Seçiniz...</option>
-                                <!-- Fabrika Birimleri -->
-                                <optgroup label="Fabrika Birimleri" id="optFactory">
-                                    <option value="Fabrika Üretim Hattı">Fabrika Üretim Hattı</option>
-                                    <option value="Fabrika Ar-Ge Merkezi">Fabrika Ar-Ge Merkezi</option>
-                                    <option value="Fabrika Lojistik Birimi">Fabrika Lojistik Birimi</option>
-                                    <option value="Fabrika Kalite Kontrol">Fabrika Kalite Kontrol</option>
-                                    <option value="Fabrika İnsan Kaynakları">Fabrika İnsan Kaynakları</option>
-                                    <option value="Fabrika Muhasebe">Fabrika Muhasebe</option>
-                                </optgroup>
-                                <!-- Bölge Birimleri -->
-                                <optgroup label="Bölge Bayi Birimleri" id="optRegional">
-                                    <option value="Bölge Pazarlama Sorumlusu">Bölge Pazarlama Sorumlusu</option>
-                                    <option value="Bölge Muhasebe Müdürü">Bölge Muhasebe Müdürü</option>
-                                    <option value="Bölge Sevkiyat Koordinatörü">Bölge Sevkiyat Koordinatörü</option>
-                                    <option value="Bölge Satış Yönetimi">Bölge Satış Yönetimi</option>
-                                </optgroup>
-                                <!-- Yerel Birimler -->
-                                <optgroup label="Yerel Mağaza Birimleri" id="optLocal">
-                                    <option value="Mağaza Satış Temsilcisi">Mağaza Satış Temsilcisi</option>
-                                    <option value="Mağaza Muhasebe">Mağaza Muhasebe</option>
-                                    <option value="Mağaza Teknik Servis">Mağaza Teknik Servis</option>
-                                    <option value="Mağaza Depo Sorumlusu">Mağaza Depo Sorumlusu</option>
-                                </optgroup>
+                                <option value="">Seçiniz...</option>
+                                <optgroup label="Fabrika Birimleri" id="optFactory"></optgroup>
+                                <optgroup label="Bölge Birimleri" id="optRegional"></optgroup>
+                                <optgroup label="Yerel Mağaza Birimleri" id="optLocal"></optgroup>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-section-head"><i class="fa-solid fa-lock"></i> Hesap Bilgileri</div>
-                <div class="form-grid">
-                    <div class="form-group form-group-card">
-                        <label>Kurumsal E-posta <small>(Otomatik oluşur)</small></label>
-                        <div class="input-box"><i class="fa-solid fa-at"></i><input type="text" id="newEmail" readonly placeholder="ad.soyad@bellona.com.tr" /></div>
-                    </div>
-                    <div class="form-group form-group-card">
-                        <label>Şifre</label>
-                        <div class="input-box" style="position:relative;">
-                            <i class="fa-solid fa-key"></i>
-                            <input type="text" id="newPassword" readonly />
-                            <button type="button" id="btnCopyUserPw" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:rgba(46, 139, 87, 0.1); color:var(--primary-light); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem; font-weight:700;">Kopyala</button>
+                <!-- 3. HESAP BİLGİLERİ -->
+                <div class="card" style="padding: 2rem; border-left: 4px solid var(--brand);">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-shield-halved"></i> Otomatik Oluşturulan Hesap</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Kurumsal E-posta</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-at"></i>
+                                <input type="text" id="newEmail" readonly placeholder="ad.soyad@bellona.com.tr" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Geçici Şifre</label>
+                            <div class="input-box" style="position:relative;">
+                                <i class="fa-solid fa-key"></i>
+                                <input type="text" id="newPassword" readonly />
+                                <button type="button" id="btnCopyUserPw" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:var(--brand-soft); color:var(--brand); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.7rem; font-weight:800;">KOPYALA</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div style="margin-top: 2rem;">
+                <div style="margin-top: 2.5rem; text-align: center;">
                     <button type="submit" class="btn-submit-premium" id="addUserBtn">
-                        <i class="fa-solid fa-rocket"></i> Personel Kaydını Tamamla
+                        <i class="fa-solid fa-check-double"></i> Personel Kaydını Sisteme Aktar
                     </button>
                 </div>
             </form>
