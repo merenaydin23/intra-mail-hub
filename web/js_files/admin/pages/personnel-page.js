@@ -47,18 +47,72 @@ function setupListeners() {
 
     document.getElementById('btnResetFilters')?.addEventListener('click', resetAll);
 
-    // Gelişmiş filtreleri aç/kapat
     document.getElementById('btnToggleAdvanced')?.addEventListener('click', () => {
         const panel = document.getElementById('advancedFilters');
         const btn = document.getElementById('btnToggleAdvanced');
         const isShow = panel?.classList.toggle('show');
         btn?.classList.toggle('active', isShow);
-        
-        // Panel kapandığında içindeki özel filtreleri de sıfırlayabiliriz (isteğe bağlı)
-        // ama kullanıcı deneyimi açısından açık kalması daha iyi olabilir.
     });
 
     document.getElementById('userTableBody')?.addEventListener('click', handleTableClick);
+    document.getElementById('btnCloseDrawer')?.addEventListener('click', closeDrawer);
+    document.getElementById('userDrawerOverlay')?.addEventListener('click', closeDrawer);
+}
+
+function closeDrawer() {
+    const drawer = document.getElementById('userDrawer');
+    if (drawer) drawer.style.right = '-450px';
+    const overlay = document.getElementById('userDrawerOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function openDrawer(user) {
+    const drawer = document.getElementById('userDrawer');
+    const overlay = document.getElementById('userDrawerOverlay');
+
+    const fullName = `${user.name} ${user.surname || ''}`;
+    document.getElementById('drawName').textContent = fullName;
+    document.getElementById('drawAvatar').textContent = fullName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('drawEmail').textContent = user.email || '-';
+    document.getElementById('drawPhone').textContent = user.phone || '-';
+    document.getElementById('drawCategory').textContent = { factory:'Fabrika', regional:'Bölge Bayisi', local:'Yerel Bayi' }[user.category] || user.category;
+    document.getElementById('drawCompany').textContent = user.company || 'Bellona Merkez';
+    document.getElementById('drawSubRole').textContent = user.subRole === 'manager' ? 'Yönetici / Patron' : 'Personel';
+    document.getElementById('drawLocation').textContent = `${user.region || '-'} / ${user.city || '-'}`;
+    document.getElementById('drawBirthDate').textContent = user.birthDate || '-';
+
+    const statusEl = document.getElementById('drawStatus');
+    const isActive = user.isActive !== false;
+    statusEl.textContent = isActive ? 'AKTİF' : 'PASİF';
+    statusEl.style.background = isActive ? '#ecfdf5' : '#fef2f2';
+    statusEl.style.color = isActive ? '#059669' : '#dc2626';
+
+    const btnToggle = document.getElementById('btnToggleStatus');
+    btnToggle.innerHTML = isActive ? '<i class="fa-solid fa-ban"></i> Pasife Al' : '<i class="fa-solid fa-check-circle"></i> Aktif Et';
+    btnToggle.onclick = () => alert('Durum güncelleme yakında eklenecektir.');
+
+    const btnDelete = document.getElementById('btnEditUser');
+    btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i> Kaydı Sil';
+    btnDelete.style.color = '#ef4444';
+    btnDelete.onclick = () => deleteUser(user.id);
+
+    overlay.style.display = 'block';
+    setTimeout(() => { drawer.style.right = '0'; }, 10);
+}
+
+async function deleteUser(userId) {
+    const user = allUsers.find(x => x.id === userId);
+    if (!user || !confirm(`${user.name} ${user.surname} silinsin mi?`)) return;
+
+    try {
+        await removeUserRecord(userId);
+        const actor = await getSessionActor();
+        await writeAuditLog({ actor, action:'PERSONEL_SILME', targetType:'users', targetId:userId, detail:`${user.name} ${user.surname} silindi.` });
+        allUsers = allUsers.filter(x => x.id !== userId);
+        applyFilters();
+        closeDrawer();
+        alert('Personel silindi.');
+    } catch { alert('Hata: Kayıt silinemedi.'); }
 }
 
 function bind(id, event, stateKey, prop) {
@@ -68,7 +122,6 @@ function bind(id, event, stateKey, prop) {
     });
 }
 
-// ── Dinamik Dropdownlar ───────────────────────────────────
 function refreshCities() {
     const el = document.getElementById('filterCity');
     if (!el) return;
@@ -106,7 +159,6 @@ function refreshDealers() {
 
 function unique(arr) { return [...new Set(arr)]; }
 
-// ── Filtreleme ────────────────────────────────────────────
 function applyFilters() {
     const term = state.search.toLocaleLowerCase('tr-TR');
 
@@ -128,45 +180,30 @@ function applyFilters() {
     renderTableRows(document.getElementById('userTableBody'), filtered);
     document.getElementById('totalPersonnelCount').textContent = filtered.length;
 
-    // Sıfırla butonunu kırmızı yap
     const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && (v !== 'all' && v !== ''));
     document.getElementById('btnResetFilters')?.classList.toggle('has-filter', hasFilter);
 
     renderChips();
 }
 
-// ── Chips ─────────────────────────────────────────────────
-const CHIP_LABELS = {
-    search:   v => `"${v}"`,
-    category: v => ({ factory:'Fabrika', regional:'Bölge Bayisi', local:'Yerel Bayi' }[v] || v),
-    role:     v => v === 'manager' ? 'Patron/Müdür' : 'Çalışan',
-    region:   v => v,
-    city:     v => v,
-    dealer:   v => v,
-};
-const CHIP_ICONS = { search:'fa-magnifying-glass', category:'fa-sitemap', role:'fa-user-shield', region:'fa-map', city:'fa-city', dealer:'fa-store' };
-
 function renderChips() {
     const container = document.getElementById('activeChips');
     if (!container) return;
     const chips = Object.entries(state)
         .filter(([k,v]) => k !== 'sort' && v !== 'all' && v !== '')
-        .map(([k,v]) => `<span class="chip" data-key="${k}"><i class="fa-solid ${CHIP_ICONS[k]}"></i> ${CHIP_LABELS[k](v)} <i class="fa-solid fa-xmark"></i></span>`);
+        .map(([k,v]) => `<span class="chip" data-key="${k}"><i class="fa-solid fa-magnifying-glass"></i> ${v} <i class="fa-solid fa-xmark"></i></span>`);
 
     container.innerHTML = chips.join('');
     container.querySelectorAll('.chip').forEach(c => {
         c.addEventListener('click', () => {
             const k = c.dataset.key;
             state[k] = k === 'search' ? '' : 'all';
-            if (k === 'region') { state.city='all'; state.dealer='all'; refreshCities(); refreshDealers(); }
-            if (k === 'city')   { state.dealer='all'; refreshDealers(); }
             syncUI();
             applyFilters();
         });
     });
 }
 
-// ── Reset ─────────────────────────────────────────────────
 function resetAll() {
     Object.assign(state, { search:'', category:'all', role:'all', region:'all', city:'all', dealer:'all', sort:'name-asc' });
     refreshCities();
@@ -183,33 +220,11 @@ function syncUI() {
     }
 }
 
-// ── Tablo Etkileşimleri ───────────────────────────────────
-async function handleTableClick(event) {
+function handleTableClick(event) {
     const row = event.target.closest('.personnel-main-row');
     if (row) {
         const id = row.dataset.userId;
-        const detail = document.querySelector(`.personnel-detail-row[data-detail-id="${id}"]`);
-        const chevron = row.querySelector('.detail-chevron');
-        if (detail) {
-            const open = !detail.hasAttribute('hidden');
-            detail.toggleAttribute('hidden', open);
-            chevron?.classList.toggle('is-open', !open);
-        }
-        return;
+        const user = allUsers.find(u => u.id === id);
+        if (user) openDrawer(user);
     }
-
-    const btn = event.target.closest("[data-action='delete-user']");
-    if (!btn) return;
-    const userId = btn.dataset.userId;
-    const user = allUsers.find(x => x.id === userId);
-    if (!user || !confirm(`${user.name} ${user.surname} silinsin mi?`)) return;
-
-    try {
-        await removeUserRecord(userId);
-        const actor = await getSessionActor();
-        await writeAuditLog({ actor, action:'PERSONEL_SILME', targetType:'users', targetId:userId, detail:`${user.name} ${user.surname} silindi.` });
-        allUsers = allUsers.filter(x => x.id !== userId);
-        applyFilters();
-        alert('Personel silindi.');
-    } catch { alert('Hata: Kayıt silinemedi.'); }
 }

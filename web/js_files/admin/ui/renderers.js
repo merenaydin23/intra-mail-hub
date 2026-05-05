@@ -23,39 +23,17 @@ export function renderTableRows(tbody, users) {
 
     tbody.innerHTML = users.map((u) => {
         const fullName = `${u.name || ""} ${u.surname || ""}`.trim();
-        const catLabel = u.category === "factory"
-            ? "FABRİKA"
-            : u.category === "regional"
-                ? "BÖLGE BAYİSİ"
-                : u.category === "local"
-                    ? "YEREL BAYİ"
-                    : "Bilinmiyor";
         return `
-            <tr class="personnel-main-row" data-user-id="${u.id}">
+            <tr class="personnel-main-row" data-user-id="${u.id}" style="cursor:pointer;">
                 <td>
                     <div class="personnel-name-wrap">
-                        <i class="fa-solid fa-chevron-right detail-chevron"></i>
+                        <div class="user-list-avatar">${fullName[0] || '?'}</div>
                         <strong>${fullName || "-"}</strong>
                     </div>
                 </td>
                 <td>${u.company ? `<strong>${u.company}</strong> <small style="color:#64748b; margin-left:4px;">(#${u.dealerCode || '0000'})</small>` : "-"}</td>
-                <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || "-"}</span></td>
+                <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || u.city || "-"}</span></td>
                 <td><span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span></td>
-            </tr>
-            <tr class="personnel-detail-row" data-detail-id="${u.id}" hidden>
-                <td colspan="4">
-                    <div class="personnel-detail-panel">
-                        <div class="personnel-detail-grid">
-                            <div><span class="detail-label">E-posta</span><span class="detail-value">${u.email || "-"}</span></div>
-                            <div><span class="detail-label">Telefon</span><span class="detail-value">${u.phone || "-"}</span></div>
-                            <div><span class="detail-label">Şehir</span><span class="detail-value">${u.city || "-"}</span></div>
-                            <div><span class="detail-label">Bölge</span><span class="detail-value">${u.region || "-"}</span></div>
-                            <div><span class="detail-label">Kategori</span><span class="detail-value">${catLabel}</span></div>
-                            <div><span class="detail-label">Bayi Kodu</span><span class="detail-value">#${u.dealerCode || "0000"}</span></div>
-                        </div>
-                        <button data-action="delete-user" data-user-id="${u.id}" class="btn-delete"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
-                    </div>
-                </td>
             </tr>
         `;
     }).join("");
