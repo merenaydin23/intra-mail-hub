@@ -2,7 +2,8 @@ import { removeUserRecord, updateUserStatus } from "../services/user-service.js"
 import { renderTableRows } from "../ui/renderers.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
-import { collection, query, onSnapshot, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { showToast } from "../ui/notifications.js";
+import { collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
 let allUsers = [];
@@ -17,22 +18,14 @@ export async function initPersonnelPage() {
     setupListeners();
 }
 
-/**
- * FIREBASE REAL-TIME LISTENER
- */
 function setupRealtimeListener() {
     const q = query(collection(db, "users"), where("role", "!=", "admin"));
-    
-    // Unsubscribe previous if any (though not strictly needed here)
     onSnapshot(q, (snapshot) => {
         allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         applyFilters();
-    }, (error) => {
-        console.error("Firestore Listener Error:", error);
     });
 }
 
-// ── Event Listeners ──────────────────────────────────────
 function setupListeners() {
     bind('searchUser',    'input',  'search',   'value');
     bind('filterCategory','change', 'category', 'value');
@@ -70,7 +63,7 @@ function setupListeners() {
     });
 
     document.getElementById('userTableBody')?.addEventListener('click', handleTableClick);
-    document.getElementById('passiveUserList')?.addEventListener('click', handleTableClick); // Side panel click support
+    document.getElementById('passiveUserList')?.addEventListener('click', handleTableClick);
     document.getElementById('btnCloseDrawer')?.addEventListener('click', closeDrawer);
     document.getElementById('userDrawerOverlay')?.addEventListener('click', closeDrawer);
 }
@@ -105,7 +98,13 @@ function openDrawer(user) {
 
     const btnToggle = document.getElementById('btnToggleStatus');
     btnToggle.innerHTML = isActive ? '<i class="fa-solid fa-ban"></i> Pasife Al' : '<i class="fa-solid fa-check-circle"></i> Aktif Et';
-    btnToggle.onclick = () => toggleUserStatus(user.id, !isActive);
+    
+    // SPEED FIX: Optimistic UI feel + async logic
+    btnToggle.onclick = async () => {
+        btnToggle.disabled = true;
+        btnToggle.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+        await toggleUserStatus(user.id, !isActive);
+    };
 
     const btnDelete = document.getElementById('btnEditUser');
     btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i> Kaydı Sil';
@@ -123,17 +122,18 @@ async function toggleUserStatus(userId, newStatus) {
     try {
         await updateUserStatus(userId, newStatus);
         const actor = await getSessionActor();
-        await writeAuditLog({ 
+        writeAuditLog({ 
             actor, 
             action: newStatus ? 'PERSONEL_AKTIF_ETME' : 'PERSONEL_PASIFE_ALMA', 
             targetType:'users', 
             targetId:userId, 
             detail:`${user.name} ${user.surname} durumu ${newStatus ? 'Aktif' : 'Pasif'} olarak güncellendi.` 
         });
-        // We don't need to manually update user.isActive here because the Realtime Listener will catch it
+        
         closeDrawer();
+        showToast(`${user.name} başarıyla ${newStatus ? 'aktif edildi' : 'pasife alındı'}.`, 'success');
     } catch (err) {
-        alert('Hata: Durum güncellenemedi.');
+        showToast('Durum güncellenirken bir hata oluştu.', 'error');
     }
 }
 
@@ -144,9 +144,12 @@ async function deleteUser(userId) {
     try {
         await removeUserRecord(userId);
         const actor = await getSessionActor();
-        await writeAuditLog({ actor, action:'PERSONEL_SILME', targetType:'users', targetId:userId, detail:`${user.name} ${user.surname} silindi.` });
+        writeAuditLog({ actor, action:'PERSONEL_SILME', targetType:'users', targetId:userId, detail:`${user.name} ${user.surname} silindi.` });
         closeDrawer();
-    } catch { alert('Hata: Kayıt silinemedi.'); }
+        showToast(`${user.name} başarıyla silindi.`, 'success');
+    } catch { 
+        showToast('Kayıt silinemedi.', 'error');
+    }
 }
 
 function bind(id, event, stateKey, prop) {
@@ -195,12 +198,9 @@ function unique(arr) { return [...new Set(arr)]; }
 
 function applyFilters() {
     const term = state.search.toLocaleLowerCase('tr-TR');
-
-    // 1. Split Active and Passive
     const activePool = allUsers.filter(u => u.isActive !== false);
     const passivePool = allUsers.filter(u => u.isActive === false);
 
-    // 2. Filter Active List
     let filteredActive = activePool.filter(u => {
         const txt = `${u.name} ${u.surname} ${u.company} ${u.dealerCode} ${u.email}`.toLocaleLowerCase('tr-TR');
         return (
@@ -218,8 +218,6 @@ function applyFilters() {
 
     renderTableRows(document.getElementById('userTableBody'), filteredActive);
     document.getElementById('totalPersonnelCount').textContent = filteredActive.length;
-
-    // 3. Render Passive List (Always Updated Real-time)
     renderPassiveList(passivePool);
 
     const hasFilter = Object.entries(state).some(([k,v]) => k !== 'sort' && (v !== 'all' && v !== ''));
@@ -230,14 +228,11 @@ function renderPassiveList(users) {
     const container = document.getElementById('passiveUserList');
     const badge = document.getElementById('passiveCountBadge');
     if (!container || !badge) return;
-
     badge.textContent = users.length;
-
     if (!users.length) {
         container.innerHTML = '<div class="side-empty-state">Pasif personel yok.</div>';
         return;
     }
-
     container.innerHTML = users.map(u => `
         <div class="side-user-item personnel-main-row" data-user-id="${u.id}">
             <div class="side-user-name">${u.name} ${u.surname}</div>
