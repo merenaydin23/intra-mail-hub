@@ -1,5 +1,5 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { onCall } = require("firebase-functions/v2/https");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -21,10 +21,14 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
  */
 exports.createUser = onCall({ cors: true }, async (request) => {
     // Sadece admin çağırabilsin
-    if (!request.auth) throw new Error("Yetki yok.");
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Bu işlemi yapmak için giriş yapmalısınız.");
+    }
 
     const data = request.data;
-    if (!data.email || !data.password) throw new Error("E-posta ve şifre zorunludur.");
+    if (!data.email || !data.password) {
+        throw new HttpsError("invalid-argument", "E-posta ve şifre zorunludur.");
+    }
 
     try {
         // 1. Firebase Auth'ta kullanıcı oluştur
@@ -47,13 +51,19 @@ exports.createUser = onCall({ cors: true }, async (request) => {
 
     } catch (err) {
         console.error("[createUser] Hata:", err.message);
-        // Auth hata kodlarını Türkçeleştir
-        const msgs = {
-            "auth/email-already-exists": "Bu e-posta adresi zaten kayıtlı.",
-            "auth/invalid-email": "Geçersiz e-posta formatı.",
-            "auth/weak-password": "Şifre en az 6 karakter olmalı.",
-        };
-        throw new Error(msgs[err.code] || err.message);
+        
+        // Hata kodlarını eşle
+        if (err.code === "auth/email-already-exists") {
+            throw new HttpsError("already-exists", "Bu e-posta adresi zaten kayıtlı.");
+        }
+        if (err.code === "auth/invalid-email") {
+            throw new HttpsError("invalid-argument", "Geçersiz e-posta formatı.");
+        }
+        if (err.code === "auth/weak-password") {
+            throw new HttpsError("invalid-argument", "Şifre en az 6 karakter olmalı.");
+        }
+        
+        throw new HttpsError("internal", err.message);
     }
 });
 

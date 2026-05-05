@@ -182,6 +182,9 @@ export function initRegisterPage() {
         }
 
         if (catIn.value === "factory") {
+            const cityGroupEl = document.getElementById("cityGroup");
+            if (cityGroupEl) cityGroupEl.style.display = "block";
+
             companyIn.value = "Bellona Genel Müdürlük";
             companySelectEl && (companySelectEl.style.display = 'none');
             companyIn.style.display = "block";
@@ -192,6 +195,7 @@ export function initRegisterPage() {
                 regionIn.disabled = true;
             }
             if (cityIn) {
+                cityIn.setAttribute("required", "");
                 if (lastRegion !== "İç Anadolu") {
                     updateCities();
                     lastRegion = "İç Anadolu";
@@ -204,23 +208,53 @@ export function initRegisterPage() {
                 dealerCodeIn.disabled = true;
             }
         } else if (catIn.value === "regional") {
+            const cityGroupEl = document.getElementById("cityGroup");
+            if (cityGroupEl) cityGroupEl.style.display = "none";
+            
             companySelectEl && (companySelectEl.style.display = 'none');
-            companyIn.style.display = "none";
-            regionCompanyIn.style.display = "block";
-            companyIn.readOnly = false;
-            if (regionIn) regionIn.disabled = false;
+            companyIn.style.display = "block";
+            regionCompanyIn.style.display = "none";
+            companyIn.readOnly = true;
+            
             if (cityIn) {
-                cityIn.disabled = false;
-                if (regionIn.value !== lastRegion) {
-                    updateCities();
-                    lastRegion = regionIn.value;
-                }
+                cityIn.removeAttribute("required");
+            }
+            if (regionIn) {
+                regionIn.disabled = false;
+                // Bölgeye göre otomatik bayi ata
+                const regionMap = {
+                    "Marmara": "Karavil Marmara",
+                    "Ege": "Atasaylar Group",
+                    "İç Anadolu": "Aydın Group",
+                    "Akdeniz": "Yılmaz Group",
+                    "Karadeniz": "Gümüşbağlar Şirket Birliği",
+                    "Doğu Anadolu": "Karavil Group",
+                    "Güneydoğu Anadolu": "Kırklar Şirketler Birliği"
+                };
+                companyIn.value = regionMap[regionIn.value] || "Bölge Bayisi Seçiniz";
+            }
+            if (dealerCodeIn) {
+                const codeMap = {
+                    "Marmara": "0001",
+                    "Ege": "0002",
+                    "İç Anadolu": "0003",
+                    "Akdeniz": "0004",
+                    "Karadeniz": "0005",
+                    "Doğu Anadolu": "0000",
+                    "Güneydoğu Anadolu": "0006"
+                };
+                dealerCodeIn.value = codeMap[regionIn.value] || "0000";
+                dealerCodeIn.disabled = true;
             }
         } else {
             // Yerel bayi modu: updateDealers zaten companySelect/companyIn görünürlüğünü yönetiyor
+            const cityGroupEl = document.getElementById("cityGroup");
+            if (cityGroupEl) cityGroupEl.style.display = "block";
+
             regionCompanyIn.style.display = "none";
             companyIn.readOnly = false;
             if (companyIn.value === "Bellona Genel Müdürlük") companyIn.value = "";
+            if (cityIn) cityIn.setAttribute("required", "");
 
             if (lockedByDealer) {
                 regionIn.disabled = true;
@@ -323,17 +357,22 @@ export function initRegisterPage() {
             return;
         }
 
-        const created = await createUserRecord(data);
-        const actor = await getSessionActor();
-        await writeAuditLog({
-            actor,
-            action: "PERSONEL_EKLEME",
-            targetType: "users",
-            targetId: created.id,
-            detail: `${data.name} ${data.surname} (${data.email}) eklendi.`
-        });
+        try {
+            const created = await createUserRecord(data);
+            const actor = await getSessionActor();
+            await writeAuditLog({
+                actor,
+                action: "PERSONEL_EKLEME",
+                targetType: "users",
+                targetId: created.uid || created.id || data.email, // using whatever is returned
+                detail: `${data.name} ${data.surname} (${data.email}) eklendi.`
+            });
 
-        alert(`Personel başarıyla kaydedildi!\nE-posta: ${email}`);
-        location.reload();
+            alert(`Personel başarıyla kaydedildi!\nE-posta: ${email}`);
+            location.reload();
+        } catch (error) {
+            console.error("Kayıt İşlemi Hatası:", error);
+            alert("KAYIT HATASI:\n" + error.message);
+        }
     });
 }

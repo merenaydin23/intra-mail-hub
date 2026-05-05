@@ -5,7 +5,7 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-s
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 // Your web app's Firebase configuration
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
   authDomain: "bellona-71bee.firebaseapp.com",
   projectId: "bellona-71bee",
