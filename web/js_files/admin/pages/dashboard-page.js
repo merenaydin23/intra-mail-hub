@@ -1,4 +1,5 @@
-import { getAllUsers } from "../services/user-service.js";
+import { collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
     region: ["#155e75", "#0891b2", "#22d3ee", "#67e8f9", "#0e7490", "#164e63", "#06b6d4"],
@@ -8,23 +9,34 @@ const CHART_PALETTE = {
     department: "#0e7490"
 };
 
-export async function initDashboardPage() {
-    let users = [];
-    try {
-        users = (await getAllUsers()).filter((u) => u.role !== "admin");
-    } catch (err) {
-        console.error("Dashboard veri çekme hatası:", err);
-        return;
-    }
+let activeCharts = {};
 
-    const total = users.length;
-    const factoryUsers = users.filter((u) => u.category === "factory");
-    const regionalUsers = users.filter((u) => u.category === "regional");
-    const localUsers = users.filter((u) => u.category === "local");
-    const managers = users.filter((u) => u.subRole === "manager");
-    const employees = users.filter((u) => u.subRole === "employee");
-    const companies = [...new Set(users.map((u) => u.company).filter(Boolean))];
-    const departments = [...new Set(users.map((u) => u.department).filter(Boolean))];
+export async function initDashboardPage() {
+    setupRealtimeDashboard();
+}
+
+function setupRealtimeDashboard() {
+    const q = query(collection(db, "users"), where("role", "!=", "admin"));
+    
+    onSnapshot(q, (snapshot) => {
+        const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateDashboardUI(users);
+    }, (error) => {
+        console.error("Dashboard Real-time Error:", error);
+    });
+}
+
+function updateDashboardUI(users) {
+    const activeUsers = users.filter(u => u.isActive !== false);
+    const total = activeUsers.length;
+    
+    const factoryUsers = activeUsers.filter((u) => u.category === "factory");
+    const regionalUsers = activeUsers.filter((u) => u.category === "regional");
+    const localUsers = activeUsers.filter((u) => u.category === "local");
+    const managers = activeUsers.filter((u) => u.subRole === "manager");
+    const employees = activeUsers.filter((u) => u.subRole === "employee");
+    const companies = [...new Set(activeUsers.map((u) => u.company).filter(Boolean))];
+    const departments = [...new Set(activeUsers.map((u) => u.department).filter(Boolean))];
 
     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -34,9 +46,9 @@ export async function initDashboardPage() {
     setEl("statRegional", regionalUsers.length);
     setEl("statLocal", localUsers.length);
     setHtml("statTotalSub", `${managers.length} Yönetici · ${employees.length} Çalışan`);
-    setHtml("statFactorySub", `${[...new Set(factoryUsers.map((u) => u.department).filter(Boolean))].length} farklı departman`);
-    setHtml("statRegionalSub", `${[...new Set(regionalUsers.map((u) => u.company).filter(Boolean))].length} farklı firma`);
-    setHtml("statLocalSub", `${[...new Set(localUsers.map((u) => u.company).filter(Boolean))].length} farklı mağaza`);
+    setHtml("statFactorySub", `${[...new Set(factoryUsers.map((u) => u.department).filter(Boolean))].length} departman`);
+    setHtml("statRegionalSub", `${[...new Set(regionalUsers.map((u) => u.company).filter(Boolean))].length} firma`);
+    setHtml("statLocalSub", `${[...new Set(localUsers.map((u) => u.company).filter(Boolean))].length} mağaza`);
 
     const hlMgr = document.querySelector("#hlManagerCount .hl-value");
     const hlEmp = document.querySelector("#hlEmployeeCount .hl-value");
@@ -48,7 +60,7 @@ export async function initDashboardPage() {
     if (hlDept) hlDept.textContent = departments.length;
 
     const regionStats = {};
-    users.forEach((u) => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
+    activeUsers.forEach((u) => { if (u.region) regionStats[u.region] = (regionStats[u.region] || 0) + 1; });
     const sortedRegions = Object.entries(regionStats).sort((a, b) => b[1] - a[1]);
     const regionBody = document.getElementById("regionTableBody");
     if (regionBody) {
@@ -58,14 +70,14 @@ export async function initDashboardPage() {
         }).join("");
     }
 
-    renderCityCoverage(users);
-
+    renderCityCoverage(activeUsers);
+    
     if (typeof Chart !== "undefined") {
-        buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, managers, employees, users });
+        buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, managers, employees, users: activeUsers });
     }
 
-    renderInsights({ users, localUsers, regionalUsers });
-    renderBirthdays(users);
+    renderInsights({ users: activeUsers, localUsers, regionalUsers });
+    renderBirthdays(activeUsers);
 }
 
 function renderCityCoverage(users) {
@@ -83,7 +95,7 @@ function renderCityCoverage(users) {
 
     if (!sortedCities.length) {
         if (leadBadge) leadBadge.textContent = "Şehir verisi bulunamadı";
-        list.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#7b8b91;padding:1.2rem;">Şehir verisi henüz oluşturulmamış.</td></tr>`;
+        list.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#7b8b91;padding:1.2rem;">Şehir verisi henüz yok.</td></tr>`;
         return;
     }
 
@@ -95,149 +107,61 @@ function renderCityCoverage(users) {
     }).join("");
 }
 
-function buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, managers, employees, users }) {
-    const regionCtx = document.getElementById("regionChart");
-    if (regionCtx) {
-        new Chart(regionCtx, {
-            type: "pie",
-            data: {
-                labels: sortedRegions.map((r) => r[0]),
-                datasets: [{
-                    data: sortedRegions.map((r) => r[1]),
-                    backgroundColor: CHART_PALETTE.region,
-                    borderWidth: 2,
-                    borderColor: "#fff"
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "top",
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                            boxWidth: 8,
-                            padding: 12,
-                            color: "#4b5b60",
-                            font: { size: 11, family: "Inter", weight: "600" }
-                        }
-                    }
-                }
-            }
-        });
-    }
+function buildCharts(data) {
+    // Destroy previous charts to avoid overlapping on real-time update
+    Object.values(activeCharts).forEach(c => c.destroy());
+    activeCharts = {};
 
-    const catCtx = document.getElementById("categoryChart");
-    if (catCtx) {
-        new Chart(catCtx, {
-            type: "doughnut",
-            data: {
-                labels: ["Fabrika", "Bölge Bayisi", "Yerel Bayi"],
-                datasets: [{
-                    data: [factoryUsers.length, regionalUsers.length, localUsers.length],
-                    backgroundColor: CHART_PALETTE.category,
-                    borderColor: "#fff",
-                    borderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "60%",
-                plugins: {
-                    legend: {
-                        position: "top",
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                            boxWidth: 8,
-                            padding: 12,
-                            color: "#4b5b60",
-                            font: { size: 11, family: "Inter", weight: "600" }
-                        }
-                    }
-                }
-            }
-        });
-    }
+    const createChart = (id, config) => {
+        const ctx = document.getElementById(id);
+        if (ctx) activeCharts[id] = new Chart(ctx, config);
+    };
+
+    createChart("regionChart", {
+        type: "pie",
+        data: {
+            labels: data.sortedRegions.map((r) => r[0]),
+            datasets: [{ data: data.sortedRegions.map((r) => r[1]), backgroundColor: CHART_PALETTE.region, borderWidth: 2, borderColor: "#fff" }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } }
+    });
+
+    createChart("categoryChart", {
+        type: "doughnut",
+        data: {
+            labels: ["Fabrika", "Bölge Bayisi", "Yerel Bayi"],
+            datasets: [{ data: [data.factoryUsers.length, data.regionalUsers.length, data.localUsers.length], backgroundColor: CHART_PALETTE.category, borderColor: "#fff", borderWidth: 3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: "60%" }
+    });
 
     const companyStats = {};
-    users.forEach((u) => { if (u.company) companyStats[u.company] = (companyStats[u.company] || 0) + 1; });
+    data.users.forEach((u) => { if (u.company) companyStats[u.company] = (companyStats[u.company] || 0) + 1; });
     const topCompanies = Object.entries(companyStats).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    const compCtx = document.getElementById("companyChart");
-    if (compCtx) {
-        new Chart(compCtx, {
-            type: "bar",
-            data: {
-                labels: topCompanies.map((c) => c[0].length > 22 ? `${c[0].substring(0, 20)}…` : c[0]),
-                datasets: [{
-                    data: topCompanies.map((c) => c[1]),
-                    backgroundColor: topCompanies.map((_, idx) => CHART_PALETTE.company[idx % CHART_PALETTE.company.length]),
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } } }
-        });
-    }
-
-    const roleCtx = document.getElementById("roleChart");
-    if (roleCtx) {
-        new Chart(roleCtx, {
-            type: "doughnut",
-            data: {
-                labels: ["Yönetici / Patron", "Çalışan"],
-                datasets: [{ data: [managers.length, employees.length], backgroundColor: CHART_PALETTE.role, borderColor: "#fff", borderWidth: 3 }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, cutout: "55%" }
-        });
-    }
-
-    const deptStats = {};
-    users.forEach((u) => { if (u.department) deptStats[u.department] = (deptStats[u.department] || 0) + 1; });
-    const topDepts = Object.entries(deptStats).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    const deptCtx = document.getElementById("deptChart");
-    if (deptCtx) {
-        new Chart(deptCtx, {
-            type: "bar",
-            data: {
-                labels: topDepts.map((d) => d[0].length > 25 ? `${d[0].substring(0, 23)}…` : d[0]),
-                datasets: [{ data: topDepts.map((d) => d[1]), backgroundColor: CHART_PALETTE.department, borderRadius: 6, borderSkipped: false }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } } }
-        });
-    }
+    createChart("companyChart", {
+        type: "bar",
+        data: {
+            labels: topCompanies.map((c) => c[0].length > 22 ? `${c[0].substring(0, 20)}…` : c[0]),
+            datasets: [{ data: topCompanies.map((c) => c[1]), backgroundColor: CHART_PALETTE.company, borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { display: false } } }
+    });
 }
 
 function renderInsights({ users, localUsers, regionalUsers }) {
-    const localCompanyStats = {};
-    localUsers.forEach((u) => { if (u.company) localCompanyStats[u.company] = (localCompanyStats[u.company] || 0) + 1; });
-    const busiestLocal = Object.entries(localCompanyStats).sort((a, b) => b[1] - a[1])[0];
     const insightLocal = document.getElementById("insightBusiestLocal");
     if (insightLocal) {
-        insightLocal.innerHTML = busiestLocal
-            ? `<div class="insight-big"><div class="insight-company-name"><i class="fa-solid fa-store"></i> ${busiestLocal[0]}</div><div class="insight-metric"><span class="insight-metric-label">Toplam Personel</span><span class="insight-metric-value">${busiestLocal[1]} kişi</span></div></div>`
-            : "<p style='text-align:center;color:var(--text-muted);padding:1rem;'>Yerel bayi verisi bulunamadı.</p>";
+        const localStats = {};
+        localUsers.forEach((u) => { if (u.company) localStats[u.company] = (localStats[u.company] || 0) + 1; });
+        const top = Object.entries(localStats).sort((a, b) => b[1] - a[1])[0];
+        insightLocal.innerHTML = top ? `<div class="insight-big"><strong>${top[0]}</strong><br><small>${top[1]} Personel</small></div>` : "-";
     }
 
-    const regCompanyStats = {};
-    regionalUsers.forEach((u) => { if (u.company) regCompanyStats[u.company] = (regCompanyStats[u.company] || 0) + 1; });
-    const busiestRegional = Object.entries(regCompanyStats).sort((a, b) => b[1] - a[1])[0];
-    const insightRegional = document.getElementById("insightBusiestRegional");
-    if (insightRegional) {
-        insightRegional.innerHTML = busiestRegional
-            ? `<div class="insight-big"><div class="insight-company-name"><i class="fa-solid fa-map-location-dot"></i> ${busiestRegional[0]}</div><div class="insight-metric"><span class="insight-metric-label">Toplam Personel</span><span class="insight-metric-value">${busiestRegional[1]} kişi</span></div></div>`
-            : "<p style='text-align:center;color:var(--text-muted);padding:1rem;'>Bölge bayisi verisi bulunamadı.</p>";
-    }
-
-    const oldest = [...users].filter((u) => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
     const insightOldest = document.getElementById("insightOldest");
     if (insightOldest) {
-        insightOldest.innerHTML = oldest
-            ? `<div class="insight-big"><div class="insight-person"><div class="insight-avatar">${((oldest.name?.[0] || "") + (oldest.surname?.[0] || "")).toUpperCase()}</div><div class="insight-person-info"><span class="insight-person-name">${oldest.name} ${oldest.surname}</span><span class="insight-person-detail">${oldest.company || "-"}</span></div></div></div>`
-            : "<p style='text-align:center;color:var(--text-muted);padding:1rem;'>Doğum tarihi bilgisi bulunamadı.</p>";
+        const oldest = [...users].filter((u) => u.birthDate).sort((a, b) => new Date(a.birthDate) - new Date(b.birthDate))[0];
+        // REMOVED initials avatar here as requested
+        insightOldest.innerHTML = oldest ? `<div class="insight-big"><strong>${oldest.name} ${oldest.surname}</strong><br><small>${oldest.company || "-"}</small></div>` : "-";
     }
 }
 
@@ -257,8 +181,5 @@ function renderBirthdays(users) {
     const badge = document.getElementById("statBirthdays");
     if (badge) badge.textContent = upcoming.length;
     const list = document.getElementById("upcomingBirthdayList");
-    if (!list) return;
-    list.innerHTML = upcoming.length
-        ? upcoming.map((u) => `<div class="birthday-item"><div class="bday-left"><span class="bday-name">${u.name} ${u.surname}</span><span class="bday-company">${u.company || "-"}</span></div><div class="bday-right"><span class="bday-countdown ${u.daysRemaining === 0 ? "today" : ""}">${u.daysRemaining === 0 ? "🎉 BUGÜN!" : `${u.daysRemaining} gün`}</span><span class="bday-date">${u.upcomingDate.toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}</span></div></div>`).join("")
-        : "<p style='text-align:center;padding:2rem;color:var(--text-muted);'>Yakın 30 gün içinde doğum günü yok.</p>";
+    if (list) list.innerHTML = upcoming.map(u => `<div class="birthday-item"><span>${u.name} ${u.surname}</span> <strong>${u.daysRemaining === 0 ? "🎉 Bugün!" : `${u.daysRemaining} gün`}</strong></div>`).join("");
 }
