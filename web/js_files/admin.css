@@ -74,7 +74,6 @@ body {
 
 .brand-logo {
     max-height: 40px;
-    filter: brightness(0) invert(1); /* Logo white in dark sidebar */
 }
 
 .sidebar-nav {
