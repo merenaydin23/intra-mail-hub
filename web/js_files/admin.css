@@ -424,6 +424,94 @@ input::placeholder { color: var(--text-light); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 main > * { animation: fadeIn 0.5s ease-out forwards; }
 
+/* ===== BIRTHDAY REDESIGN ===== */
+.birthday-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.birthday-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow: var(--shadow-sm);
+}
+
+.birthday-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--brand);
+}
+
+.bday-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--brand-soft);
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    font-family: 'Outfit';
+}
+
+.bday-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.bday-user-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--brand-ink);
+    margin-bottom: 0.2rem;
+}
+
+.bday-company {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.75rem;
+}
+
+.bday-days-badge {
+    display: inline-block;
+    padding: 0.4rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.bday-days-critical {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+.bday-days-soon {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.bday-days-safe {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-page); }

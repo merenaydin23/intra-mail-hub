@@ -140,16 +140,23 @@ function renderBirthdays(users) {
         return;
     }
 
-    list.innerHTML = upcoming.map(u => `
-        <div class="celebration-item">
-            <div class="bday-icon"><i class="fa-solid fa-cake-candles"></i></div>
-            <div class="bday-info">
-                <span class="bday-name">${u.name} ${u.surname}</span>
-                <span class="bday-meta">${u.company || 'Birim Bilgisi Yok'}</span>
+    list.innerHTML = upcoming.map(u => {
+        const initials = `${u.name?.[0] || ""}${u.surname?.[0] || ""}`.toUpperCase();
+        let statusClass = "bday-days-safe";
+        if (u.daysRemaining <= 3) statusClass = "bday-days-critical";
+        else if (u.daysRemaining <= 7) statusClass = "bday-days-soon";
+
+        return `
+            <div class="birthday-card">
+                <div class="bday-avatar">${initials}</div>
+                <div class="bday-content">
+                    <span class="bday-user-name">${u.name} ${u.surname}</span>
+                    <span class="bday-company">${u.company || 'Birim Bilgisi Yok'}</span>
+                    <div class="bday-days-badge ${statusClass}">
+                        ${u.daysRemaining === 0 ? 'Bugün! 🎂' : `${u.daysRemaining} Gün Kaldı`}
+                    </div>
+                </div>
             </div>
-            <div class="bday-badge ${u.daysRemaining === 0 ? 'bday-today' : 'bday-soon'}">
-                ${u.daysRemaining === 0 ? 'Bugün!' : `${u.daysRemaining} Gün`}
-            </div>
-        </div>
-    `).join("");
+        `;
+    }).join("");
 }

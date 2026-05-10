@@ -130,8 +130,8 @@
 
         <!-- ROW 5: Şirket Bazlı Personel Grafiği + Doğum Günleri -->
         <div class="dashboard-grid-2col">
-            <!-- Şirket Bazlı Bar Chart -->
-            <div class="card card--elevated">
+            <!-- Şirket Bazlı Bar Chart (Full Width in this row) -->
+            <div class="card card--elevated" style="grid-column: span 2;">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-ranking-star" style="color:var(--primary-light);margin-right:8px;"></i> Şirket Bazlı Personel Sayıları</h3>
                 </div>
@@ -140,19 +140,23 @@
                 </div>
             </div>
 
-            <!-- Doğum Günü Listesi -->
-            <div class="card card--elevated" style="border-left: 4px solid var(--accent);">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-cake-candles" style="color:var(--accent); margin-right:8px;"></i> Yaklaşan Doğum Günleri (30 Gün)</h3>
+        </div>
+
+        <!-- ROW 6: Yaklaşan Doğum Günleri (Full Width Grid) -->
+        <div class="card card--elevated" style="margin-top: 2rem; border-top: 4px solid var(--accent);">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-cake-candles" style="color:var(--accent); margin-right:8px;"></i> Yaklaşan Doğum Günleri (30 Gün)</h3>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
                     <span class="badge badge-accent" id="statBirthdays">0</span>
+                    <i class="fa-solid fa-calendar-day" style="color:var(--text-light); font-size:1.1rem;"></i>
                 </div>
-                <div id="upcomingBirthdayList" class="birthday-list">
-                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Hesaplanıyor...</p>
-                </div>
+            </div>
+            <div id="upcomingBirthdayList" class="birthday-list">
+                <p style="text-align: center; color: var(--text-muted); padding: 3rem;"><i class="fa-solid fa-spinner fa-spin"></i> Hesaplanıyor...</p>
             </div>
         </div>
 
-        <!-- ROW 6: Yönetici vs Çalışan + Departman Dağılımı -->
+        <!-- ROW 7: Yönetici vs Çalışan + Departman Dağılımı -->
         <div class="dashboard-grid-2col">
             <div class="card card--elevated">
                 <div class="card-header">
