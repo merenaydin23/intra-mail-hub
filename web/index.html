@@ -28,13 +28,22 @@
 
         <form id="login-form">
           <div class="input-group">
-            <i class="fa-regular fa-envelope"></i>
+            <i class="fa-regular fa-envelope field-icon"></i>
             <input type="email" id="email" placeholder="Kurumsal E-posta (@intramail.corp)" required />
           </div>
 
           <div class="input-group">
-            <i class="fa-solid fa-lock"></i>
+            <i class="fa-solid fa-lock field-icon"></i>
             <input type="password" id="password" placeholder="Şifre" required />
+            <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+          </div>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" id="remember">
+              <span>Beni Hatırla</span>
+            </label>
+            <a href="#" class="forgot-password">Şifremi Unuttum?</a>
           </div>
 
           <button type="submit" class="btn-login">
@@ -53,7 +62,7 @@
         <div class="hero-content">
           <span class="badge">Sürüm 2.0 - AI Powered</span>
           <h1>Güvenli ve Akıllı <br>Kurumsal İletişim</h1>
-          <p>Gemini API destekli otomatik çeviri, spam tespiti ve akıllı yanıt önerileri ile departmanlar arası iletişimi hızlandırın.</p>
+          <p><strong>Gemini API</strong> destekli otomatik çeviri, spam tespiti ve akıllı yanıt önerileri ile departmanlar arası iletişimi hızlandırın.</p>
           <div class="features-list">
             <div class="feature-item">
               <i class="fa-solid fa-language"></i>
