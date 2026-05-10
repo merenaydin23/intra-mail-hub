@@ -508,6 +508,49 @@ input::placeholder { color: var(--text-light); }
 .hl-value { font-size: 1.25rem; font-weight: 800; color: var(--brand-ink); }
 .hl-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
+/* ===== DASHBOARD LAYOUT GRIDS ===== */
+.dashboard-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ===== INSIGHTS & CHARTS ===== */
+.insight-body {
+    padding: 2rem;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.insight-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.chart-center {
+    padding: 1.5rem;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-tall {
+    height: 400px;
+}
+
 /* ===== SKELETON SCREEN ===== */
 .skeleton {
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);

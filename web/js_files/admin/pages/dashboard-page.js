@@ -60,6 +60,7 @@ function updateDashboardUI(users) {
         buildCharts({ sortedRegions, factoryUsers, regionalUsers, localUsers, users: activeUsers });
     }
     renderBirthdays(activeUsers);
+    renderInsights(activeUsers);
 }
 
 function renderCityCoverage(users) {
@@ -115,6 +116,75 @@ function buildCharts(data) {
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: "75%", plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 6 } } } }
     });
+
+    // Company Chart
+    const companyStats = {};
+    data.users.forEach(u => { if (u.company) companyStats[u.company] = (companyStats[u.company] || 0) + 1; });
+    const sortedCos = Object.entries(companyStats).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    createChart("companyChart", {
+        type: "bar",
+        data: {
+            labels: sortedCos.map(c => c[0]),
+            datasets: [{ label: "Personel Sayısı", data: sortedCos.map(c => c[1]), backgroundColor: CHART_PALETTE.company, borderRadius: 8 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+    });
+
+    // Role Chart
+    const managers = data.users.filter(u => u.subRole === "manager").length;
+    const employees = data.users.filter(u => u.subRole === "employee").length;
+    createChart("roleChart", {
+        type: "pie",
+        data: {
+            labels: ["Yönetici", "Çalışan"],
+            datasets: [{ data: [managers, employees], backgroundColor: ["#059669", "#cbd5e1"], borderWidth: 4, borderColor: "#fff" }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    });
+
+    // Dept Chart
+    const deptStats = {};
+    data.users.forEach(u => { if (u.department) deptStats[u.department] = (deptStats[u.department] || 0) + 1; });
+    const sortedDepts = Object.entries(deptStats).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    createChart("deptChart", {
+        type: "doughnut",
+        data: {
+            labels: sortedDepts.map(d => d[0]),
+            datasets: [{ data: sortedDepts.map(d => d[1]), backgroundColor: CHART_PALETTE.region, borderWidth: 2, borderColor: "#fff" }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: "60%", plugins: { legend: { display: false } } }
+    });
+}
+
+function renderInsights(users) {
+    // Busiest Regional
+    const regCos = {};
+    users.filter(u => u.category === "regional").forEach(u => { if (u.company) regCos[u.company] = (regCos[u.company] || 0) + 1; });
+    const sortedReg = Object.entries(regCos).sort((a,b) => b[1] - a[1]);
+    const busyEl = document.getElementById("insightBusiestRegional");
+    if (busyEl) {
+        if (sortedReg.length) {
+            const [name, count] = sortedReg[0];
+            busyEl.innerHTML = `
+                <div style="font-size:1.1rem; font-weight:800; color:var(--brand-ink);">${name}</div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">${count} aktif personel ile lider konumda.</div>
+            `;
+        } else busyEl.innerHTML = "Veri yok.";
+    }
+
+    // Oldest Member (Longest Tenured or Birth Year)
+    const sortedAge = [...users].filter(u => u.birthDate).sort((a,b) => new Date(a.birthDate) - new Date(b.birthDate));
+    const oldEl = document.getElementById("insightOldest");
+    if (oldEl) {
+        if (sortedAge.length) {
+            const u = sortedAge[0];
+            const age = new Date().getFullYear() - new Date(u.birthDate).getFullYear();
+            oldEl.innerHTML = `
+                <div style="font-size:1.1rem; font-weight:800; color:var(--brand-ink);">${u.name} ${u.surname}</div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">${age} yaşında · Şirketin tecrübe abidesi.</div>
+            `;
+        } else oldEl.innerHTML = "Doğum tarihi verisi yok.";
+    }
 }
 
 function renderBirthdays(users) {
