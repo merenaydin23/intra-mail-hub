@@ -202,26 +202,45 @@ h1 {
     margin-bottom: 2rem;
 }
 
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--brand-light);
+}
+
 .stat-card {
     background: var(--bg-card);
-    padding: 1.75rem;
-    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .stat-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
 }
 
 .stat-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
+    top: 0; left: 0; width: 100%; height: 3px;
     background: var(--brand);
 }
 
@@ -230,16 +249,16 @@ h1 {
 .stat-card--purple::before { background: var(--purple); }
 
 .stat-icon-circle {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     background: var(--brand-soft);
     color: var(--brand);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
-    margin-bottom: 1.25rem;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
 }
 
 .stat-icon--amber { background: #fffbeb; color: var(--amber); }
@@ -248,26 +267,26 @@ h1 {
 
 .stat-label {
     display: block;
-    font-size: 0.78rem;
-    font-weight: 800;
+    font-size: 0.75rem;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
 }
 
 .stat-value {
-    font-size: 2.4rem;
-    font-weight: 900;
+    font-size: 2.2rem;
+    font-weight: 800;
     color: var(--brand-ink);
-    line-height: 1;
-    font-family: 'Outfit', sans-serif;
+    line-height: 1.1;
+    font-family: var(--font-heading);
 }
 
 .stat-sub {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
     font-weight: 500;
 }
 
