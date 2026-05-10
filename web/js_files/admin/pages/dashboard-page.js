@@ -2,10 +2,10 @@ import { collection, query, onSnapshot, where } from "https://www.gstatic.com/fi
 import { db } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
-    // Vibrant & Distinct Colors
-    region: ["#0f172a", "#334155", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9"],
-    category: ["#0d9488", "#06b6d4", "#22d3ee"],
-    company: ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8"]
+    // SaaS Professional Palette
+    region: ["#059669", "#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5", "#ecfdf5"],
+    category: ["#0f172a", "#334155", "#64748b"],
+    company: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"]
 };
 
 let activeCharts = {};
