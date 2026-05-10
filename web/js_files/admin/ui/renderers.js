@@ -23,19 +23,31 @@ export function renderTableRows(tbody, users) {
 
     tbody.innerHTML = users.map((u) => {
         const fullName = `${u.name || ""} ${u.surname || ""}`.trim();
+        const roleLabel = u.subRole === "manager" ? "PATRON" : "ÇALIŞAN";
+        const roleClass = u.subRole === "manager" ? "badge-saas-green" : "badge-saas-blue";
+        const statusHtml = u.isActive === false ? '<span class="badge badge-saas-red" style="margin-left: 8px;">PASİF</span>' : '<span class="badge badge-saas-mint" style="margin-left: 8px;">AKTİF</span>';
+
         return `
-            <tr class="personnel-main-row" data-user-id="${u.id}" style="cursor:pointer;">
+            <tr class="personnel-main-row" data-user-id="${u.id}">
                 <td>
                     <div class="personnel-name-wrap">
-                        <strong>${fullName || "-"}</strong>
+                        <span class="user-avatar-mini">${(u.name?.[0] || "")}${(u.surname?.[0] || "")}</span>
+                        <div class="user-info-text">
+                            <strong>${fullName || "-"}</strong>
+                            <small>${u.email || ""}</small>
+                        </div>
                     </div>
                 </td>
-                <td>${u.company ? `<strong>${u.company}</strong> <small style="color:#64748b; margin-left:4px;">(#${u.dealerCode || '0000'})</small>` : "-"}</td>
-                <td><span style="font-size: 0.8rem; color: #64748b;">${u.department || u.city || "-"}</span></td>
                 <td>
-                    <div style="display:flex; gap:0.5rem; align-items:center;">
-                        <span class="badge badge-role ${u.subRole === "manager" ? "badge-role-manager" : "badge-role-employee"}">${u.subRole === "manager" ? "PATRON" : "ÇALIŞAN"}</span>
-                        ${u.isActive === false ? '<span class="badge" style="background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">PASİF</span>' : ''}
+                    <div class="company-info-wrap">
+                        <strong>${u.company || "Bellona Merkez"}</strong>
+                        <small>#${u.dealerCode || '0000'}</small>
+                    </div>
+                </td>
+                <td>
+                    <div class="role-status-wrap">
+                        <span class="badge ${roleClass}">${roleLabel}</span>
+                        ${statusHtml}
                     </div>
                 </td>
             </tr>
