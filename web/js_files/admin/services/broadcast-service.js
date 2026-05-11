@@ -36,28 +36,33 @@ export async function sendBroadcast({ target, subject, body }) {
         .replace(/^\s*[,.;:]\s*/, '') // Başta kalan başıboş noktalama işaretlerini temizle
         .trim();
 
-    // 2. Her kullanıcıya mesaj oluştur (Write Batch ile Optimize Edildi)
-    const batch = writeBatch(db);
-    
-    users.forEach(user => {
-        const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${cleanBody}\n\nSaygılarımla,\nBellona Fabrikası`;
+    // 2. Her kullanıcıya mesaj oluştur (Write Batch + Chunking ile Ölçeklendirildi)
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < users.length; i += CHUNK_SIZE) {
+        const chunk = users.slice(i, i + CHUNK_SIZE);
+        const batch = writeBatch(db);
         
-        const msgRef = doc(collection(db, "messages"));
-        batch.set(msgRef, {
-            senderId: actor.uid,
-            senderName: "BELLONA MERKEZ",
-            receiverId: user.id,
-            receiverName: `${user.name} ${user.surname || ''}`,
-            subject: fullSubject,
-            content: personalizedBody,
-            status: "active",
-            isRead: false,
-            timestamp: serverTimestamp(),
-            type: "announcement"
+        chunk.forEach(user => {
+            const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${cleanBody}\n\nSaygılarımla,\nBellona Fabrikası`;
+            
+            const msgRef = doc(collection(db, "messages"));
+            batch.set(msgRef, {
+                senderId: actor.uid,
+                senderName: "BELLONA MERKEZ",
+                receiverId: user.id,
+                receiverName: `${user.name} ${user.surname || ''}`,
+                subject: fullSubject,
+                content: personalizedBody,
+                status: "active",
+                isRead: false,
+                timestamp: serverTimestamp(),
+                type: "announcement"
+            });
         });
-    });
-
-    await batch.commit();
+        
+        await batch.commit();
+        console.log(`Batch committed: ${i} to ${Math.min(i + CHUNK_SIZE, users.length)} users.`);
+    }
 
     // 3. Audit log yaz
     await writeAuditLog({

@@ -85,18 +85,22 @@ function setupFilterTabs() {
 // ── REALTIME LISTENER ──────────────────────────────────────────
 let snapshotTimeout = null;
 function setupRealtimeMessages() {
-    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(500));
+    // Arşiv ve güncel mesajlar için limiti artırdık (2000 mesaj)
+    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(2000));
     onSnapshot(q, (snapshot) => {
-        // Debounce: Toplu gönderimlerde arayüzün kilitlenmesini engelle
+        // Debounce: Veri bombardımanında arayüzü koru
         if (snapshotTimeout) clearTimeout(snapshotTimeout);
         
         snapshotTimeout = setTimeout(() => {
             allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Veri geldiğinde hangi tab açıksa ona göre render yap
             if (activeTab === 'today') applyFilter();
             else renderArchiveDays();
+            
             updateCountBadges();
             computeAnalytics();
-            console.log("Realtime feed updated (debounced)");
+            console.log(`Realtime feed sync: ${allMessages.length} messages.`);
         }, 300);
     });
 }
