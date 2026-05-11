@@ -2,14 +2,12 @@ import { collection, query, onSnapshot, where, addDoc, getDocs, serverTimestamp,
 import { db, auth } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
-    // Ultra-Premium Vibrant Palette
-    brand: "#10b981",
-    mint: "#f0fdf4",
-    indigo: "#6366f1",
-    rose: "#f43f5e",
+    // Premium Vibrant Indigo & Lime Theme
+    brand: "#6366f1", // Indigo
+    accent: "#84cc16", // Lime
+    mint: "#f7fee7", 
     slate: ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b"],
-    // Multi-color vibrant gradient
-    emerald: ["#10b981", "#14b8a6", "#06b6d4", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef"]
+    emerald: ["#6366f1", "#4f46e5", "#4338ca", "#3730a3", "#84cc16", "#65a30d", "#4d7c0f"]
 };
 
 let activeCharts = {};
@@ -17,13 +15,18 @@ let activeCharts = {};
 const centerTextPlugin = {
     id: 'centerText',
     beforeDraw: (chart) => {
-        const { ctx, options } = chart;
-        const config = options.plugins?.centerText;
+        if (chart.config.type !== 'doughnut') return;
+        const config = chart.options.plugins?.centerText;
         if (!config || !config.display) return;
 
-        const { top, left, width, height } = chart.chartArea;
+        const { ctx, chartArea: { top, left, width, height } } = chart;
         ctx.save();
         
+        // Use a flag to avoid double drawing in the same render cycle
+        const renderId = chart.id + "_" + chart.lastUpdate;
+        if (chart._lastCenterRender === renderId) { ctx.restore(); return; }
+        chart._lastCenterRender = renderId;
+
         const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
         const text = total.toString();
         const label = config.label || "TOPLAM";
@@ -31,15 +34,15 @@ const centerTextPlugin = {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw Number
-        ctx.font = 'bold 28px "Plus Jakarta Sans"';
+        // Draw Number (Vibrant Indigo)
+        ctx.font = 'bold 32px "Plus Jakarta Sans"';
         ctx.fillStyle = '#1e293b';
-        ctx.fillText(text, left + width / 2, top + height / 2 - 8);
+        ctx.fillText(text, left + width / 2, top + height / 2 - 10);
         
-        // Draw Label
-        ctx.font = '800 11px "Inter"';
+        // Draw Label (Subtle Slate)
+        ctx.font = '800 12px "Inter"';
         ctx.fillStyle = '#64748b';
-        ctx.fillText(label, left + width / 2, top + height / 2 + 18);
+        ctx.fillText(label, left + width / 2, top + height / 2 + 20);
         ctx.restore();
     }
 };
@@ -320,8 +323,7 @@ function buildCharts(data) {
             datasets: [{ 
                 data: data.sortedRegions.map((r) => r[1]), 
                 backgroundColor: CHART_PALETTE.emerald,
-                borderWidth: 3, 
-                borderColor: "#fff",
+                borderWidth: 0, 
                 hoverOffset: 12
             }]
         },
@@ -353,7 +355,7 @@ function buildCharts(data) {
             labels: ["Fabrika", "Bölge", "Yerel"],
             datasets: [{ 
                 data: [data.factoryUsers.length, data.regionalUsers.length, data.localUsers.length], 
-                backgroundColor: [CHART_PALETTE.brand, "#1e293b", "#64748b"], 
+                backgroundColor: [CHART_PALETTE.brand, CHART_PALETTE.accent, "#334155"], 
                 borderColor: "#fff", 
                 borderWidth: 4 
             }]
@@ -370,9 +372,9 @@ function buildCharts(data) {
             labels: ["Yöneticiler", "Çalışanlar"],
             datasets: [{ 
                 data: [managers, employees], 
-                backgroundColor: [CHART_PALETTE.brand, CHART_PALETTE.mint], 
+                backgroundColor: [CHART_PALETTE.brand, CHART_PALETTE.accent], 
                 borderWidth: 0,
-                hoverOffset: 10
+                hoverOffset: 12
             }]
         },
         options: { ...baseOptions, cutout: "82%", plugins: { ...baseOptions.plugins, legend: { position: 'bottom' }, centerText: { display: true, label: "YÖNETİM" } } }
@@ -388,7 +390,7 @@ function buildCharts(data) {
     if (deptCtx) {
         deptGradient = deptCtx.createLinearGradient(0, 0, 400, 0);
         deptGradient.addColorStop(0, CHART_PALETTE.brand);
-        deptGradient.addColorStop(1, "#334155");
+        deptGradient.addColorStop(1, CHART_PALETTE.accent);
     }
 
     createChart("deptChart", {
