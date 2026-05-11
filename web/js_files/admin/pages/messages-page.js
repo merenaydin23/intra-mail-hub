@@ -449,48 +449,19 @@ async function initBroadcast() {
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
             try {
-                const subjectEl = document.getElementById('broadcastSubject');
-                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuruya dönüştür.
+                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuru metnine dönüştür.
                 
-                ÖNEMLİ: Hem bir KONU başlığı hem de mesaj GÖVDESİ oluşturmalısın.
-                
-                KONU BAŞLIĞI KURALLARI (Kritik):
-                - Mesaj içeriğini analiz ederek kısa, net ve kurumsal bir konu üret.
-                - Maksimum 3-4 kelime olsun (özet niteliğinde).
-                - Tamamı büyük harf olmasın, emoji kullanma, resmi ton kullan.
-                - Ekstra bilgi veya açıklama ekleme.
-                
-                MESAJ GÖVDESİ KURALLARI:
-                - En az 3-4 cümlelik, profesyonel ve vizyoner bir metin oluştur.
-                - Ürün gruplarını (Nadia vb.) kişi adı sanma.
-                - Hitap ve imza ekleme, sistem otomatik ekleyecek.
-                
-                FORMAT:
-                KONU: [Buraya kurumsal konu başlığını yaz]
-                MESAJ: [Buraya yaratıcı mesaj gövdesini yaz]`;
+                KURALLAR:
+                1. En az 3-4 cümlelik, profesyonel ve vizyoner bir metin oluştur.
+                2. Ürün gruplarını (Nadia vb.) kişi adı sanma.
+                3. Giriş hitabı (Sayın...) ve kapanış imzasını (Saygılarımla...) KESİNLİKLE yazma, sistem otomatik ekleyecek.
+                4. Sadece mesajın gövdesini yaz, konu başlığı üretme.`;
                 
                 const response = await refineMessageWithAI(draft, prompt);
                 console.log("AI Response:", response);
                 
-                // Flexible parsing
-                let subjectPart = response.split(/MESAJ:/i)[0].replace(/KONU:/i, '').trim();
-                const bodyPart = response.split(/MESAJ:/i)[1]?.trim();
-                
-                // Extra guard for subject length (max 3-4 words)
-                if (subjectPart) {
-                    const words = subjectPart.split(/\s+/);
-                    if (words.length > 4) subjectPart = words.slice(0, 3).join(' ');
-                }
-                
-                if (subjectPart && subjectEl) subjectEl.value = subjectPart;
-                if (bodyPart) {
-                    bodyEl.value = bodyPart;
-                    showToast('Konu ve Mesaj başarıyla güncellendi.', 'success');
-                } else {
-                    // Fallback if split fails
-                    bodyEl.value = response;
-                    showToast('Mesaj düzenlendi ancak konu ayrıştırılamadı.', 'warning');
-                }
+                bodyEl.value = response.trim();
+                showToast('Mesaj başarıyla düzenlendi.', 'success');
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
