@@ -566,15 +566,35 @@ async function initBroadcast() {
             const btn = document.getElementById('btnSendFinal');
             
             btn.disabled = true;
-                const sentCount = await sendBroadcast({ target, subject, body });
-                showToast(`Duyuru ${sentCount} kişiye gönderildi.`, 'success');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşlem Yapılıyor...';
+            
+            try {
+                if (messageMode === 'broadcast') {
+                    const target = document.getElementById('broadcastTarget').value;
+                    const region = document.getElementById('broadcastRegion').value;
+                    const subRole = document.getElementById('broadcastSubRole').value;
+                    const sentCount = await sendBroadcast({ target, region, subRole, subject, body });
+                    showToast(`${sentCount} kişiye duyuru gönderildi.`, 'success');
+                } else {
+                    if (!selectedUser) throw new Error("Lütfen bir alıcı seçin.");
+                    await sendDirectMessage({ 
+                        receiverId: selectedUser.id, 
+                        receiverName: selectedUser.name, 
+                        subject, 
+                        body 
+                    });
+                    showToast('Bireysel mesaj gönderildi.', 'success');
+                }
                 form.reset();
+                selectedUser = null;
+                const chipArea = document.getElementById('selectedUserChip');
+                if (chipArea) chipArea.style.display = 'none';
                 setTimeout(() => { if (modal) modal.style.display = 'none'; }, 1500);
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Duyuruyu Gönder';
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gönderimi Başlat';
             }
         };
     }
