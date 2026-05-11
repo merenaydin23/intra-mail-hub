@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
 
 :root {
-    /* Premium Minimalist Palette - Light Emerald */
+    /* Sophisticated Minimalist Emerald - Simple & Clean */
     --brand: #10b981;
     --brand-dark: #059669;
     --brand-light: #34d399;
-    --brand-soft: #ecfdf5;
-    --brand-glow: rgba(16, 185, 129, 0.1);
+    --brand-soft: #f0fdf4;
+    --brand-glow: rgba(16, 185, 129, 0.08);
     --brand-ink: #064e3b;
     
     --bg-page: #f8fafc;
@@ -149,17 +149,17 @@ p, span, div {
 .brand-logo {
     max-height: 40px;
     width: auto;
-    filter: brightness(0.2); /* Make logo dark for white sidebar */
     transition: all 0.4s ease;
 }
 
 .logo::after {
     content: 'ADMIN PORTAL';
     color: var(--brand);
-    font-size: 0.6rem;
-    font-weight: 800;
-    letter-spacing: 0.25em;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.4em;
     opacity: 0.6;
+    margin-top: 0.2rem;
 }
 
 .sidebar-nav {
@@ -190,7 +190,7 @@ p, span, div {
     background: var(--brand);
     color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
 }
 
 .nav-item i { width: 20px; text-align: center; }
@@ -203,6 +203,24 @@ p, span, div {
 .sidebar-logout {
     padding: 1.5rem 1.25rem;
     border-top: 1px solid var(--border);
+}
+
+.sidebar-watermark {
+    margin-top: auto;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    opacity: 0.1;
+    transition: opacity 0.3s;
+}
+
+.sidebar-watermark:hover {
+    opacity: 0.3;
+}
+
+.sidebar-watermark img {
+    width: 100px;
+    filter: grayscale(1);
 }
 
 /* ===== MAIN CONTENT ===== */

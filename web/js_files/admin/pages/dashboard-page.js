@@ -2,12 +2,11 @@ import { collection, query, onSnapshot, where, addDoc, getDocs, serverTimestamp,
 import { db, auth } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
-    // Premium Vibrant Indigo & Lime Theme
-    brand: "#6366f1", // Indigo
-    accent: "#84cc16", // Lime
-    mint: "#f7fee7", 
-    slate: ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b"],
-    emerald: ["#6366f1", "#4f46e5", "#4338ca", "#3730a3", "#84cc16", "#65a30d", "#4d7c0f"]
+    // Soft & Simple Professional Emerald Palette
+    brand: "#10b981", 
+    accent: "#64748b", // Slate for secondary
+    mint: "#f8fafc", 
+    emerald: ["#059669", "#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"]
 };
 
 let activeCharts = {};
@@ -390,7 +389,7 @@ function buildCharts(data) {
     if (deptCtx) {
         deptGradient = deptCtx.createLinearGradient(0, 0, 400, 0);
         deptGradient.addColorStop(0, CHART_PALETTE.brand);
-        deptGradient.addColorStop(1, CHART_PALETTE.accent);
+        deptGradient.addColorStop(1, "#34d399"); // Light Emerald
     }
 
     createChart("deptChart", {
