@@ -112,10 +112,11 @@
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="text" id="msgSearch" placeholder="Mesajlarda ara..." />
                         </div>
-                        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                            <button class="msg-filter-btn active" data-filter="all" style="flex:1; padding:0.4rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.75rem; font-weight:700; cursor:pointer;">Tümü</button>
-                            <button class="msg-filter-btn" data-filter="bulk" style="flex:1; padding:0.4rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.75rem; font-weight:700; cursor:pointer;">Toplu</button>
-                            <button class="msg-filter-btn" data-filter="attach" style="flex:1; padding:0.4rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.75rem; font-weight:700; cursor:pointer;">Ekli</button>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+                            <button class="msg-filter-btn active" data-filter="all" style="flex:1; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.73rem; font-weight:700; cursor:pointer; white-space:nowrap;">🗂 Tümü</button>
+                            <button class="msg-filter-btn" data-filter="birthday" style="flex:1; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid #fce7f3; background:#fdf2f8; color:#9333ea; font-size:0.73rem; font-weight:700; cursor:pointer; white-space:nowrap;">🎂 D.Günleri <span id="bdayFilterCount" style="background:#9333ea; color:#fff; border-radius:999px; font-size:0.65rem; padding:1px 5px; margin-left:2px;">0</span></button>
+                            <button class="msg-filter-btn" data-filter="broadcast" style="flex:1; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.73rem; font-weight:700; cursor:pointer; white-space:nowrap;">📢 Duyurular</button>
+                            <button class="msg-filter-btn" data-filter="direct" style="flex:1; padding:0.4rem 0.6rem; border-radius:8px; border:1px solid var(--border); background:white; font-size:0.73rem; font-weight:700; cursor:pointer; white-space:nowrap;">✉️ Bireysel</button>
                         </div>
                     </div>
                     <div class="msg-list-body" id="msgListBody"></div>
