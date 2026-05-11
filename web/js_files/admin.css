@@ -148,9 +148,9 @@ p, span, div {
 }
 
 .brand-logo {
-    max-height: 44px;
+    max-height: 40px;
     width: auto;
-    filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
