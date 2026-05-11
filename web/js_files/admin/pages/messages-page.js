@@ -3,7 +3,6 @@ import { refineMessageWithAI } from "../../services/ai-service.js";
 import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
-import { deleteMessage } from "../services/message-service.js";
 import { writeAuditLog } from "../services/audit-service.js";
 import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
@@ -319,27 +318,6 @@ function showMessageDetail(msg) {
             if (linkEl) linkEl.href = msg.attachmentUrl;
         }
     }
-
-    // Delete button
-    const deleteBtn = document.getElementById('btnDeleteMessage');
-    if (deleteBtn) {
-        deleteBtn.onclick = async () => {
-            if (!confirm(`"${msg.subject || 'Bu mesaj'}" silinecek. Emin misiniz?`)) return;
-            deleteBtn.disabled = true;
-            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            try {
-                await deleteMessage(msg.id);
-                const actor = await getSessionActor();
-                await writeAuditLog({ actor, action: 'MESAJ_SİLME', targetType: 'messages', targetId: msg.id, detail: `"${msg.subject}" konulu mesaj silindi.` });
-                showToast('Mesaj silindi.', 'success');
-                detail.style.display = 'none';
-                if (placeholder) placeholder.style.display = 'flex';
-            } catch (err) {
-                showToast('Silme başarısız: ' + err.message, 'error');
-                deleteBtn.disabled = false;
-                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Mesajı Sil';
-            }
-        };
     }
 }
 
