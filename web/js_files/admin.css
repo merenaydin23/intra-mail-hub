@@ -187,18 +187,16 @@ p, span, div {
 }
 
 .nav-item.active {
-    background: var(--brand);
-    color: #ffffff;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    background: var(--brand-glow);
+    color: var(--brand);
+    font-weight: 800;
+    border-right: 3px solid var(--brand);
+    border-radius: 12px 0 0 12px;
+    margin-right: -1.25rem;
 }
 
-.nav-item i { width: 20px; text-align: center; }
-.nav-item.active i { color: #ffffff; }
-
-.nav-item.active::after { display: none; }
-
-.nav-item.active i { opacity: 1; color: #6ee7b7; }
+.nav-item i { width: 24px; text-align: center; font-size: 1.1rem; }
+.nav-item.active i { color: var(--brand); opacity: 1; }
 
 .sidebar-logout {
     padding: 1.5rem 1.25rem;

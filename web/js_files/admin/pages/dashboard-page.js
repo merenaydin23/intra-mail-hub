@@ -272,7 +272,15 @@ function buildMessageCharts(messages) {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { stepSize: 1, font: { weight: '700' } } }, x: { grid: { display: false }, ticks: { font: { weight: '700' } } } }
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(0,0,0,0.03)' }, 
+                        suggestedMax: Math.max(...densityData) + 2,
+                        ticks: { stepSize: 1, font: { weight: '700' } } 
+                    }, 
+                    x: { grid: { display: false }, ticks: { font: { weight: '700' } } } 
+                }
             }
         });
     }
