@@ -15,11 +15,14 @@ export async function sendBroadcast({ target, subject, body }) {
     const snap = await getDocs(userQuery);
     const users = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => u.role !== 'admin');
     
-    if (users.length === 0) {
-        throw new Error("Seçilen grupta aktif kullanıcı bulunamadı.");
-    }
+    // Konu Temizliği
+    const cleanSubject = subject
+        .replace(/\[DUYURU\]/gi, '')
+        .replace(/Sayın\s*\[.*?\][.,\s]*/gi, '')
+        .replace(/\[Alıcı Adı\][.,\s]*/gi, '')
+        .trim();
 
-    const fullSubject = `[DUYURU] ${subject}`;
+    const fullSubject = `[DUYURU] ${cleanSubject}`;
 
     // Temizlik: Kullanıcının girdiği metinden gereksiz placeholder ve eski usul kalıpları temizle
     const cleanBody = body
