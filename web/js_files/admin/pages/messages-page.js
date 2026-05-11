@@ -3,7 +3,9 @@ import { refineMessageWithAI } from "../../services/ai-service.js";
 import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
-import { collection, orderBy, query, onSnapshot, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { deleteMessage } from "../services/message-service.js";
+import { writeAuditLog } from "../services/audit-service.js";
+import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
 let allMessages = [];
@@ -186,6 +188,45 @@ function showMessageDetail(msg) {
         } else {
             attachEl.style.display = 'none';
         }
+    }
+
+    // Delete button
+    const deleteBtn = document.getElementById('btnDeleteMessage');
+    if (deleteBtn) {
+        deleteBtn.onclick = async () => {
+            const subject = msg.subject || 'Bu mesaj';
+            if (!confirm(`"${subject}" silinecektir. Bu işlem geri alınamaz. Emin misiniz?`)) return;
+
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                await deleteMessage(msg.id);
+
+                // Audit log
+                const actor = await getSessionActor();
+                await writeAuditLog({
+                    actor,
+                    action: 'MESAJ_SİLME',
+                    targetType: 'messages',
+                    targetId: msg.id,
+                    detail: `"${subject}" konulu mesaj silindi. Gönderen: ${msg.senderName || '-'}, Alıcı: ${msg.receiverName || '-'}`
+                });
+
+                showToast('Mesaj başarıyla silindi.', 'success');
+
+                // Close detail panel
+                const detail = document.getElementById('msgDetailView');
+                const placeholder = document.getElementById('msgPlaceholder');
+                if (detail) detail.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'flex';
+
+            } catch (err) {
+                showToast('Silme işlemi başarısız: ' + err.message, 'error');
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Mesajı Sil';
+            }
+        };
     }
 }
 
