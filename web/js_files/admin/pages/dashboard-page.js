@@ -2,12 +2,12 @@ import { collection, query, onSnapshot, where, addDoc, getDocs, serverTimestamp,
 import { db, auth } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
-    // Ultimate Bellona Palette — Corporate Green Gradient Scale
-    brand: "#004733",
-    mint: "#d1fae5",
-    slate: ["#0f172a", "#334155", "#64748b", "#94a3b8", "#cbd5e1"],
-    // 7-step green gradient from darkest to lightest for donut/pie charts
-    emerald: ["#00291e", "#003d2c", "#004733", "#005c42", "#047857", "#10b981", "#6ee7b7"]
+    // Vibrant Emerald Palette
+    brand: "#10b981",
+    mint: "#ecfdf5",
+    slate: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
+    // 7-step vibrant green to teal gradient
+    emerald: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#34d399", "#6ee7b7"]
 };
 
 let activeCharts = {};
@@ -311,7 +311,7 @@ function buildCharts(data) {
     if (deptCtx) {
         deptGradient = deptCtx.createLinearGradient(0, 0, 400, 0);
         deptGradient.addColorStop(0, CHART_PALETTE.brand);
-        deptGradient.addColorStop(1, "#10b981");
+        deptGradient.addColorStop(1, "#34d399");
     }
 
     createChart("deptChart", {
@@ -347,7 +347,7 @@ function buildCharts(data) {
     if (companyCtx) {
         companyGradient = companyCtx.createLinearGradient(0, 0, 0, 300);
         companyGradient.addColorStop(0, CHART_PALETTE.brand);
-        companyGradient.addColorStop(1, "#10b981");
+        companyGradient.addColorStop(1, "#059669");
     }
 
     createChart("companyChart", {
