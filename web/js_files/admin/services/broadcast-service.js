@@ -21,9 +21,20 @@ export async function sendBroadcast({ target, subject, body }) {
 
     const fullSubject = `[DUYURU] ${subject}`;
 
+    // Temizlik: Kullanıcının girdiği metinden gereksiz placeholder ve eski usul kalıpları temizle
+    const cleanBody = body
+        .replace(/Sayın\s*\[.*?\]/gi, '') // "Sayın [Alıcı Adı]" gibi kalıpları sil
+        .replace(/\[Alıcı Adı\]/gi, '')
+        .replace(/\[Gönderen Adı\]\s*\/\s*\[Şirket Adı\]/gi, '')
+        .replace(/Saygılarımla,/gi, '')
+        .replace(/Bellona Fabrikası/gi, '')
+        .replace(/Bilgilerinize sunar, iyi çalışmalar dilerim\./gi, '')
+        .replace(/Bilgilerinize sunar/gi, '')
+        .trim();
+
     // 2. Her kullanıcıya mesaj oluştur (Otomatik Kişiselleştirme)
     const promises = users.map(user => {
-        const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${body}\n\nSaygılarımla,\nBellona Fabrikası`;
+        const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${cleanBody}\n\nSaygılarımla,\nBellona Fabrikası`;
         
         return addDoc(collection(db, "messages"), {
             senderId: actor.uid,
