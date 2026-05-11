@@ -316,12 +316,24 @@ function showMessageDetail(msg) {
             return;
         }
         const initial = (user.name || defaultName || '?').charAt(0).toUpperCase();
+        
+        let subtitle = 'Personel';
+        if (user.role === 'admin') {
+            subtitle = 'Sistem Yöneticisi';
+        } else {
+            const catMap = { factory: 'Fabrika', regional: 'Bölge Bayisi', local: 'Yerel Bayi' };
+            const subMap = { manager: 'Patron / Yönetici', employee: 'Çalışan / Personel' };
+            const catName = catMap[user.category] || '';
+            const roleName = subMap[user.subRole] || 'Personeli';
+            subtitle = catName ? `${catName} ${roleName}` : roleName;
+        }
+
         card.innerHTML = `
             <div class="info-card-header">
                 <div class="info-card-avatar">${initial}</div>
                 <div>
                     <div class="info-card-title">${user.name || defaultName}</div>
-                    <div class="info-card-subtitle">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</div>
+                    <div class="info-card-subtitle">${subtitle}</div>
                 </div>
             </div>
             <div class="info-card-body">
