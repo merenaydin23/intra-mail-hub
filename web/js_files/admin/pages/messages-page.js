@@ -460,7 +460,7 @@ async function initBroadcast() {
                 5. 'Bilgilerinize sunar' gibi klişe ve soğuk ifadeler yerine daha modern ve kurumsal bir dil kullan.
                 
                 FORMAT:
-                KONU: [Kısa, çarpıcı ve kurumsal bir başlık]
+                KONU: [Sadece 2-3 kelimeden oluşan, çok kısa ve net bir başlık]
                 MESAJ: [Yaratıcı, detaylı ve mantıklı duyuru metni]`;
                 
                 const response = await refineMessageWithAI(draft, prompt);
