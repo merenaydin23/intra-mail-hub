@@ -6,17 +6,17 @@
     --brand-dark: #003325;
     --brand-light: #005c42;
     --brand-soft: #d1fae5;
-    --brand-glow: rgba(0, 71, 51, 0.06);
-    --brand-ink: #002219;
+    --brand-glow: rgba(0, 71, 51, 0.07);
+    --brand-ink: #001a12;
     
-    --bg-page: #f9fafb;
-    --bg-card: #ffffff;
-    --bg-sidebar: #002219;
+    --bg-page: #f4f6f8;
+    --bg-card: #fdfdfd;
+    --bg-sidebar: #001a12;
     
-    --text: #111827;
-    --text-muted: #6b7280;
+    --text: #0f1c17;
+    --text-muted: #5a6470;
     --text-light: #9ca3af;
-    --border: #f3f4f6;
+    --border: #e8ecef;
     
     --radius-xl: 24px;
     --radius-lg: 16px;
@@ -25,9 +25,9 @@
     
     --sidebar-w: 260px;
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 10px 40px rgba(0, 71, 51, 0.03);
-    --shadow-lg: 0 20px 50px rgba(0, 71, 51, 0.06);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.07), 0 1px 4px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 12px 40px rgba(0, 71, 51, 0.10), 0 4px 12px rgba(0,0,0,0.06);
     
     --font-main: 'Inter', sans-serif;
     --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -159,35 +159,37 @@ p, span, div {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.8rem 1.25rem;
-    color: #94a3b8;
+    padding: 0.85rem 1.25rem;
+    color: #a8bfc9;
     text-decoration: none;
     border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    transition: all 0.3s ease;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    transition: all 0.25s ease;
+    border-left: 3px solid transparent;
 }
 
-.nav-item i { font-size: 1rem; width: 20px; text-align: center; opacity: 0.8; }
+.nav-item i { font-size: 1rem; width: 20px; text-align: center; opacity: 0.85; flex-shrink: 0; }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.07);
+    color: #e2f5ee;
+    border-left-color: rgba(0, 92, 66, 0.5);
 }
 
 .nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 71, 51, 0.35);
     color: #ffffff;
-    box-shadow: none;
-    position: relative;
-    border-left: 4px solid var(--brand-light);
+    font-weight: 700;
+    border-left: 3px solid #10b981;
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.08);
 }
 
 .nav-item.active::after { display: none; }
 
-.nav-item.active i { opacity: 1; }
+.nav-item.active i { opacity: 1; color: #6ee7b7; }
 
 .sidebar-logout {
     padding: 1.5rem 1.25rem;
@@ -298,13 +300,13 @@ h1 {
     box-shadow: var(--shadow);
     margin-bottom: 1.5rem;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover {
-    box-shadow: 0 10px 30px rgba(0, 71, 51, 0.12), 0 0 0 1px var(--brand);
-    transform: translateY(-4px);
-    border-color: var(--brand-soft);
+    box-shadow: 0 8px 32px rgba(0, 71, 51, 0.10), 0 0 0 1.5px rgba(0,71,51,0.12);
+    transform: translateY(-2px);
+    border-color: #c7dfd7;
 }
 
 .stat-card {
@@ -396,6 +398,7 @@ h1 {
     box-shadow: var(--shadow);
     margin-bottom: 2rem;
     overflow: hidden;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .card-header {
