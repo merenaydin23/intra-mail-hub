@@ -12,6 +12,58 @@ const CHART_PALETTE = {
 
 let activeCharts = {};
 
+const centerTextPlugin = {
+    id: 'centerText',
+    afterDraw: (chart) => {
+        if (chart.config.type !== 'doughnut') return;
+        const { ctx, chartArea: { top, bottom, left, right, width, height } } = chart;
+        ctx.save();
+        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+        const text = total.toString();
+        const label = chart.options.plugins.centerText?.label || "TOPLAM";
+        
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw Number
+        ctx.font = 'bold 24px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#1e293b';
+        ctx.fillText(text, left + width / 2, top + height / 2 - 5);
+        
+        // Draw Label
+        ctx.font = '800 10px "Inter"';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(label, left + width / 2, top + height / 2 + 15);
+        ctx.restore();
+    }
+};
+
+const dataLabelsPlugin = {
+    id: 'dataLabels',
+    afterDatasetsDraw: (chart) => {
+        if (chart.config.type !== 'bar') return;
+        const { ctx, data } = chart;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.font = 'bold 11px "Inter"';
+        ctx.fillStyle = '#475569';
+
+        chart.getDatasetMeta(0).data.forEach((bar, index) => {
+            const value = data.datasets[0].data[index];
+            const isHorizontal = chart.options.indexAxis === 'y';
+            if (isHorizontal) {
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(value, bar.x + 5, bar.y);
+            } else {
+                ctx.fillText(value, bar.x, bar.y - 5);
+            }
+        });
+        ctx.restore();
+    }
+};
+
 import { showToast } from "../ui/notifications.js";
 
 export async function initDashboardPage() {
@@ -254,6 +306,7 @@ function buildCharts(data) {
             cutout: "60%",
             plugins: { 
                 ...baseOptions.plugins, 
+                centerText: { label: "PERSONEL" },
                 legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 10, font: { size: 11, family: "'Inter'" } } },
                 tooltip: {
                     ...baseOptions.plugins.tooltip,
@@ -265,8 +318,9 @@ function buildCharts(data) {
                         }
                     }
                 }
-            } 
-        }
+            },
+            plugins: [centerTextPlugin]
+        } 
     });
 
     // Category Doughnut
@@ -281,7 +335,8 @@ function buildCharts(data) {
                 borderWidth: 4 
             }]
         },
-        options: { ...baseOptions, cutout: "70%" }
+        options: { ...baseOptions, cutout: "70%", plugins: { ...baseOptions.plugins, centerText: { label: "KATEGORİ" } } },
+        plugins: [centerTextPlugin]
     });
 
     // Role Donut (Ultimate Style)
@@ -298,7 +353,8 @@ function buildCharts(data) {
                 hoverOffset: 10
             }]
         },
-        options: { ...baseOptions, cutout: "82%", plugins: { ...baseOptions.plugins, legend: { position: 'bottom' } } }
+        options: { ...baseOptions, cutout: "82%", plugins: { ...baseOptions.plugins, legend: { position: 'bottom' }, centerText: { label: "YÖNETİM" } } },
+        plugins: [centerTextPlugin]
     });
 
     // Dept Horizontal Bar (Ultimate Style with Gradient)
@@ -334,7 +390,8 @@ function buildCharts(data) {
                 x: { grid: { display: false }, ticks: { display: false }, border: { display: false } },
                 y: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold' } } }
             }
-        }
+        },
+        plugins: [dataLabelsPlugin]
     });
 
     // Company Bar (Rounded Tops & Vertical Gradient)
@@ -370,7 +427,8 @@ function buildCharts(data) {
                 y: { grid: { display: true, color: 'rgba(0,0,0,0.04)' }, border: { display: false }, ticks: { font: { weight: '700' } } },
                 x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '600' } } }
             }
-        }
+        },
+        plugins: [dataLabelsPlugin]
     });
 }
 
