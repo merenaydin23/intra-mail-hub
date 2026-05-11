@@ -22,32 +22,31 @@ export function renderTableRows(tbody, users) {
     }
 
     tbody.innerHTML = users.map((u) => {
-        const fullName = `${u.name || ""} ${u.surname || ""}`.trim();
-        const roleLabel = u.subRole === "manager" ? "PATRON" : "ÇALIŞAN";
-        const roleClass = u.subRole === "manager" ? "badge-saas-green" : "badge-saas-blue";
-        const statusHtml = u.isActive === false ? '<span class="badge badge-saas-red" style="margin-left: 8px;">PASİF</span>' : '<span class="badge badge-saas-mint" style="margin-left: 8px;">AKTİF</span>';
+        const initials = `${(u.name?.[0] || "")}${(u.surname?.[0] || "")}`;
+        const roleBadge = u.subRole === "manager" ? '<span class="badge badge-patron">PATRON</span>' : '<span class="badge badge-calisan">ÇALIŞAN</span>';
+        const statusBadge = u.isActive !== false ? '<span class="badge badge-saas-green"><i class="fa-solid fa-check"></i> AKTİF</span>' : '<span class="badge badge-saas-red"><i class="fa-solid fa-xmark"></i> PASİF</span>';
 
         return `
             <tr class="personnel-main-row" data-user-id="${u.id}">
-                <td>
+                <td style="padding: 1.25rem 1.5rem;">
                     <div class="personnel-name-wrap">
-                        <span class="user-avatar-mini">${(u.name?.[0] || "")}${(u.surname?.[0] || "")}</span>
+                        <div class="user-avatar-mini">${initials}</div>
                         <div class="user-info-text">
-                            <strong>${fullName || "-"}</strong>
-                            <small>${u.email || ""}</small>
+                            <strong>${u.name || ""} ${u.surname || ""}</strong>
+                            <small>${u.email || ''}</small>
                         </div>
                     </div>
                 </td>
-                <td>
+                <td style="padding: 1.25rem 1.5rem;">
                     <div class="company-info-wrap">
-                        <strong>${u.company || "Bellona Merkez"}</strong>
-                        <small>#${u.dealerCode || '0000'}</small>
+                        <strong>${u.company || 'Birim Bilgisi Yok'}</strong>
+                        <small>Bayi Kodu: ${u.dealerCode || '-'}</small>
                     </div>
                 </td>
-                <td>
+                <td style="padding: 1.25rem 1.5rem;">
                     <div class="role-status-wrap">
-                        <span class="badge ${roleClass}">${roleLabel}</span>
-                        ${statusHtml}
+                        ${roleBadge}
+                        ${statusBadge}
                     </div>
                 </td>
             </tr>

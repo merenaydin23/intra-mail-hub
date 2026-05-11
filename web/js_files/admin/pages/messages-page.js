@@ -4,11 +4,37 @@ import { sendBroadcast } from "../services/broadcast-service.js";
 import { refineMessageWithAI } from "../../services/ai-service.js";
 import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
-import { collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { renderMessageFeed } from "../ui/renderers.js";
+import { collection, getDocs, doc, getDoc, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
 export async function initMessagesPage() {
     initBroadcast();
+    setupRealtimeMessages();
+}
+
+function setupRealtimeMessages() {
+    const listBody = document.getElementById('msgListBody');
+    if (!listBody) return;
+
+    // Listen for ALL messages in real-time
+    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(100));
+    
+    onSnapshot(q, (snapshot) => {
+        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderMessageFeed(listBody, messages);
+        
+        // Update stats
+        const totalCount = document.getElementById('totalCount');
+        if (totalCount) totalCount.textContent = messages.length;
+        
+        const todayCount = document.getElementById('todayCount');
+        if (todayCount) {
+            const today = new Date().toDateString();
+            const count = messages.filter(m => m.timestamp?.toDate().toDateString() === today).length;
+            todayCount.textContent = count;
+        }
+    });
 }
 
 async function initBroadcast() {
@@ -48,26 +74,10 @@ async function initBroadcast() {
                 const actor = await getSessionActor();
                 const senderName = actor ? `${actor.name} ${actor.surname}` : 'Bellona Genel Merkezi';
 
-                // DAHA SERT VE NET PROMPT
                 const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın.
-                
                 GÖREVİN: Aşağıdaki taslağı profesyonel bir duyuruya dönüştürmek.
-                
-                KRİTİK KURAL:
-                - Çıktıda ASLA [Alıcı Adı], [Gönderen Adı], [Şirket Adı] gibi köşeli parantezli yer tutucular bırakma!
-                - Hitap olarak SADECE şunu kullan: ${autoGreeting}
-                - İmza olarak SADECE şunu kullan: Saygılarımızla, Bellona Genel Merkezi
-                
-                PARAMETRELER:
-                - Hitap: ${autoGreeting}
-                - Konu: ${subject || 'Kurumsal Bilgilendirme'}
-                - İçerik Taslağı: ${draft}
-                
-                DİL VE ÜSLUP:
-                - 2-3 paragraf, kurumsal, etkileyici, marka gücü vurgulayan bir dil.
-                - Motivasyonel ve birlik mesajı içeren profesyonel bir ton.
-                
-                Sadece nihai, temiz ve gönderilmeye hazır metni döndür. Hiçbir açıklama veya yer tutucu ekleme.`;
+                Hitap olarak SADECE şunu kullan: ${autoGreeting}
+                İmza olarak SADECE şunu kullan: Saygılarımızla, Bellona Genel Merkezi`;
                 
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
@@ -95,7 +105,7 @@ async function initBroadcast() {
             try {
                 const sentCount = await sendBroadcast({ target, subject, body });
                 showToast(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`, 'success');
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => modal.style.display = 'none', 1500);
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {

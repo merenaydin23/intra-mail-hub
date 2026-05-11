@@ -1,5 +1,5 @@
-import { collection, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from "../../firebase/config.js";
+import { collection, query, onSnapshot, where, addDoc, getDocs, serverTimestamp, limit, orderBy, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db, auth } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
     // Ultimate Bellona Palette
@@ -11,16 +11,150 @@ const CHART_PALETTE = {
 
 let activeCharts = {};
 
+import { showToast } from "../ui/notifications.js";
+
 export async function initDashboardPage() {
     setupRealtimeDashboard();
+
+    // Manual Bday Trigger
+    document.getElementById("upcomingBirthdayList")?.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".bday-send-btn");
+        if (btn && !btn.disabled) {
+            const { id, name, surname } = btn.dataset;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                // Fetch User Data first
+                const userSnap = await getDoc(doc(collection(db, "users"), id));
+                const userData = userSnap.data() || {};
+
+                // 1. Check for Duplicate (By Subject/Receiver - avoids composite index)
+                const today = new Date();
+                const title = getBdayTitle(userData);
+                const msgSubject = `Mutlu Yıllar ${name} ${title}! 🎂`;
+                
+                const checkQ = query(
+                    collection(db, "messages"),
+                    where("receiverId", "==", id),
+                    where("subject", "==", msgSubject),
+                    limit(5)
+                );
+                const checkSnap = await getDocs(checkQ);
+                let alreadyHandled = false;
+                checkSnap.forEach(doc => {
+                    const d = doc.data();
+                    if (d.timestamp?.toDate().toDateString() === today.toDateString()) {
+                        alreadyHandled = true;
+                    }
+                });
+
+                if (alreadyHandled) {
+                    showToast("Bu personele bugün zaten tebrik iletildi.", "info");
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Gönderildi';
+                    btn.classList.add("sent");
+                    return;
+                }
+
+                // 2. Get Real Admin Info
+                const adminId = auth.currentUser?.uid;
+                if (!adminId) throw new Error("Admin oturumu geçersiz.");
+                const adminDoc = await getDoc(doc(db, "users", adminId));
+                const adminData = adminDoc.data() || { name: "Bellona", surname: "Admin" };
+                const adminFullName = `${adminData.name} ${adminData.surname}`;
+
+                // 3. Determine Content
+                const bdayContent = `Doğum Gününüz Kutlu Olsun ${name} ${title}! 🌿\n\nDeğerli çalışma arkadaşımız ${name} ${surname}, Bellona ailesi olarak bugün seninle birlikte yeni bir yaşın heyecanını paylaşıyoruz. Ailenizle beraber sağlıklı, uzun ve başarı dolu bir ömür dileriz. Nice mutlu senelere! 🎈\n\nBellona Ailesi`;
+
+                await addDoc(collection(db, "messages"), {
+                    senderId: adminId,
+                    senderName: adminFullName,
+                    receiverId: id,
+                    receiverName: `${name} ${surname}`,
+                    participants: [adminId, id],
+                    subject: `Mutlu Yıllar ${name} ${title}! 🎂`,
+                    content: bdayContent,
+                    lastMessage: `Doğum Gününüz Kutlu Olsun ${name} ${title}! 🌿`,
+                    timestamp: serverTimestamp(),
+                    status: "active",
+                    isRead: false,
+                    type: "birthday_manual"
+                });
+
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> İletildi';
+                btn.classList.add("sent");
+                showToast("Tebrik mesajı başarıyla gönderildi ve kaydedildi.", "success");
+            } catch (err) {
+                console.error("Manual Bday Error:", err);
+                btn.disabled = false;
+                btn.innerHTML = "Hata!";
+                showToast("Mesaj gönderilemedi: " + err.message, "error");
+            }
+        }
+    });
 }
 
 function setupRealtimeDashboard() {
     const q = query(collection(db, "users"), where("role", "!=", "admin"));
     onSnapshot(q, (snapshot) => {
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const activeUsers = users.filter(u => u.isActive !== false);
         updateDashboardUI(users);
+        checkAndSendBirthdayMessages(activeUsers);
     });
+}
+
+function getBdayTitle(user) {
+    if (user.gender === "female") return "Hanım";
+    if (user.gender === "male") return "Bey";
+    return "Bey";
+}
+
+async function checkAndSendBirthdayMessages(users) {
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}`;
+
+    for (const user of users) {
+        if (!user.birthDate) continue;
+        const bday = new Date(user.birthDate);
+        const bdayStr = `${bday.getMonth() + 1}-${bday.getDate()}`;
+
+        if (todayStr === bdayStr) {
+            const title = getBdayTitle(user);
+            const msgSubject = `Mutlu Yıllar ${user.name} ${title}! 🎂`;
+            
+            const msgQ = query(
+                collection(db, "messages"),
+                where("receiverId", "==", user.id),
+                where("subject", "==", msgSubject),
+                limit(1)
+            );
+            
+            const existing = await getDocs(msgQ);
+            let alreadySentToday = false;
+            existing.forEach(doc => {
+                if (doc.data().timestamp?.toDate().toDateString() === today.toDateString()) alreadySentToday = true;
+            });
+
+            if (!alreadySentToday) {
+                const bdayContent = `Doğum Gününüz Kutlu Olsun ${user.name} ${title}! 🌿\n\nDeğerli çalışma arkadaşımız ${user.name} ${user.surname}, Bellona ailesi olarak bugün seninle birlikte yeni bir yaşın heyecanını paylaşıyoruz. Ailenizle beraber sağlıklı, uzun ve başarı dolu bir ömür dileriz. Nice mutlu senelere! 🎈\n\nBellona Ailesi`;
+                await addDoc(collection(db, "messages"), {
+                    senderId: "system_bellona",
+                    senderName: "Bellona İnsan Kaynakları",
+                    receiverId: user.id,
+                    receiverName: `${user.name} ${user.surname}`,
+                    participants: ["system_bellona", user.id],
+                    subject: msgSubject,
+                    content: bdayContent,
+                    lastMessage: `Doğum Gününüz Kutlu Olsun ${user.name} ${title}! 🌿`,
+                    timestamp: serverTimestamp(),
+                    status: "active",
+                    isRead: false,
+                    type: "birthday_auto"
+                });
+            }
+        }
+    }
 }
 
 function updateDashboardUI(users) {
@@ -41,6 +175,7 @@ function updateDashboardUI(users) {
     setEl("statRegional", regionalUsers.length);
     setEl("statLocal", localUsers.length);
     setEl("roleChartTotal", total);
+    setEl("categoryChartTotal", total);
 
     setHtml("statTotalSub", `${managers.length} Yönetici · ${employees.length} Çalışan`);
     setHtml("statFactorySub", `${[...new Set(factoryUsers.map((u) => u.department).filter(Boolean))].length} departman`);
@@ -141,10 +276,19 @@ function buildCharts(data) {
         options: { ...baseOptions, cutout: "82%", plugins: { ...baseOptions.plugins, legend: { position: 'bottom' } } }
     });
 
-    // Dept Horizontal Bar (Ultimate Style)
+    // Dept Horizontal Bar (Ultimate Style with Gradient)
     const deptStats = {};
     data.users.forEach(u => { if (u.department) deptStats[u.department] = (deptStats[u.department] || 0) + 1; });
     const sortedDepts = Object.entries(deptStats).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    
+    const deptCtx = document.getElementById("deptChart")?.getContext("2d");
+    let deptGradient = CHART_PALETTE.brand;
+    if (deptCtx) {
+        deptGradient = deptCtx.createLinearGradient(0, 0, 400, 0);
+        deptGradient.addColorStop(0, CHART_PALETTE.brand);
+        deptGradient.addColorStop(1, "#10b981");
+    }
+
     createChart("deptChart", {
         type: "bar",
         data: {
@@ -152,9 +296,9 @@ function buildCharts(data) {
             datasets: [{ 
                 label: "Personel Sayısı", 
                 data: sortedDepts.map(d => d[1]), 
-                backgroundColor: CHART_PALETTE.brand, 
-                borderRadius: 20,
-                barThickness: 12
+                backgroundColor: deptGradient, 
+                borderRadius: { topLeft: 0, bottomLeft: 0, topRight: 20, bottomRight: 20 },
+                barThickness: 14
             }]
         },
         options: { 
@@ -168,10 +312,19 @@ function buildCharts(data) {
         }
     });
 
-    // Company Bar
+    // Company Bar (Rounded Tops & Vertical Gradient)
     const companyStats = {};
     data.users.forEach(u => { if (u.company) companyStats[u.company] = (companyStats[u.company] || 0) + 1; });
     const sortedCos = Object.entries(companyStats).sort((a,b) => b[1] - a[1]).slice(0, 6);
+
+    const companyCtx = document.getElementById("companyChart")?.getContext("2d");
+    let companyGradient = CHART_PALETTE.brand;
+    if (companyCtx) {
+        companyGradient = companyCtx.createLinearGradient(0, 0, 0, 300);
+        companyGradient.addColorStop(0, CHART_PALETTE.brand);
+        companyGradient.addColorStop(1, "#10b981");
+    }
+
     createChart("companyChart", {
         type: "bar",
         data: {
@@ -179,11 +332,19 @@ function buildCharts(data) {
             datasets: [{ 
                 label: "Personel", 
                 data: sortedCos.map(c => c[1]), 
-                backgroundColor: CHART_PALETTE.emerald, 
-                borderRadius: 6 
+                backgroundColor: companyGradient, 
+                borderRadius: { topLeft: 50, topRight: 50, bottomLeft: 0, bottomRight: 0 },
+                barThickness: 32
             }]
         },
-        options: { ...baseOptions, plugins: { ...baseOptions.plugins, legend: { display: false } } }
+        options: { 
+            ...baseOptions, 
+            plugins: { ...baseOptions.plugins, legend: { display: false } },
+            scales: {
+                y: { grid: { display: true, color: '#f3f4f6' }, border: { display: false } },
+                x: { grid: { display: false }, border: { display: false } }
+            }
+        }
     });
 }
 
@@ -234,9 +395,11 @@ function renderBirthdays(users) {
 
     list.innerHTML = upcoming.map(u => {
         const initials = `${u.name?.[0] || ""}${u.surname?.[0] || ""}`.toUpperCase();
-        let statusClass = "bday-days-safe";
-        if (u.daysRemaining <= 3) statusClass = "bday-days-critical";
-        else if (u.daysRemaining <= 7) statusClass = "bday-days-soon";
+        let statusClass = "bday-standard";
+        if (u.daysRemaining <= 7) statusClass = "bday-alert";
+
+        // Only enable for today (0) or tomorrow (1)
+        const isActionable = u.daysRemaining <= 1;
 
         return `
             <div class="birthday-card">
@@ -246,6 +409,13 @@ function renderBirthdays(users) {
                     <span class="bday-company">${u.company || 'Birim Bilgisi Yok'}</span>
                     <div class="bday-days-badge ${statusClass}">${u.daysRemaining === 0 ? 'Bugün! 🎂' : `${u.daysRemaining} Gün Kaldı`}</div>
                 </div>
+                <button class="bday-send-btn" 
+                    ${isActionable ? '' : 'disabled style="opacity:0.3; cursor:not-allowed; filter:grayscale(1);"'} 
+                    data-id="${u.id}" 
+                    data-name="${u.name}" 
+                    data-surname="${u.surname}">
+                    ${isActionable ? 'Tebrik Gönder' : 'Beklemede'}
+                </button>
             </div>`;
     }).join("");
 }

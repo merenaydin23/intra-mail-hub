@@ -37,6 +37,9 @@ export async function initAuditPage() {
                     icon = 'fa-shield-halved';
                 }
 
+                const boldActor = `<strong style="color: #004733; font-weight: 800;">${log.actorName}</strong>`;
+                const detailWithBold = log.detail.replace(log.actorName, boldActor);
+
                 return `
                     <div class="audit-item">
                         <div class="audit-time">
@@ -48,10 +51,10 @@ export async function initAuditPage() {
                         </div>
                         <div class="audit-content">
                             <div class="audit-header">
-                                <span class="audit-actor">${log.actorName}</span>
+                                <span class="audit-actor">${boldActor}</span>
                                 <span class="audit-action-tag ${actionClass}">${log.action}</span>
                             </div>
-                            <div class="audit-detail">${log.detail}</div>
+                            <div class="audit-detail">${detailWithBold}</div>
                             <div class="audit-target">
                                 <i class="fa-solid fa-link"></i>
                                 <span>Hedef: ${log.targetType} / ${log.targetId}</span>

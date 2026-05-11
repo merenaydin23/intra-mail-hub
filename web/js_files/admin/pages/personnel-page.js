@@ -66,6 +66,7 @@ function setupListeners() {
     document.getElementById('passiveUserList')?.addEventListener('click', handleTableClick);
     document.getElementById('btnCloseDrawer')?.addEventListener('click', closeDrawer);
     document.getElementById('userDrawerOverlay')?.addEventListener('click', closeDrawer);
+
 }
 
 function closeDrawer() {
@@ -98,18 +99,50 @@ function openDrawer(user) {
 
     const btnToggle = document.getElementById('btnToggleStatus');
     btnToggle.innerHTML = isActive ? '<i class="fa-solid fa-ban"></i> Pasife Al' : '<i class="fa-solid fa-check-circle"></i> Aktif Et';
-    
-    // SPEED FIX: Optimistic UI feel + async logic
     btnToggle.onclick = async () => {
         btnToggle.disabled = true;
-        btnToggle.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+        btnToggle.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         await toggleUserStatus(user.id, !isActive);
+        btnToggle.disabled = false;
     };
 
-    const btnDelete = document.getElementById('btnEditUser');
-    btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i> Kaydı Sil';
-    btnDelete.style.color = '#ef4444';
-    btnDelete.onclick = () => deleteUser(user.id);
+    const btnDelete = document.getElementById('btnDeleteUser');
+    btnDelete.dataset.userId = user.id;
+    btnDelete.dataset.fullName = `${user.name} ${user.surname || ''}`;
+    
+    btnDelete.onclick = async () => {
+        const uid = btnDelete.dataset.userId;
+        const fName = btnDelete.dataset.fullName;
+        
+        if (!confirm(`${fName} personeli sistemden kalıcı olarak silinecektir. Emin misiniz?`)) return;
+        
+        try {
+            btnDelete.disabled = true;
+            btnDelete.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            await removeUserRecord(uid);
+            
+            const actor = await getSessionActor();
+            await writeAuditLog({ 
+                actor, 
+                action: 'PERSONEL_SILME', 
+                targetType: 'users', 
+                targetId: uid, 
+                detail: `${fName} kaydı sistemden silindi.` 
+            });
+            
+            closeDrawer();
+            showToast(`${fName} başarıyla silindi.`, 'success');
+        } catch (err) {
+            console.error("Delete Error:", err);
+            showToast("Silme işlemi başarısız: " + err.message, "error");
+            btnDelete.disabled = false;
+            btnDelete.innerHTML = '<i class="fa-solid fa-trash"></i> Kaydı Sil';
+        }
+    };
+
+    const btnEdit = document.getElementById('btnEditUser');
+    btnEdit.onclick = () => showToast("Düzenleme özelliği yakında eklenecektir.", "info");
 
     overlay.style.display = 'block';
     setTimeout(() => { drawer.style.right = '0'; }, 10);

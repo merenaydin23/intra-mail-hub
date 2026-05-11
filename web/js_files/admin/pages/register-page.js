@@ -1,3 +1,5 @@
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../../firebase/config.js";
 import { createUserRecord, getAllUsers } from "../services/user-service.js";
 import { generateEnterpriseEmail, generateStrictPassword, normalizeTr } from "../utils/user-utils.js";
 import { getRandomCityForRegion, getCitiesForRegion } from "../utils/location-utils.js";
@@ -262,9 +264,12 @@ export function initRegisterPage() {
         const dealerCode = dealerCodeIn?.value || "0000";
         let finalCompany = (companySelectEl && companySelectEl.style.display !== 'none' && companySelectEl.value && companySelectEl.value !== '__NEW__') ? companySelectEl.value : companyIn.value;
         
+        const gender = document.getElementById("newGender").value;
+        
         const data = {
             name: nameIn.value, surname: surnameIn.value,
             birthDate: document.getElementById("newBirth").value,
+            gender: gender,
             phone: phoneIn?.value.trim() || "", city: cityIn?.value || "",
             category: catIn.value, region: regionIn.value, company: finalCompany,
             dealerCode: dealerCode, subRole: roleIn.value, email: emailPreview.value,
@@ -287,6 +292,33 @@ export function initRegisterPage() {
 
         try {
             const created = await createUserRecord(data);
+            const userId = created.uid || created.id;
+
+            // Check Birthday Auto-Message
+            if (data.birthDate) {
+                const today = new Date();
+                const bday = new Date(data.birthDate);
+                if (today.getMonth() === bday.getMonth() && today.getDate() === bday.getDate()) {
+                    const title = data.gender === "female" ? "Hanım" : "Bey";
+                    const bdayMessage = `Doğum Gününüz Kutlu Olsun ${data.name} ${title}! 🌿\n\nDeğerli çalışma arkadaşımız ${data.name} ${data.surname}, Bellona ailesi olarak bugün seninle birlikte yeni bir yaşın heyecanını paylaşıyoruz. Ailenizle beraber sağlıklı, uzun ve başarı dolu bir ömür dileriz. Nice mutlu senelere! 🎈\n\nBellona Ailesi`;
+                    
+                    await addDoc(collection(db, "messages"), {
+                        senderId: "system_bellona",
+                        senderName: "Bellona İnsan Kaynakları",
+                        receiverId: userId,
+                        receiverName: `${data.name} ${data.surname}`,
+                        participants: ["system_bellona", userId],
+                        subject: `Mutlu Yıllar ${data.name} ${title}! 🎂`,
+                        content: bdayMessage,
+                        lastMessage: `Doğum Gününüz Kutlu Olsun ${data.name} ${title}! 🌿`,
+                        timestamp: serverTimestamp(),
+                        status: "active",
+                        isRead: false,
+                        type: "birthday_auto"
+                    });
+                }
+            }
+
             const actor = await getSessionActor();
             writeAuditLog({ actor, action: "PERSONEL_EKLEME", targetType: "users", targetId: created.uid || created.id || data.email, detail: `${data.name} ${data.surname} eklendi.` });
             showToast(`${data.name} başarıyla kaydedildi!`, 'success');

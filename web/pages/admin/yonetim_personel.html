@@ -405,9 +405,10 @@
             </div>
         </div>
 
-        <div style="padding:1.5rem 2rem; border-top:1px solid var(--border); display:flex; gap:1rem;">
-            <button id="btnEditUser" class="btn-outline" style="flex:1;"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
-            <button id="btnToggleStatus" class="btn-outline" style="flex:1;"><i class="fa-solid fa-ban"></i> Pasife Al</button>
+        <div style="padding:1.5rem 2rem; border-top:1px solid var(--border); display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+            <button id="btnEditUser" class="btn-outline" style="grid-column: span 2;"><i class="fa-solid fa-pen-to-square"></i> Bilgileri Düzenle</button>
+            <button id="btnToggleStatus" class="btn-outline"><i class="fa-solid fa-ban"></i> Pasife Al</button>
+            <button id="btnDeleteUser" class="btn-outline btn-danger-soft"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
         </div>
     </div>
 

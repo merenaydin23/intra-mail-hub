@@ -34,14 +34,17 @@
                     <i class="fa-solid fa-bolt-lightning"></i>
                 </div>
                 <div>
-                    <h1 style="font-family:'Outfit'; font-weight:800; font-size:1.8rem; letter-spacing:-0.02em;">Sistem Özeti</h1>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">Canlı personel verileri ve kurumsal ağ analizi.</p>
+                    <h1 style="font-family:'Plus Jakarta Sans'; font-weight:800; font-size:2rem; letter-spacing:-0.03em; color:#0f172a; display:flex; align-items:center; gap:1rem;">
+                        Hoş Geldiniz 
+                        <span class="status-badge" style="background:#ecfdf5; color:#059669; padding:6px 14px; border-radius:100px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center;">
+                            <span class="status-ping"></span> Sistem Canlı
+                        </span>
+                    </h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.4rem;">Canlı personel verileri ve kurumsal ağ analizi.</p>
                 </div>
             </div>
             <div class="header-actions">
-                <div style="display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; background:rgba(16, 185, 129, 0.1); color:#059669; border-radius:100px; font-weight:800; font-size:0.75rem;">
-                    <i class="fa-solid fa-circle" style="font-size:0.5rem; animation: pulse 2s infinite;"></i> SİSTEM CANLI
-                </div>
+
                 <div class="user-pill" style="display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; background:white; border:1px solid var(--border); border-radius:12px; font-weight:700; font-size:0.85rem; color:var(--brand-ink);">
                     <i class="fa-solid fa-shield-halved"></i> Bellona Admin
                 </div>
@@ -111,8 +114,12 @@
                 <div class="card-header" style="border-bottom:none;">
                     <h3>Kategori Analizi</h3>
                 </div>
-                <div style="flex:1; padding:0 1.5rem 1.5rem; height:250px;">
+                <div style="flex:1; padding:0 1.5rem 1.5rem; height:250px; position: relative;">
                     <canvas id="categoryChart"></canvas>
+                    <div id="categoryChartCenter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                        <div style="font-family: var(--font-heading); font-size: 2rem; font-weight: 900; color: #0f172a; line-height: 1;" id="categoryChartTotal">0</div>
+                        <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Toplam</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -178,8 +185,8 @@
                 <div class="chart-center" style="height: 350px; position: relative;">
                     <canvas id="roleChart"></canvas>
                     <div id="roleChartCenter" style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
-                        <div style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--brand-ink);" id="roleChartTotal">0</div>
-                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Toplam</div>
+                        <div style="font-family: var(--font-heading); font-size: 2.25rem; font-weight: 900; color: #0f172a; line-height: 1;" id="roleChartTotal">0</div>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Toplam</div>
                     </div>
                 </div>
             </div>
