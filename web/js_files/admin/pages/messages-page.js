@@ -305,14 +305,38 @@ function showMessageDetail(msg) {
     const renderInfoCard = async (uid, cardId, defaultName) => {
         const card = document.getElementById(cardId);
         if (!card) return;
+
+        // Özel Sistem Hesabı (İnsan Kaynakları vs.) Kontrolü
+        const isSystem = (uid === 'system' || (defaultName && defaultName.toLowerCase().includes('insan kaynakları')));
+        if (isSystem) {
+            card.innerHTML = `
+                <div class="info-card-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+                    <div class="info-card-avatar" style="background:rgba(255,255,255,0.15);"><i class="fa-solid fa-robot"></i></div>
+                    <div>
+                        <div class="info-card-title">Bellona İKA</div>
+                        <div class="info-card-subtitle">Otomatik Sistem Merkezi</div>
+                    </div>
+                </div>
+                <div class="info-card-body">
+                    <div class="info-card-row"><i class="fa-solid fa-envelope"></i> <span>sistem@bellona.com.tr</span></div>
+                    <div class="info-card-row"><i class="fa-solid fa-building"></i> <span>Bellona Merkez Fabrika</span></div>
+                    <div class="info-card-row" style="color:var(--text-muted); font-size:0.7rem; margin-top:0.5rem;">
+                        <i class="fa-solid fa-circle-info"></i> Bu hesap sistem tarafından yönetilir.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         if (!uid) {
             card.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">Kullanıcı bilgisi bulunamadı.</div>`;
             return;
         }
+        
         card.innerHTML = `<div style="padding:1rem; text-align:center;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--brand);"></i></div>`;
         const user = await getUserById(uid);
         if (!user) {
-            card.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">${defaultName} sistemde bulunamadı.</div>`;
+            card.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">${defaultName || 'Kullanıcı'} sistemde bulunamadı.</div>`;
             return;
         }
         const initial = (user.name || defaultName || '?').charAt(0).toUpperCase();
