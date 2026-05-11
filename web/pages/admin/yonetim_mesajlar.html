@@ -366,6 +366,19 @@
                             <input type="text" id="broadcastSubject" placeholder="Konu başlığını girin..." required />
                         </div>
                     </div>
+                    <div class="form-group" style="margin-bottom:1.5rem;">
+                        <label>Dosya Eki (Opsiyonel)</label>
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <label for="broadcastFile" style="margin:0; padding:0.6rem 1rem; background:#f1f5f9; border:1.5px dashed #cbd5e1; border-radius:10px; font-size:0.8rem; font-weight:700; color:#475569; cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:0.2s;">
+                                <i class="fa-solid fa-paperclip"></i> Dosya Seç
+                            </label>
+                            <input type="file" id="broadcastFile" style="display:none;" />
+                            <div id="selectedFileName" style="font-size:0.75rem; color:var(--brand); font-weight:700; display:none;">
+                                <i class="fa-solid fa-file-circle-check"></i> <span id="fileNameDisplay">-</span>
+                                <i class="fa-solid fa-xmark" id="btnRemoveFile" style="margin-left:8px; cursor:pointer; color:#ef4444;"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group" style="margin-bottom:2rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.65rem;">
                             <label style="margin-bottom:0;">Mesaj İçeriği</label>

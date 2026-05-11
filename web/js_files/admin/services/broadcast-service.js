@@ -3,7 +3,7 @@ import { db } from "../../firebase/config.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "./audit-service.js";
 
-export async function sendBroadcast({ target, region, subRole, subject, body }) {
+export async function sendBroadcast({ target, region, subRole, subject, body, attachment = null }) {
     const actor = await getSessionActor();
     
     // 1. Kullanıcıları çek ve filtrele
@@ -36,7 +36,10 @@ export async function sendBroadcast({ target, region, subRole, subject, body }) 
                 status: "active",
                 isRead: false,
                 timestamp: serverTimestamp(),
-                type: "announcement"
+                type: "announcement",
+                attachmentUrl: attachment?.url || null,
+                attachmentName: attachment?.name || null,
+                attachmentSize: attachment?.size || null
             });
         });
         await batch.commit();
@@ -53,7 +56,7 @@ export async function sendBroadcast({ target, region, subRole, subject, body }) 
     return users.length;
 }
 
-export async function sendDirectMessage({ receiverId, receiverName, subject, body }) {
+export async function sendDirectMessage({ receiverId, receiverName, subject, body, attachment = null }) {
     const actor = await getSessionActor();
     const { cleanSubject, cleanBody } = prepareMessage(subject, body);
     
@@ -67,7 +70,10 @@ export async function sendDirectMessage({ receiverId, receiverName, subject, bod
         status: "active",
         isRead: false,
         timestamp: serverTimestamp(),
-        type: "direct"
+        type: "direct",
+        attachmentUrl: attachment?.url || null,
+        attachmentName: attachment?.name || null,
+        attachmentSize: attachment?.size || null
     };
 
     const docRef = await addDoc(collection(db, "messages"), msgData);
@@ -77,7 +83,7 @@ export async function sendDirectMessage({ receiverId, receiverName, subject, bod
         action: "BIREYSEL_MESAJ",
         targetType: "user",
         targetId: receiverId,
-        detail: `"${subject}" konulu bireysel mesaj gönderildi.`
+        detail: `"${subject}" konulu bireysel mesaj gönderildi.${attachment ? ' (Dosya ekli)' : ''}`
     });
 
     return docRef.id;

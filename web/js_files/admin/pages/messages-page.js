@@ -5,6 +5,7 @@ import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
 import { writeAuditLog } from "../services/audit-service.js";
 import { getUserById, getAllUsers } from "../services/user-service.js";
+import { uploadAttachment } from "../../services/storage-service.js";
 import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -487,6 +488,37 @@ async function initBroadcast() {
     const nameSpan = document.getElementById('selectedUserName');
     const btnRemove = document.getElementById('btnRemoveSelectedUser');
 
+    // File Attachment Logic
+    const fileInput = document.getElementById('broadcastFile');
+    const fileNameArea = document.getElementById('selectedFileName');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const btnRemoveFile = document.getElementById('btnRemoveFile');
+    let selectedFile = null;
+
+    if (fileInput) {
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showToast('Dosya boyutu 10MB\'dan büyük olamaz.', 'error');
+                    fileInput.value = '';
+                    return;
+                }
+                selectedFile = file;
+                fileNameDisplay.textContent = file.name;
+                fileNameArea.style.display = 'flex';
+            }
+        };
+    }
+
+    if (btnRemoveFile) {
+        btnRemoveFile.onclick = () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileNameArea.style.display = 'none';
+        };
+    }
+
     if (searchInput) {
         searchInput.oninput = async (e) => {
             const val = e.target.value.trim().toLowerCase();
@@ -577,11 +609,17 @@ async function initBroadcast() {
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşlem Yapılıyor...';
             
             try {
+                let attachment = null;
+                if (selectedFile) {
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-bounce"></i> Dosya Yükleniyor...';
+                    attachment = await uploadAttachment(selectedFile, 'attachments');
+                }
+
                 if (messageMode === 'broadcast') {
                     const target = document.getElementById('broadcastTarget').value;
                     const region = document.getElementById('broadcastRegion').value;
                     const subRole = document.getElementById('broadcastSubRole').value;
-                    const sentCount = await sendBroadcast({ target, region, subRole, subject, body });
+                    const sentCount = await sendBroadcast({ target, region, subRole, subject, body, attachment });
                     showToast(`${sentCount} kişiye duyuru gönderildi.`, 'success');
                 } else {
                     if (!selectedUser) throw new Error("Lütfen bir alıcı seçin.");
@@ -589,14 +627,16 @@ async function initBroadcast() {
                         receiverId: selectedUser.id, 
                         receiverName: selectedUser.name, 
                         subject, 
-                        body 
+                        body,
+                        attachment
                     });
                     showToast('Bireysel mesaj gönderildi.', 'success');
                 }
                 form.reset();
                 selectedUser = null;
-                const chipArea = document.getElementById('selectedUserChip');
+                selectedFile = null;
                 if (chipArea) chipArea.style.display = 'none';
+                if (fileNameArea) fileNameArea.style.display = 'none';
                 setTimeout(() => { if (modal) modal.style.display = 'none'; }, 1500);
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
