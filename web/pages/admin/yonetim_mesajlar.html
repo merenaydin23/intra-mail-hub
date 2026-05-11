@@ -123,11 +123,15 @@
                 </div>
 
                 <div id="archivePanel" style="display:none; flex-direction:column; height:100%;">
-                    <div class="archive-split">
-                        <div class="archive-section-title">Arşivlenmiş Günler</div>
-                        <div class="archive-day-list" id="archiveDayList"></div>
-                        <div class="archive-section-title">Günün Mesajları</div>
-                        <div class="archive-msg-list" id="archiveMsgList"></div>
+                    <div style="display:grid; grid-template-columns: 220px 1fr; height:100%;">
+                        <div style="border-right:1px solid var(--border); overflow-y:auto;">
+                            <div class="archive-section-title">Arşivlenmiş Günler</div>
+                            <div id="archiveDayList"></div>
+                        </div>
+                        <div style="overflow-y:auto;">
+                            <div class="archive-section-title">Günün Mesajları</div>
+                            <div id="archiveMsgList"></div>
+                        </div>
                     </div>
                 </div>
             </div>

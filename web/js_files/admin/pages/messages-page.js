@@ -9,15 +9,44 @@ import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstat
 import { db } from "../../firebase/config.js";
 
 let allMessages = [];
-let activeFilter = 'all'; // 'all' | 'birthday' | 'broadcast'
+let activeFilter = 'all';
+let activeTab = 'today'; // 'today' | 'archive'
+let selectedArchiveDay = null;
 
 export async function initMessagesPage() {
     initBroadcast();
     setupRealtimeMessages();
     setupFilterTabs();
+    setupTabSwitching();
     setupMessageClickHandler();
+    setupExportBtn();
 }
 
+// ── TAB SWITCHING ──────────────────────────────────────────────
+function setupTabSwitching() {
+    document.querySelectorAll('.hub-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.hub-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTab = btn.dataset.tab;
+
+            const todayPanel = document.getElementById('todayPanel');
+            const archivePanel = document.getElementById('archivePanel');
+
+            if (activeTab === 'today') {
+                if (todayPanel) todayPanel.style.display = 'flex';
+                if (archivePanel) archivePanel.style.display = 'none';
+                applyFilter();
+            } else {
+                if (todayPanel) todayPanel.style.display = 'none';
+                if (archivePanel) archivePanel.style.display = 'flex';
+                renderArchiveDays();
+            }
+        });
+    });
+}
+
+// ── TYPE FILTER BUTTONS ────────────────────────────────────────
 function setupFilterTabs() {
     document.querySelectorAll('.msg-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -29,17 +58,32 @@ function setupFilterTabs() {
     });
 
     const searchEl = document.getElementById('msgSearch');
-    if (searchEl) {
-        searchEl.addEventListener('input', () => applyFilter());
-    }
+    if (searchEl) searchEl.addEventListener('input', () => applyFilter());
 }
 
+// ── REALTIME LISTENER ──────────────────────────────────────────
+function setupRealtimeMessages() {
+    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(500));
+    onSnapshot(q, (snapshot) => {
+        allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (activeTab === 'today') applyFilter();
+        else renderArchiveDays();
+        updateCountBadges();
+        computeAnalytics();
+    });
+}
+
+// ── TODAY FILTER ───────────────────────────────────────────────
 function applyFilter() {
+    const today = new Date().toDateString();
     const searchTerm = (document.getElementById('msgSearch')?.value || '').toLocaleLowerCase('tr-TR');
 
-    let filtered = allMessages;
+    // Only today's messages
+    let filtered = allMessages.filter(m => {
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate() : null;
+        return ts && ts.toDateString() === today;
+    });
 
-    // Type filter
     if (activeFilter === 'birthday') {
         filtered = filtered.filter(m => m.type === 'birthday_manual' || m.type === 'birthday_auto');
     } else if (activeFilter === 'broadcast') {
@@ -48,87 +92,153 @@ function applyFilter() {
         filtered = filtered.filter(m => !m.type || m.type === 'direct');
     }
 
-    // Search filter
     if (searchTerm) {
         filtered = filtered.filter(m => {
-            const haystack = `${m.subject} ${m.senderName} ${m.receiverName} ${m.content}`.toLocaleLowerCase('tr-TR');
-            return haystack.includes(searchTerm);
+            const h = `${m.subject} ${m.senderName} ${m.receiverName} ${m.content}`.toLocaleLowerCase('tr-TR');
+            return h.includes(searchTerm);
         });
     }
 
     const listBody = document.getElementById('msgListBody');
     if (listBody) renderMessageFeed(listBody, filtered);
-
-    // Update badge counts
     updateCountBadges();
 }
 
-function updateCountBadges() {
-    const bdayCount = allMessages.filter(m => m.type === 'birthday_manual' || m.type === 'birthday_auto').length;
-    const bdayBadgeEl = document.getElementById('bdayFilterCount');
-    if (bdayBadgeEl) bdayBadgeEl.textContent = bdayCount;
-
-    const totalEl = document.getElementById('totalCount');
-    if (totalEl) totalEl.textContent = allMessages.length;
-
+// ── ARCHIVE: GROUP BY DAY ──────────────────────────────────────
+function renderArchiveDays() {
     const today = new Date().toDateString();
-    const todayEl = document.getElementById('todayCount');
-    if (todayEl) {
-        const count = allMessages.filter(m => m.timestamp?.toDate().toDateString() === today).length;
-        todayEl.textContent = count;
+
+    // All messages NOT from today
+    const archived = allMessages.filter(m => {
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate() : null;
+        return ts && ts.toDateString() !== today;
+    });
+
+    // Group by date string
+    const groups = {};
+    archived.forEach(m => {
+        const d = m.timestamp.toDate();
+        const key = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        if (!groups[key]) groups[key] = { date: d, msgs: [] };
+        groups[key].msgs.push(m);
+    });
+
+    // Sort by date desc
+    const sortedDays = Object.entries(groups).sort((a, b) => b[1].date - a[1].date);
+
+    const dayList = document.getElementById('archiveDayList');
+    if (!dayList) return;
+
+    if (!sortedDays.length) {
+        dayList.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-light); font-size:0.85rem;">Arşivde mesaj yok.</div>';
+        return;
+    }
+
+    dayList.innerHTML = sortedDays.map(([dateStr, { msgs }]) => `
+        <div class="archive-day-card" data-day="${dateStr}" onclick="window.__selectArchiveDay('${dateStr}')">
+            <div class="archive-day-icon"><i class="fa-solid fa-calendar-day"></i></div>
+            <div style="flex:1;">
+                <div style="font-weight:700; font-size:0.88rem; color:var(--brand-ink);">${dateStr}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${msgs.length} mesaj</div>
+            </div>
+            <button onclick="event.stopPropagation(); window.__exportDay('${dateStr}')" 
+                style="padding:4px 10px; border:1px solid var(--border); border-radius:8px; background:white; font-size:0.7rem; font-weight:700; color:var(--brand); cursor:pointer; white-space:nowrap;">
+                <i class="fa-solid fa-file-excel"></i> Excel
+            </button>
+        </div>
+    `).join('');
+
+    // Store groups globally for export/selection
+    window.__archiveGroups = groups;
+
+    // Auto-select first day
+    if (sortedDays.length) {
+        window.__selectArchiveDay(sortedDays[0][0]);
     }
 }
 
-function setupRealtimeMessages() {
-    const listBody = document.getElementById('msgListBody');
-    if (!listBody) return;
+// Global handlers for archive
+window.__selectArchiveDay = (dateStr) => {
+    selectedArchiveDay = dateStr;
 
-    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(200));
+    // Highlight
+    document.querySelectorAll('.archive-day-card').forEach(c => c.classList.remove('active'));
+    const card = document.querySelector(`.archive-day-card[data-day="${dateStr}"]`);
+    if (card) card.classList.add('active');
 
-    onSnapshot(q, (snapshot) => {
-        allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        applyFilter();
-        updateCountBadges();
-        computeAnalytics();
+    const groups = window.__archiveGroups || {};
+    const dayMsgs = groups[dateStr]?.msgs || [];
+
+    const archiveMsgList = document.getElementById('archiveMsgList');
+    if (archiveMsgList) renderMessageFeed(archiveMsgList, dayMsgs);
+};
+
+window.__exportDay = (dateStr) => {
+    const groups = window.__archiveGroups || {};
+    const msgs = groups[dateStr]?.msgs || [];
+    exportToCSV(msgs, `mesajlar_${dateStr.replace(/\./g, '-')}.csv`);
+};
+
+// ── CSV EXPORT ─────────────────────────────────────────────────
+function exportToCSV(messages, filename = 'mesajlar.csv') {
+    if (!messages.length) {
+        showToast('Dışa aktarılacak mesaj bulunamadı.', 'info');
+        return;
+    }
+
+    const headers = ['Tarih', 'Konu', 'Gönderen', 'Alıcı', 'Tip', 'İçerik'];
+    const rows = messages.map(m => {
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleString('tr-TR') : '-';
+        const content = (m.content || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        return [
+            `"${ts}"`,
+            `"${m.subject || '-'}"`,
+            `"${m.senderName || '-'}"`,
+            `"${m.receiverName || '-'}"`,
+            `"${m.type || 'direct'}"`,
+            `"${content}"`
+        ].join(',');
+    });
+
+    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n'); // BOM for Turkish chars
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${messages.length} mesaj Excel'e aktarıldı.`, 'success');
+}
+
+// ── EXPORT BUTTON (header) ─────────────────────────────────────
+function setupExportBtn() {
+    const btn = document.getElementById('btnExportCSV');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        const today = new Date().toDateString();
+        const todayMsgs = allMessages.filter(m => {
+            const ts = m.timestamp?.toDate ? m.timestamp.toDate() : null;
+            return ts && ts.toDateString() === today;
+        });
+        const dateStr = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
+        exportToCSV(todayMsgs, `bugun_mesajlar_${dateStr}.csv`);
     });
 }
 
-function computeAnalytics() {
-    // En aktif gönderici bölgesi
-    const senderMap = {};
-    allMessages.forEach(m => {
-        const key = m.senderName || 'Bilinmiyor';
-        senderMap[key] = (senderMap[key] || 0) + 1;
-    });
-    const sorted = Object.entries(senderMap).sort((a, b) => b[1] - a[1]);
-    const activeRegionEl = document.getElementById('activeRegion');
-    if (activeRegionEl && sorted.length) activeRegionEl.textContent = sorted[0][0];
-
-    // Yoğunluk (son 24 saat)
-    const since24h = Date.now() - 86400000;
-    const recent = allMessages.filter(m => {
-        const ts = m.timestamp?.toDate ? m.timestamp.toDate().getTime() : 0;
-        return ts > since24h;
-    }).length;
-    const intensityEl = document.getElementById('liveIntensity');
-    if (intensityEl) intensityEl.textContent = `${recent} / 24sa`;
-}
-
+// ── MESSAGE CLICK → DETAIL PANEL ──────────────────────────────
 function setupMessageClickHandler() {
-    const listBody = document.getElementById('msgListBody');
-    if (!listBody) return;
-
-    listBody.addEventListener('click', (e) => {
-        const card = e.target.closest('[data-msg-id]');
-        if (!card) return;
-
-        // Remove active from all
-        listBody.querySelectorAll('.msg-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-
-        const msgId = card.dataset.msgId;
-        const msg = allMessages.find(m => m.id === msgId);
-        if (msg) showMessageDetail(msg);
+    ['msgListBody', 'archiveMsgList'].forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.addEventListener('click', (e) => {
+            const card = e.target.closest('[data-msg-id]');
+            if (!card) return;
+            container.querySelectorAll('.msg-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const msg = allMessages.find(m => m.id === card.dataset.msgId);
+            if (msg) showMessageDetail(msg);
+        });
     });
 }
 
@@ -136,57 +246,41 @@ function showMessageDetail(msg) {
     const placeholder = document.getElementById('msgPlaceholder');
     const detail = document.getElementById('msgDetailView');
     if (!detail) return;
-
     if (placeholder) placeholder.style.display = 'none';
     detail.style.display = 'flex';
 
-    const formatDate = (ts) => {
+    const fmt = (ts) => {
         if (!ts) return '-';
         const d = ts?.toDate ? ts.toDate() : new Date(ts);
         return d.toLocaleString('tr-TR', { dateStyle: 'long', timeStyle: 'short' });
     };
 
+    const isBday = msg.type === 'birthday_manual' || msg.type === 'birthday_auto';
     const subjectEl = document.getElementById('detSubject');
-    if (subjectEl) {
-        const isBday = msg.type === 'birthday_manual' || msg.type === 'birthday_auto';
-        subjectEl.innerHTML = isBday
-            ? `🎂 ${msg.subject || 'Doğum Günü Tebriği'}`
-            : (msg.subject || 'Konu Yok');
-    }
+    if (subjectEl) subjectEl.innerHTML = isBday ? `🎂 ${msg.subject || 'Doğum Günü Tebriği'}` : (msg.subject || 'Konu Yok');
 
     const senderEl = document.getElementById('detSender');
     if (senderEl) senderEl.textContent = msg.senderName || '-';
-
     const receiverEl = document.getElementById('detReceiver');
     if (receiverEl) receiverEl.textContent = msg.receiverName || (msg.isBroadcast ? 'Toplu Gönderim' : '-');
-
     const timeEl = document.getElementById('detTime');
-    if (timeEl) timeEl.textContent = formatDate(msg.timestamp);
-
+    if (timeEl) timeEl.textContent = fmt(msg.timestamp);
     const statusEl = document.getElementById('detStatus');
     if (statusEl) {
-        const isBday = msg.type === 'birthday_manual' || msg.type === 'birthday_auto';
-        if (isBday) {
-            statusEl.innerHTML = `<span style="background:#fdf2f8; color:#9333ea; padding:3px 10px; border-radius:6px; font-weight:700; font-size:0.8rem;">${msg.type === 'birthday_auto' ? '🤖 Otomatik Tebrik' : '✋ Elle Gönderildi'}</span>`;
-        } else {
-            statusEl.textContent = msg.status || 'active';
-        }
+        if (isBday) statusEl.innerHTML = `<span style="background:#fdf2f8;color:#9333ea;padding:3px 10px;border-radius:6px;font-weight:700;font-size:0.8rem;">${msg.type === 'birthday_auto' ? '🤖 Otomatik' : '✋ Elle'}</span>`;
+        else statusEl.textContent = msg.status || 'active';
     }
-
     const bodyEl = document.getElementById('detBody');
     if (bodyEl) bodyEl.textContent = msg.content || 'İçerik bulunamadı.';
 
-    // Attachment
     const attachEl = document.getElementById('detAttachment');
     if (attachEl) {
+        attachEl.style.display = msg.attachmentUrl ? 'flex' : 'none';
         if (msg.attachmentUrl) {
-            attachEl.style.display = 'flex';
             const nameEl = document.getElementById('detAttachName');
             const linkEl = document.getElementById('detAttachLink');
             if (nameEl) nameEl.textContent = msg.attachmentName || 'Ek Dosya';
             if (linkEl) linkEl.href = msg.attachmentUrl;
-        } else {
-            attachEl.style.display = 'none';
         }
     }
 
@@ -194,35 +288,18 @@ function showMessageDetail(msg) {
     const deleteBtn = document.getElementById('btnDeleteMessage');
     if (deleteBtn) {
         deleteBtn.onclick = async () => {
-            const subject = msg.subject || 'Bu mesaj';
-            if (!confirm(`"${subject}" silinecektir. Bu işlem geri alınamaz. Emin misiniz?`)) return;
-
+            if (!confirm(`"${msg.subject || 'Bu mesaj'}" silinecek. Emin misiniz?`)) return;
             deleteBtn.disabled = true;
             deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
             try {
                 await deleteMessage(msg.id);
-
-                // Audit log
                 const actor = await getSessionActor();
-                await writeAuditLog({
-                    actor,
-                    action: 'MESAJ_SİLME',
-                    targetType: 'messages',
-                    targetId: msg.id,
-                    detail: `"${subject}" konulu mesaj silindi. Gönderen: ${msg.senderName || '-'}, Alıcı: ${msg.receiverName || '-'}`
-                });
-
-                showToast('Mesaj başarıyla silindi.', 'success');
-
-                // Close detail panel
-                const detail = document.getElementById('msgDetailView');
-                const placeholder = document.getElementById('msgPlaceholder');
-                if (detail) detail.style.display = 'none';
+                await writeAuditLog({ actor, action: 'MESAJ_SİLME', targetType: 'messages', targetId: msg.id, detail: `"${msg.subject}" konulu mesaj silindi.` });
+                showToast('Mesaj silindi.', 'success');
+                detail.style.display = 'none';
                 if (placeholder) placeholder.style.display = 'flex';
-
             } catch (err) {
-                showToast('Silme işlemi başarısız: ' + err.message, 'error');
+                showToast('Silme başarısız: ' + err.message, 'error');
                 deleteBtn.disabled = false;
                 deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Mesajı Sil';
             }
@@ -230,6 +307,31 @@ function showMessageDetail(msg) {
     }
 }
 
+// ── BADGES & ANALYTICS ─────────────────────────────────────────
+function updateCountBadges() {
+    const today = new Date().toDateString();
+    const bdayCount = allMessages.filter(m => m.type === 'birthday_manual' || m.type === 'birthday_auto').length;
+    const bdayEl = document.getElementById('bdayFilterCount');
+    if (bdayEl) bdayEl.textContent = bdayCount;
+    const totalEl = document.getElementById('totalCount');
+    if (totalEl) totalEl.textContent = allMessages.length;
+    const todayEl = document.getElementById('todayCount');
+    if (todayEl) todayEl.textContent = allMessages.filter(m => m.timestamp?.toDate().toDateString() === today).length;
+}
+
+function computeAnalytics() {
+    const senderMap = {};
+    allMessages.forEach(m => { const k = m.senderName || 'Bilinmiyor'; senderMap[k] = (senderMap[k] || 0) + 1; });
+    const sorted = Object.entries(senderMap).sort((a, b) => b[1] - a[1]);
+    const activeRegionEl = document.getElementById('activeRegion');
+    if (activeRegionEl && sorted.length) activeRegionEl.textContent = sorted[0][0];
+    const since24h = Date.now() - 86400000;
+    const recent = allMessages.filter(m => { const ts = m.timestamp?.toDate ? m.timestamp.toDate().getTime() : 0; return ts > since24h; }).length;
+    const intensityEl = document.getElementById('liveIntensity');
+    if (intensityEl) intensityEl.textContent = `${recent} / 24sa`;
+}
+
+// ── BROADCAST MODAL ────────────────────────────────────────────
 async function initBroadcast() {
     const modal = document.getElementById('broadcastModal');
     const btnOpen = document.getElementById('btnOpenBroadcast');
@@ -244,36 +346,17 @@ async function initBroadcast() {
         btnAI.onclick = async () => {
             const bodyEl = document.getElementById('broadcastBody');
             const targetEl = document.getElementById('broadcastTarget');
-            const subjectEl = document.getElementById('broadcastSubject');
             const draft = bodyEl.value.trim();
-
-            if (!draft) return showToast('Önce bir taslak metin yazmalısınız.', 'info');
-
-            const targetValue = targetEl.value;
-            const targetMapping = {
-                'all': 'Sayın Bellona Ailesi Üyeleri,',
-                'factory': 'Değerli Fabrika Çalışanlarımız,',
-                'regional': 'Sayın Bölge Bayilerimiz,',
-                'local': 'Değerli Yerel Bayilerimiz,',
-                'management': 'Sayın Yönetim Ekibi,'
-            };
-            const autoGreeting = targetMapping[targetValue] || 'Sayın Bellona Ailesi Üyeleri,';
-
+            if (!draft) return showToast('Önce taslak yazın.', 'info');
+            const tMap = { all:'Sayın Bellona Ailesi Üyeleri,', factory:'Değerli Fabrika Çalışanlarımız,', regional:'Sayın Bölge Bayilerimiz,', local:'Değerli Yerel Bayilerimiz,' };
+            const greeting = tMap[targetEl.value] || tMap.all;
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
-
             try {
-                const actor = await getSessionActor();
-                const senderName = actor ? `${actor.name} ${actor.surname}` : 'Bellona Genel Merkezi';
-
-                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın.
-                GÖREVİN: Aşağıdaki taslağı profesyonel bir duyuruya dönüştürmek.
-                Hitap olarak SADECE şunu kullan: ${autoGreeting}
-                İmza olarak SADECE şunu kullan: Saygılarımızla, Bellona Genel Merkezi`;
-
+                const prompt = `Sen Bellona İletişim Uzmanısın. Taslağı profesyonel duyuruya çevir. Hitap: ${greeting} İmza: Saygılarımızla, Bellona Genel Merkezi`;
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
-                showToast('Mesaj başarıyla hazırlandı.', 'success');
+                showToast('Mesaj hazırlandı.', 'success');
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
@@ -289,14 +372,12 @@ async function initBroadcast() {
             const target = document.getElementById('broadcastTarget').value;
             const subject = document.getElementById('broadcastSubject').value;
             const body = document.getElementById('broadcastBody').value;
-
             const btn = form.querySelector('button[type="submit"]');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
-
             try {
                 const sentCount = await sendBroadcast({ target, subject, body });
-                showToast(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`, 'success');
+                showToast(`Duyuru ${sentCount} kişiye gönderildi.`, 'success');
                 form.reset();
                 setTimeout(() => { if (modal) modal.style.display = 'none'; }, 1500);
             } catch (err) {
