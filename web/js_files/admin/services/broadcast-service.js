@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, query, where, doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "./audit-service.js";
@@ -36,11 +36,14 @@ export async function sendBroadcast({ target, subject, body }) {
         .replace(/^\s*[,.;:]\s*/, '') // Başta kalan başıboş noktalama işaretlerini temizle
         .trim();
 
-    // 2. Her kullanıcıya mesaj oluştur (Otomatik Kişiselleştirme)
-    const promises = users.map(user => {
+    // 2. Her kullanıcıya mesaj oluştur (Write Batch ile Optimize Edildi)
+    const batch = writeBatch(db);
+    
+    users.forEach(user => {
         const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${cleanBody}\n\nSaygılarımla,\nBellona Fabrikası`;
         
-        return addDoc(collection(db, "messages"), {
+        const msgRef = doc(collection(db, "messages"));
+        batch.set(msgRef, {
             senderId: actor.uid,
             senderName: "BELLONA MERKEZ",
             receiverId: user.id,
@@ -54,7 +57,7 @@ export async function sendBroadcast({ target, subject, body }) {
         });
     });
 
-    await Promise.all(promises);
+    await batch.commit();
 
     // 3. Audit log yaz
     await writeAuditLog({

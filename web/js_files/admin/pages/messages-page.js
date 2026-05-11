@@ -83,14 +83,21 @@ function setupFilterTabs() {
 }
 
 // ── REALTIME LISTENER ──────────────────────────────────────────
+let snapshotTimeout = null;
 function setupRealtimeMessages() {
     const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(500));
     onSnapshot(q, (snapshot) => {
-        allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (activeTab === 'today') applyFilter();
-        else renderArchiveDays();
-        updateCountBadges();
-        computeAnalytics();
+        // Debounce: Toplu gönderimlerde arayüzün kilitlenmesini engelle
+        if (snapshotTimeout) clearTimeout(snapshotTimeout);
+        
+        snapshotTimeout = setTimeout(() => {
+            allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (activeTab === 'today') applyFilter();
+            else renderArchiveDays();
+            updateCountBadges();
+            computeAnalytics();
+            console.log("Realtime feed updated (debounced)");
+        }, 300);
     });
 }
 
