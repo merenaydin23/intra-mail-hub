@@ -192,10 +192,10 @@ function updateDashboardUI(users) {
         regionBody.innerHTML = sortedRegions.map(([reg, count]) => {
             const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
             return `<tr>
-                <td style="padding:0.6rem 0.5rem; font-weight:700; color:var(--brand-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:0;">${reg}</td>
-                <td style="padding:0.6rem 0.25rem; color:var(--text-muted); font-weight:600; text-align:center;">${count}</td>
-                <td style="padding:0.6rem 0.25rem; text-align:right;">
-                    <span style="background:var(--brand-soft); color:var(--brand); font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; white-space:nowrap;">${pct}%</span>
+                <td style="padding:1.25rem 1.5rem; font-weight:700; color:var(--brand-ink);">${reg}</td>
+                <td style="padding:1.25rem 0.5rem; color:var(--text-muted); font-weight:600; text-align:center;">${count}</td>
+                <td style="padding:1.25rem 1.5rem; text-align:right;">
+                    <span style="background:var(--brand-soft); color:var(--brand); font-weight:800; font-size:0.75rem; padding:4px 12px; border-radius:8px; white-space:nowrap;">${pct}%</span>
                 </td>
             </tr>`;
         }).join("");
