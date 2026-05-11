@@ -307,7 +307,11 @@ function showMessageDetail(msg) {
         if (!card) return;
 
         // Özel Sistem Hesabı (İnsan Kaynakları vs.) Kontrolü
-        const isSystem = (uid === 'system' || (defaultName && defaultName.toLowerCase().includes('insan kaynakları')));
+        const isSystem = (
+            uid === 'system' || 
+            uid === 'auto' || 
+            (defaultName && (defaultName.includes('İnsan Kaynakları') || defaultName.includes('Insan') || defaultName.toLowerCase().includes('sistem')))
+        );
         if (isSystem) {
             card.innerHTML = `
                 <div class="info-card-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
