@@ -190,7 +190,13 @@ function updateDashboardUI(users) {
     if (regionBody) {
         regionBody.innerHTML = sortedRegions.map(([reg, count]) => {
             const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-            return `<tr><td><strong>${reg}</strong></td><td>${count}</td><td style="color:var(--text-muted); font-weight:700;">${pct}%</td></tr>`;
+            return `<tr>
+                <td style="padding:0.6rem 0.5rem; font-weight:700; color:var(--brand-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:0;">${reg}</td>
+                <td style="padding:0.6rem 0.25rem; color:var(--text-muted); font-weight:600; text-align:center;">${count}</td>
+                <td style="padding:0.6rem 0.25rem; text-align:right;">
+                    <span style="background:var(--brand-soft); color:var(--brand); font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; white-space:nowrap;">${pct}%</span>
+                </td>
+            </tr>`;
         }).join("");
     }
 
@@ -229,19 +235,37 @@ function buildCharts(data) {
         if (ctx) activeCharts[id] = new Chart(ctx, config);
     };
 
-    // Region Pie
+    // Region Donut with Percentage Labels
     createChart("regionChart", {
-        type: "pie",
+        type: "doughnut",
         data: {
             labels: data.sortedRegions.map((r) => r[0]),
             datasets: [{ 
                 data: data.sortedRegions.map((r) => r[1]), 
-                backgroundColor: CHART_PALETTE.emerald, 
-                borderWidth: 2, 
-                borderColor: "#fff" 
+                backgroundColor: CHART_PALETTE.emerald,
+                borderWidth: 3, 
+                borderColor: "#fff",
+                hoverOffset: 12
             }]
         },
-        options: { ...baseOptions, plugins: { ...baseOptions.plugins, legend: { position: 'right' } } }
+        options: { 
+            ...baseOptions, 
+            cutout: "60%",
+            plugins: { 
+                ...baseOptions.plugins, 
+                legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 10, font: { size: 11, family: "'Inter'" } } },
+                tooltip: {
+                    ...baseOptions.plugins.tooltip,
+                    callbacks: {
+                        label: (ctx) => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${ctx.parsed} kişi (${pct}%)`;
+                        }
+                    }
+                }
+            } 
+        }
     });
 
     // Category Doughnut
@@ -333,16 +357,17 @@ function buildCharts(data) {
                 label: "Personel", 
                 data: sortedCos.map(c => c[1]), 
                 backgroundColor: companyGradient, 
-                borderRadius: { topLeft: 50, topRight: 50, bottomLeft: 0, bottomRight: 0 },
-                barThickness: 32
+                borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 },
+                barThickness: 44,
+                borderSkipped: false
             }]
         },
         options: { 
             ...baseOptions, 
             plugins: { ...baseOptions.plugins, legend: { display: false } },
             scales: {
-                y: { grid: { display: true, color: '#f3f4f6' }, border: { display: false } },
-                x: { grid: { display: false }, border: { display: false } }
+                y: { grid: { display: true, color: 'rgba(0,0,0,0.04)' }, border: { display: false }, ticks: { font: { weight: '700' } } },
+                x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '600' } } }
             }
         }
     });
