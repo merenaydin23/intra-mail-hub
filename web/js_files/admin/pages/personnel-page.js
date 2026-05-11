@@ -71,7 +71,7 @@ function setupListeners() {
 
 function closeDrawer() {
     const drawer = document.getElementById('userDrawer');
-    if (drawer) drawer.style.right = '-450px';
+    if (drawer) drawer.style.right = '-500px';
     const overlay = document.getElementById('userDrawerOverlay');
     if (overlay) overlay.style.display = 'none';
 }

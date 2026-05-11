@@ -322,17 +322,17 @@
 
     <!-- PERSONEL DETAY DRAWER -->
     <div id="userDrawerOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:1000; backdrop-filter:blur(2px);"></div>
-    <div id="userDrawer" style="position:fixed; right:-450px; top:0; bottom:0; width:450px; background:white; z-index:1001; box-shadow: -10px 0 30px rgba(0,0,0,0.1); transition:right 0.4s cubic-bezier(0.4, 0, 0.2, 1); display:flex; flex-direction:column;">
-        <div style="padding:2rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:linear-gradient(to right, #f8fafc, #ffffff);">
+    <div id="userDrawer" style="position:fixed; right:-500px; top:0; bottom:0; width:480px; background:white; z-index:1001; box-shadow: -20px 0 60px rgba(0,0,0,0.12); transition:right 0.4s cubic-bezier(0.4, 0, 0.2, 1); display:flex; flex-direction:column;">
+        <div style="padding:2rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
             <h3 style="font-family:'Outfit'; margin:0; font-size:1.25rem; color:var(--brand-ink);">Personel Kartı</h3>
             <button id="btnCloseDrawer" style="border:none; background:none; cursor:pointer; font-size:1.5rem; color:var(--text-light); transition:0.2s;"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
         <div style="flex:1; overflow-y:auto; padding:2rem;">
-            <div style="text-align:center; margin-bottom:2.5rem;">
-                <div id="drawAvatar" style="width:80px; height:80px; border-radius:24px; background:var(--brand); color:white; font-size:2rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; box-shadow: 0 10px 20px var(--brand-glow);">AB</div>
-                <h2 id="drawName" style="font-family:'Outfit'; font-size:1.5rem; margin-bottom:0.25rem; color:var(--brand-ink);">İsim Soyisim</h2>
-                <div id="drawStatus" style="display:inline-block; font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em;">AKTİF</div>
+            <div style="text-align:center; margin-bottom:2.5rem; padding: 1.5rem; background: linear-gradient(135deg, #f0fdf4 0%, #f5f3ff 100%); border-radius: 20px; border: 1px solid #e9d5ff;">
+                <div id="drawAvatar" style="width:96px; height:96px; border-radius:50%; background:linear-gradient(135deg, var(--brand) 0%, #059669 100%); color:white; font-size:2.2rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; box-shadow: 0 12px 30px rgba(0,71,51,0.25);">AB</div>
+                <h2 id="drawName" style="font-family:'Plus Jakarta Sans'; font-size:1.4rem; margin-bottom:0.5rem; color:var(--brand-ink); font-weight:800;">İsim Soyisim</h2>
+                <div id="drawStatus" style="display:inline-block; font-size:0.72rem; font-weight:800; padding:5px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;">AKTİF</div>
             </div>
 
             <div style="display:grid; gap:1.5rem;">
@@ -405,10 +405,10 @@
             </div>
         </div>
 
-        <div style="padding:1.5rem 2rem; border-top:1px solid var(--border); display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
-            <button id="btnEditUser" class="btn-outline" style="grid-column: span 2;"><i class="fa-solid fa-pen-to-square"></i> Bilgileri Düzenle</button>
-            <button id="btnToggleStatus" class="btn-outline"><i class="fa-solid fa-ban"></i> Pasife Al</button>
-            <button id="btnDeleteUser" class="btn-outline btn-danger-soft"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
+        <div style="padding:1.5rem 2rem; border-top:1px solid var(--border); background:#fafbfc; display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+            <button id="btnEditUser" class="btn-outline" style="grid-column: span 2; padding: 0.85rem;"><i class="fa-solid fa-pen-to-square"></i> Bilgileri Düzenle</button>
+            <button id="btnToggleStatus" class="btn-outline" style="padding: 0.85rem;"><i class="fa-solid fa-ban"></i> Pasife Al</button>
+            <button id="btnDeleteUser" class="btn-outline btn-danger-soft" style="padding: 0.85rem;"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
         </div>
     </div>
 
