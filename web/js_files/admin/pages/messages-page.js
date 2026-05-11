@@ -449,15 +449,28 @@ async function initBroadcast() {
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
             try {
-                const prompt = `Sen Bellona Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel, yaratıcı ve güven verici bir duyuru metnine dönüştür. 
+                const subjectEl = document.getElementById('broadcastSubject');
+                const prompt = `Sen Bellona Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuruya dönüştür.
+                ÖNEMLİ: Hem bir KONU başlığı hem de mesaj GÖVDESİ oluşturmalısın.
+                FORMAT:
+                KONU: [Buraya kısa ve etkileyici konu başlığını yaz]
+                MESAJ: [Buraya en az 2-3 cümlelik yaratıcı ve vizyoner mesaj gövdesini yaz]
+                
                 KURALLAR:
-                1. Taslak çok kısa olsa bile yaratıcı ol ve en az 2-3 cümlelik akıcı bir metin oluştur. 
-                2. Sadece ana gövde metnini yaz. 
-                3. Giriş hitabı (Sayın...) ve kapanış imzasını (Saygılarımla...) KESİNLİKLE yazma, sistem onları otomatik ekleyecek.
-                4. Bellona kurumsal kimliğine uygun, vizyoner bir dil kullan.`;
-                const refined = await refineMessageWithAI(draft, prompt);
-                bodyEl.value = refined;
-                showToast('Mesaj hazırlandı.', 'success');
+                1. Sadece yukarıdaki formatta çıktı ver.
+                2. Hitap ve imza ekleme, sistem otomatik ekleyecek.
+                3. Bellona kalitesine uygun, ciddi ama samimi bir dil kullan.`;
+                
+                const response = await refineMessageWithAI(draft, prompt);
+                
+                // Parse response
+                const subjectMatch = response.match(/KONU:\s*(.*)/i);
+                const bodyMatch = response.match(/MESAJ:\s*([\s\S]*)/i);
+                
+                if (subjectMatch && subjectEl) subjectEl.value = subjectMatch[1].trim();
+                if (bodyMatch) bodyEl.value = bodyMatch[1].trim();
+                
+                showToast('Konu ve Mesaj hazırlandı.', 'success');
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
