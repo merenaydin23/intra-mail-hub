@@ -1,40 +1,192 @@
-import { getAuditLogs } from "../services/audit-service.js";
-import { getAllMessages } from "../services/message-service.js";
 import { sendBroadcast } from "../services/broadcast-service.js";
 import { refineMessageWithAI } from "../../services/ai-service.js";
 import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
-import { collection, getDocs, doc, getDoc, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, orderBy, query, onSnapshot, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
+
+let allMessages = [];
+let activeFilter = 'all'; // 'all' | 'birthday' | 'broadcast'
 
 export async function initMessagesPage() {
     initBroadcast();
     setupRealtimeMessages();
+    setupFilterTabs();
+    setupMessageClickHandler();
+}
+
+function setupFilterTabs() {
+    document.querySelectorAll('.msg-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.msg-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter || 'all';
+            applyFilter();
+        });
+    });
+
+    const searchEl = document.getElementById('msgSearch');
+    if (searchEl) {
+        searchEl.addEventListener('input', () => applyFilter());
+    }
+}
+
+function applyFilter() {
+    const searchTerm = (document.getElementById('msgSearch')?.value || '').toLocaleLowerCase('tr-TR');
+
+    let filtered = allMessages;
+
+    // Type filter
+    if (activeFilter === 'birthday') {
+        filtered = filtered.filter(m => m.type === 'birthday_manual' || m.type === 'birthday_auto');
+    } else if (activeFilter === 'broadcast') {
+        filtered = filtered.filter(m => m.type === 'broadcast' || m.isBroadcast);
+    } else if (activeFilter === 'direct') {
+        filtered = filtered.filter(m => !m.type || m.type === 'direct');
+    }
+
+    // Search filter
+    if (searchTerm) {
+        filtered = filtered.filter(m => {
+            const haystack = `${m.subject} ${m.senderName} ${m.receiverName} ${m.content}`.toLocaleLowerCase('tr-TR');
+            return haystack.includes(searchTerm);
+        });
+    }
+
+    const listBody = document.getElementById('msgListBody');
+    if (listBody) renderMessageFeed(listBody, filtered);
+
+    // Update badge counts
+    updateCountBadges();
+}
+
+function updateCountBadges() {
+    const bdayCount = allMessages.filter(m => m.type === 'birthday_manual' || m.type === 'birthday_auto').length;
+    const bdayBadgeEl = document.getElementById('bdayFilterCount');
+    if (bdayBadgeEl) bdayBadgeEl.textContent = bdayCount;
+
+    const totalEl = document.getElementById('totalCount');
+    if (totalEl) totalEl.textContent = allMessages.length;
+
+    const today = new Date().toDateString();
+    const todayEl = document.getElementById('todayCount');
+    if (todayEl) {
+        const count = allMessages.filter(m => m.timestamp?.toDate().toDateString() === today).length;
+        todayEl.textContent = count;
+    }
 }
 
 function setupRealtimeMessages() {
     const listBody = document.getElementById('msgListBody');
     if (!listBody) return;
 
-    // Listen for ALL messages in real-time
-    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(100));
-    
+    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(200));
+
     onSnapshot(q, (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderMessageFeed(listBody, messages);
-        
-        // Update stats
-        const totalCount = document.getElementById('totalCount');
-        if (totalCount) totalCount.textContent = messages.length;
-        
-        const todayCount = document.getElementById('todayCount');
-        if (todayCount) {
-            const today = new Date().toDateString();
-            const count = messages.filter(m => m.timestamp?.toDate().toDateString() === today).length;
-            todayCount.textContent = count;
-        }
+        allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        applyFilter();
+        updateCountBadges();
+        computeAnalytics();
     });
+}
+
+function computeAnalytics() {
+    // En aktif gönderici bölgesi
+    const senderMap = {};
+    allMessages.forEach(m => {
+        const key = m.senderName || 'Bilinmiyor';
+        senderMap[key] = (senderMap[key] || 0) + 1;
+    });
+    const sorted = Object.entries(senderMap).sort((a, b) => b[1] - a[1]);
+    const activeRegionEl = document.getElementById('activeRegion');
+    if (activeRegionEl && sorted.length) activeRegionEl.textContent = sorted[0][0];
+
+    // Yoğunluk (son 24 saat)
+    const since24h = Date.now() - 86400000;
+    const recent = allMessages.filter(m => {
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate().getTime() : 0;
+        return ts > since24h;
+    }).length;
+    const intensityEl = document.getElementById('liveIntensity');
+    if (intensityEl) intensityEl.textContent = `${recent} / 24sa`;
+}
+
+function setupMessageClickHandler() {
+    const listBody = document.getElementById('msgListBody');
+    if (!listBody) return;
+
+    listBody.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-msg-id]');
+        if (!card) return;
+
+        // Remove active from all
+        listBody.querySelectorAll('.msg-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
+        const msgId = card.dataset.msgId;
+        const msg = allMessages.find(m => m.id === msgId);
+        if (msg) showMessageDetail(msg);
+    });
+}
+
+function showMessageDetail(msg) {
+    const placeholder = document.getElementById('msgPlaceholder');
+    const detail = document.getElementById('msgDetailView');
+    if (!detail) return;
+
+    if (placeholder) placeholder.style.display = 'none';
+    detail.style.display = 'flex';
+
+    const formatDate = (ts) => {
+        if (!ts) return '-';
+        const d = ts?.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleString('tr-TR', { dateStyle: 'long', timeStyle: 'short' });
+    };
+
+    const subjectEl = document.getElementById('detSubject');
+    if (subjectEl) {
+        const isBday = msg.type === 'birthday_manual' || msg.type === 'birthday_auto';
+        subjectEl.innerHTML = isBday
+            ? `🎂 ${msg.subject || 'Doğum Günü Tebriği'}`
+            : (msg.subject || 'Konu Yok');
+    }
+
+    const senderEl = document.getElementById('detSender');
+    if (senderEl) senderEl.textContent = msg.senderName || '-';
+
+    const receiverEl = document.getElementById('detReceiver');
+    if (receiverEl) receiverEl.textContent = msg.receiverName || (msg.isBroadcast ? 'Toplu Gönderim' : '-');
+
+    const timeEl = document.getElementById('detTime');
+    if (timeEl) timeEl.textContent = formatDate(msg.timestamp);
+
+    const statusEl = document.getElementById('detStatus');
+    if (statusEl) {
+        const isBday = msg.type === 'birthday_manual' || msg.type === 'birthday_auto';
+        if (isBday) {
+            statusEl.innerHTML = `<span style="background:#fdf2f8; color:#9333ea; padding:3px 10px; border-radius:6px; font-weight:700; font-size:0.8rem;">${msg.type === 'birthday_auto' ? '🤖 Otomatik Tebrik' : '✋ Elle Gönderildi'}</span>`;
+        } else {
+            statusEl.textContent = msg.status || 'active';
+        }
+    }
+
+    const bodyEl = document.getElementById('detBody');
+    if (bodyEl) bodyEl.textContent = msg.content || 'İçerik bulunamadı.';
+
+    // Attachment
+    const attachEl = document.getElementById('detAttachment');
+    if (attachEl) {
+        if (msg.attachmentUrl) {
+            attachEl.style.display = 'flex';
+            const nameEl = document.getElementById('detAttachName');
+            const linkEl = document.getElementById('detAttachLink');
+            if (nameEl) nameEl.textContent = msg.attachmentName || 'Ek Dosya';
+            if (linkEl) linkEl.href = msg.attachmentUrl;
+        } else {
+            attachEl.style.display = 'none';
+        }
+    }
 }
 
 async function initBroadcast() {
@@ -44,8 +196,8 @@ async function initBroadcast() {
     const form = document.getElementById('broadcastForm');
     const btnAI = document.getElementById('btnBroadcastAI');
 
-    if (btnOpen) btnOpen.onclick = () => modal.style.display = 'block';
-    if (btnClose) btnClose.onclick = () => modal.style.display = 'none';
+    if (btnOpen) btnOpen.onclick = () => { if (modal) modal.style.display = 'flex'; };
+    if (btnClose) btnClose.onclick = () => { if (modal) modal.style.display = 'none'; };
 
     if (btnAI) {
         btnAI.onclick = async () => {
@@ -53,8 +205,7 @@ async function initBroadcast() {
             const targetEl = document.getElementById('broadcastTarget');
             const subjectEl = document.getElementById('broadcastSubject');
             const draft = bodyEl.value.trim();
-            const subject = subjectEl.value.trim();
-            
+
             if (!draft) return showToast('Önce bir taslak metin yazmalısınız.', 'info');
 
             const targetValue = targetEl.value;
@@ -78,7 +229,7 @@ async function initBroadcast() {
                 GÖREVİN: Aşağıdaki taslağı profesyonel bir duyuruya dönüştürmek.
                 Hitap olarak SADECE şunu kullan: ${autoGreeting}
                 İmza olarak SADECE şunu kullan: Saygılarımızla, Bellona Genel Merkezi`;
-                
+
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
                 showToast('Mesaj başarıyla hazırlandı.', 'success');
@@ -105,7 +256,8 @@ async function initBroadcast() {
             try {
                 const sentCount = await sendBroadcast({ target, subject, body });
                 showToast(`Duyuru başarıyla ${sentCount} kişiye gönderildi.`, 'success');
-                setTimeout(() => modal.style.display = 'none', 1500);
+                form.reset();
+                setTimeout(() => { if (modal) modal.style.display = 'none'; }, 1500);
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
