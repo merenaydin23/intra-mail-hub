@@ -318,7 +318,6 @@ function showMessageDetail(msg) {
             if (linkEl) linkEl.href = msg.attachmentUrl;
         }
     }
-    }
 }
 
 // ── BADGES & ANALYTICS ─────────────────────────────────────────
