@@ -2,11 +2,12 @@ import { collection, query, onSnapshot, where, addDoc, getDocs, serverTimestamp,
 import { db, auth } from "../../firebase/config.js";
 
 const CHART_PALETTE = {
-    // Ultimate Bellona Palette
+    // Ultimate Bellona Palette — Corporate Green Gradient Scale
     brand: "#004733",
     mint: "#d1fae5",
     slate: ["#0f172a", "#334155", "#64748b", "#94a3b8", "#cbd5e1"],
-    emerald: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#34d399", "#6ee7b7"]
+    // 7-step green gradient from darkest to lightest for donut/pie charts
+    emerald: ["#00291e", "#003d2c", "#004733", "#005c42", "#047857", "#10b981", "#6ee7b7"]
 };
 
 let activeCharts = {};
@@ -423,8 +424,20 @@ function renderBirthdays(users) {
         let statusClass = "bday-standard";
         if (u.daysRemaining <= 7) statusClass = "bday-alert";
 
-        // Only enable for today (0) or tomorrow (1)
-        const isActionable = u.daysRemaining <= 1;
+        const isToday = u.daysRemaining === 0;
+        const isTomorrow = u.daysRemaining === 1;
+        const isActionable = isToday || isTomorrow;
+
+        const actionBtn = isActionable
+            ? `<button class="bday-send-btn" 
+                data-id="${u.id}" 
+                data-name="${u.name}" 
+                data-surname="${u.surname}">
+                <i class="fa-solid fa-paper-plane" style="font-size:0.8rem;"></i> Tebrik Gönder
+               </button>`
+            : `<span class="bday-pending-pill">
+                <i class="fa-regular fa-clock" style="font-size:0.7rem;"></i> ${u.daysRemaining} gün
+               </span>`;
 
         return `
             <div class="birthday-card">
@@ -432,15 +445,9 @@ function renderBirthdays(users) {
                 <div class="bday-content">
                     <span class="bday-user-name">${u.name} ${u.surname}</span>
                     <span class="bday-company">${u.company || 'Birim Bilgisi Yok'}</span>
-                    <div class="bday-days-badge ${statusClass}">${u.daysRemaining === 0 ? 'Bugün! 🎂' : `${u.daysRemaining} Gün Kaldı`}</div>
+                    <div class="bday-days-badge ${statusClass}">${isToday ? 'Bugün! 🎂' : isTomorrow ? 'Yarın! 🎉' : `${u.daysRemaining} Gün Kaldı`}</div>
                 </div>
-                <button class="bday-send-btn" 
-                    ${isActionable ? '' : 'disabled style="opacity:0.3; cursor:not-allowed; filter:grayscale(1);"'} 
-                    data-id="${u.id}" 
-                    data-name="${u.name}" 
-                    data-surname="${u.surname}">
-                    ${isActionable ? 'Tebrik Gönder' : 'Beklemede'}
-                </button>
+                ${actionBtn}
             </div>`;
     }).join("");
 }
