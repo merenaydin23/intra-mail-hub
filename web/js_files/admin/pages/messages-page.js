@@ -467,8 +467,14 @@ async function initBroadcast() {
                 console.log("AI Response:", response);
                 
                 // Flexible parsing
-                const subjectPart = response.split(/MESAJ:/i)[0].replace(/KONU:/i, '').trim();
+                let subjectPart = response.split(/MESAJ:/i)[0].replace(/KONU:/i, '').trim();
                 const bodyPart = response.split(/MESAJ:/i)[1]?.trim();
+                
+                // Extra guard for subject length (max 3-4 words)
+                if (subjectPart) {
+                    const words = subjectPart.split(/\s+/);
+                    if (words.length > 4) subjectPart = words.slice(0, 3).join(' ');
+                }
                 
                 if (subjectPart && subjectEl) subjectEl.value = subjectPart;
                 if (bodyPart) {
