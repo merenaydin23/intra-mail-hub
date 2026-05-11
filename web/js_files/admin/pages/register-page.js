@@ -78,8 +78,8 @@ export function initRegisterPage() {
         if (catIn.value === 'local') {
             companySelectEl.style.display = 'block';
             companyIn.style.display = 'none';
-            companyIn.removeAttribute('required');
-            companySelectEl.setAttribute('required', '');
+            companyIn.required = false;
+            companySelectEl.required = true;
             companySelectEl.innerHTML = '<option value="">-- Bayi seçiniz --</option>';
             if (uniqueDealers.length > 0) {
                 uniqueDealers.forEach(d => {
@@ -97,8 +97,8 @@ export function initRegisterPage() {
         } else {
             companySelectEl.style.display = 'none';
             companyIn.style.display = 'block';
-            companyIn.setAttribute('required', '');
-            companySelectEl.removeAttribute('required');
+            companyIn.required = true;
+            companySelectEl.required = false;
         }
     };
 
@@ -108,8 +108,8 @@ export function initRegisterPage() {
             if (companySelectEl.value === '__NEW__') {
                 companySelectEl.style.display = 'none';
                 companyIn.style.display = 'block';
-                companyIn.setAttribute('required', '');
-                companySelectEl.removeAttribute('required');
+                companyIn.required = true;
+                companySelectEl.required = false;
                 companyIn.value = '';
                 dealerCodeIn.value = '';
                 dealerCodeIn.disabled = false;
