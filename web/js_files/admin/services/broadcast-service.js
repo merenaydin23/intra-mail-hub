@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, query, where, doc, writeBatch, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { writeAuditLog } from "./audit-service.js";

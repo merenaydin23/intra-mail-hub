@@ -496,17 +496,25 @@ async function initBroadcast() {
             }
 
             const allUsers = await getAllUsers();
-            const filtered = allUsers.filter(u => 
-                u.role !== 'admin' && 
-                ((u.name || '').toLowerCase().includes(val) || 
-                 (u.companyName || '').toLowerCase().includes(val))
-            ).slice(0, 5);
+            const filtered = allUsers.filter(u => {
+                if (u.role === 'admin') return false;
+                const searchStr = `${u.name} ${u.surname} ${u.companyName} ${u.dealerCode} ${u.city}`.toLowerCase();
+                return searchStr.includes(val);
+            }).slice(0, 8);
 
             if (filtered.length > 0) {
                 resultsArea.innerHTML = filtered.map(u => `
-                    <div class="user-search-item" style="padding:0.75rem; border-bottom:1px solid var(--border); cursor:pointer;" onclick="window.__selectUserForMsg('${u.id}', '${u.name}')">
-                        <div style="font-weight:700; font-size:0.85rem;">${u.name}</div>
-                        <div style="font-size:0.7rem; color:var(--text-muted);">${u.companyName || '-'} / ${u.region || '-'}</div>
+                    <div class="user-search-item" style="padding:0.85rem; border-bottom:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:4px;" onclick="window.__selectUserForMsg('${u.id}', '${u.name} ${u.surname}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:800; font-size:0.9rem; color:var(--brand-ink);">${u.name} ${u.surname}</span>
+                            <span style="background:var(--brand-soft); color:var(--brand); font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:6px;">${u.dealerCode || 'KOD YOK'}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">
+                            <i class="fa-solid fa-building" style="margin-right:4px; opacity:0.6;"></i> ${u.companyName || '-'}
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-light);">
+                            <i class="fa-solid fa-map-pin" style="margin-right:4px; opacity:0.6;"></i> ${u.region || '-'} / ${u.city || '-'}
+                        </div>
                     </div>
                 `).join('');
                 resultsArea.style.display = 'block';

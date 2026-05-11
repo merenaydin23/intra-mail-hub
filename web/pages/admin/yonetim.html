@@ -151,10 +151,10 @@
                     <h3 style="font-weight:800; color:#1e293b;"><i class="fa-solid fa-earth-americas" style="color:var(--brand); margin-right:10px;"></i> Bölgesel Dağılım</h3>
                     <span class="section-tag">Coğrafi</span>
                 </div>
-                <div style="padding: 2rem; display:grid; grid-template-columns: 0.8fr 1.2fr; gap:1.5rem; align-items:center;">
-                    <div style="height:220px; position:relative;"><canvas id="regionChart"></canvas></div>
-                    <div style="max-height:220px; overflow-y:auto; padding-right:10px;">
-                        <table style="width:100%; border-collapse:separate; border-spacing:0 8px;">
+                <div style="padding: 2rem; display:flex; align-items:center; gap:2rem;">
+                    <div style="width:180px; height:180px; flex-shrink:0; position:relative;"><canvas id="regionChart"></canvas></div>
+                    <div style="flex:1; max-height:200px; overflow:auto; padding-right:10px;">
+                        <table style="width:100%; border-collapse:separate; border-spacing:0 8px; min-width:200px;">
                             <tbody id="regionTableBody"></tbody>
                         </table>
                     </div>
