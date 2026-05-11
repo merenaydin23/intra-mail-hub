@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
 
 :root {
-    /* Vibrant Emerald SaaS Palette */
+    /* Premium Minimalist Palette - Light Emerald */
     --brand: #10b981;
     --brand-dark: #059669;
     --brand-light: #34d399;
@@ -11,7 +11,7 @@
     
     --bg-page: #f8fafc;
     --bg-card: #ffffff;
-    --bg-sidebar: #064e3b;
+    --bg-sidebar: #ffffff;
     
     --text: #1e293b;
     --text-muted: #64748b;
@@ -126,45 +126,40 @@ p, span, div {
 .sidebar {
     width: var(--sidebar-w);
     background: var(--bg-sidebar);
-    border-right: none;
+    color: var(--text);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
     z-index: 100;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+    box-shadow: 10px 0 30px rgba(0,0,0,0.03);
+    border-right: 1px solid var(--border);
 }
 
 .logo {
-    padding: 3rem 1.5rem;
-    background: linear-gradient(180deg, #064e3b 0%, #065f46 100%);
+    padding: 3rem 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 0.6rem;
 }
 
 .brand-logo {
     max-height: 40px;
     width: auto;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.brand-logo:hover {
-    transform: scale(1.08) rotate(-1deg);
+    filter: brightness(0.2); /* Make logo dark for white sidebar */
+    transition: all 0.4s ease;
 }
 
 .logo::after {
     content: 'ADMIN PORTAL';
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--brand);
     font-size: 0.6rem;
     font-weight: 800;
     letter-spacing: 0.25em;
-    margin-top: 0.5rem;
+    opacity: 0.6;
 }
 
 .sidebar-nav {
@@ -176,32 +171,30 @@ p, span, div {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.85rem 1.25rem;
-    color: #a8bfc9;
+    padding: 1rem 1.25rem;
+    color: var(--text-muted);
     text-decoration: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
     font-weight: 600;
-    margin-bottom: 0.35rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-left: 4px solid transparent;
+    margin-bottom: 0.4rem;
+    transition: all 0.2s ease;
 }
 
-.nav-item i { font-size: 1rem; width: 20px; text-align: center; opacity: 0.85; flex-shrink: 0; }
-
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: #e2f5ee;
-    border-left-color: rgba(0, 92, 66, 0.5);
+    background: var(--brand-soft);
+    color: var(--brand);
 }
 
 .nav-item.active {
-    background: linear-gradient(90deg, rgba(52, 211, 153, 0.12) 0%, transparent 100%);
+    background: var(--brand);
     color: #ffffff;
     font-weight: 700;
-    border-left: 4px solid var(--brand-light);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
 }
+
+.nav-item i { width: 20px; text-align: center; }
+.nav-item.active i { color: #ffffff; }
 
 .nav-item.active::after { display: none; }
 
