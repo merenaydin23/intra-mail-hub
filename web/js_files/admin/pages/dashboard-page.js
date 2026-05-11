@@ -163,12 +163,18 @@ export async function initDashboardPage() {
 }
 
 function setupRealtimeDashboard() {
-    const q = query(collection(db, "users"), where("role", "!=", "admin"));
-    onSnapshot(q, (snapshot) => {
+    const qUsers = query(collection(db, "users"), where("role", "!=", "admin"));
+    onSnapshot(qUsers, (snapshot) => {
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const activeUsers = users.filter(u => u.isActive !== false);
         updateDashboardUI(users);
         checkAndSendBirthdayMessages(activeUsers);
+    });
+
+    const qMessages = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(1000));
+    onSnapshot(qMessages, (snapshot) => {
+        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        buildMessageCharts(messages);
     });
 }
 
@@ -529,4 +535,81 @@ function renderBirthdays(users) {
                 ${actionBtn}
             </div>`;
     }).join("");
+}
+function buildMessageCharts(messages) {
+    // 1. Son 5 Günlük Mesaj Yoğunluğu
+    const now = new Date();
+    const last5Days = [];
+    for (let i = 4; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(now.getDate() - i);
+        last5Days.push(d.toDateString());
+    }
+
+    const densityData = last5Days.map(day => {
+        return messages.filter(m => {
+            const ts = m.timestamp?.toDate ? m.timestamp.toDate() : null;
+            return ts && ts.toDateString() === day;
+        }).length;
+    });
+
+    const densityCanvas = document.getElementById("messageDensityChart");
+    if (densityCanvas) {
+        if (activeCharts["messageDensityChart"]) activeCharts["messageDensityChart"].destroy();
+        activeCharts["messageDensityChart"] = new Chart(densityCanvas, {
+            type: 'line',
+            data: {
+                labels: last5Days.map(d => new Date(d).toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric' })),
+                datasets: [{
+                    label: 'Mesaj Sayısı',
+                    data: densityData,
+                    borderColor: CHART_PALETTE.brand,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: CHART_PALETTE.brand
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 2. En Aktif Bayiler (Admin dışı)
+    const senderStats = {};
+    messages.forEach(m => {
+        // "BELLONA MERKEZ" veya admin gönderilerini hariç tut (genellikle senderName ile ayrılır)
+        if (m.senderName && m.senderName !== "BELLONA MERKEZ") {
+            senderStats[m.senderName] = (senderStats[m.senderName] || 0) + 1;
+        }
+    });
+
+    const topSenders = Object.entries(senderStats)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    const activeList = document.getElementById("activeDealersList");
+    if (activeList) {
+        if (topSenders.length === 0) {
+            activeList.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.85rem;">Henüz veri yok.</div>';
+        } else {
+            activeList.innerHTML = topSenders.map(([name, count], index) => `
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid #f1f5f9;">
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div style="background:#f1f5f9; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem; color:var(--brand);">${index + 1}</div>
+                        <div style="font-weight:700; font-size:0.85rem; color:var(--brand-ink);">${name}</div>
+                    </div>
+                    <div style="background:var(--brand-glow); color:var(--brand); padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:800;">${count} Mesaj</div>
+                </div>
+            `).join("");
+        }
+    }
 }

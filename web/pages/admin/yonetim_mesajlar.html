@@ -283,30 +283,87 @@
 
     <!-- DUYURU MODAL -->
     <div id="broadcastModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter:blur(4px); align-items:center; justify-content:center;">
-        <div class="card" style="width:100%; max-width:600px; margin:2rem; animation:fadeIn 0.3s ease;">
-            <div class="card-header">
-                <h3><i class="fa-solid fa-bullhorn" style="color:var(--brand); margin-right:0.5rem;"></i> Toplu Duyuru Yayınla</h3>
+        <div class="card" style="width:100%; max-width:650px; margin:2rem; animation:fadeIn 0.3s ease; max-height: 90vh; overflow-y: auto;">
+            <div class="card-header" style="position: sticky; top: 0; background: white; z-index: 10;">
+                <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                    <h3 id="modalTitle"><i class="fa-solid fa-paper-plane" style="color:var(--brand); margin-right:0.5rem;"></i> Mesaj Gönder</h3>
+                    <div style="display:flex; gap:0.5rem; background:#f1f5f9; padding:4px; border-radius:10px;">
+                        <button type="button" id="toggleBroadcast" class="msg-type-btn active" style="flex:1; border:none; padding:8px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer;">📢 Toplu Duyuru</button>
+                        <button type="button" id="toggleDirect" class="msg-type-btn" style="flex:1; border:none; padding:8px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer;">👤 Bireysel Mesaj</button>
+                    </div>
+                </div>
                 <button id="btnCloseBroadcast" style="border:none; background:none; cursor:pointer; color:var(--text-light); font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div style="padding:2rem;">
                 <form id="broadcastForm">
-                    <div class="form-group" style="margin-bottom:1.5rem;">
-                        <label>Hedef Kitle</label>
-                        <div class="input-box">
-                            <i class="fa-solid fa-users"></i>
-                            <select id="broadcastTarget" required>
-                                <option value="all">Tüm Personel & Bayiler</option>
-                                <option value="factory">Sadece Fabrika Personeli</option>
-                                <option value="regional">Sadece Bölge Bayileri</option>
-                                <option value="local">Sadece Yerel Bayiler</option>
-                            </select>
+                    <!-- TOPLU DUYURU FİLTRELERİ -->
+                    <div id="broadcastFilters">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                            <div class="form-group">
+                                <label>Kategori</label>
+                                <div class="input-box">
+                                    <select id="broadcastTarget">
+                                        <option value="all">Tümü</option>
+                                        <option value="factory">Fabrika</option>
+                                        <option value="regional">Bölge Bayisi</option>
+                                        <option value="local">Yerel Bayi</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Bölge</label>
+                                <div class="input-box">
+                                    <select id="broadcastRegion">
+                                        <option value="all">Tüm Bölgeler</option>
+                                        <option value="Marmara">Marmara</option>
+                                        <option value="İç Anadolu">İç Anadolu</option>
+                                        <option value="Ege">Ege</option>
+                                        <option value="Akdeniz">Akdeniz</option>
+                                        <option value="Karadeniz">Karadeniz</option>
+                                        <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                                        <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:1.5rem;">
+                            <label>Ünvan / Rol</label>
+                            <div class="input-box">
+                                <select id="broadcastSubRole">
+                                    <option value="all">Herkes</option>
+                                    <option value="manager">Sadece Yöneticiler / Patronlar</option>
+                                    <option value="employee">Sadece Çalışanlar / Personel</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- BİREYSEL MESAJ SEÇİMİ -->
+                    <div id="directFilters" style="display:none; margin-bottom:1.5rem;">
+                        <div class="form-group">
+                            <label>Alıcı Ara</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="userSearchInput" placeholder="İsim veya şirket adı yazın..." />
+                            </div>
+                            <div id="userSearchResults" style="margin-top:0.5rem; max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; display:none;">
+                                <!-- Arama sonuçları buraya -->
+                            </div>
+                            <div id="selectedUserChip" style="margin-top:0.5rem; display:none;">
+                                <div style="display:inline-flex; align-items:center; gap:0.5rem; background:var(--brand-glow); color:var(--brand); padding:6px 12px; border-radius:20px; font-size:0.8rem; font-weight:700; border:1px solid var(--brand);">
+                                    <i class="fa-solid fa-user-check"></i> <span id="selectedUserName">-</span>
+                                    <i class="fa-solid fa-circle-xmark" id="btnRemoveSelectedUser" style="cursor:pointer; opacity:0.7;"></i>
+                                </div>
+                                <input type="hidden" id="selectedUserId" />
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group" style="margin-bottom:1.5rem;">
-                        <label>Duyuru Konusu</label>
+                        <label>Mesaj Konusu</label>
                         <div class="input-box">
                             <i class="fa-solid fa-heading"></i>
-                            <input type="text" id="broadcastSubject" placeholder="Duyuru başlığını girin..." required />
+                            <input type="text" id="broadcastSubject" placeholder="Konu başlığını girin..." required />
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom:2rem;">
@@ -316,10 +373,10 @@
                                 <i class="fa-solid fa-wand-magic-sparkles"></i> AI İLE DÜZENLE
                             </button>
                         </div>
-                        <textarea id="broadcastBody" style="width:100%; height:150px; padding:1rem; border:1.5px solid var(--border); border-radius:12px; font-family:inherit; font-size:0.9rem; resize:none; outline:none;" placeholder="Mesajınızı buraya yazın... (Hitap ve imza otomatik eklenecektir)" required></textarea>
+                        <textarea id="broadcastBody" style="width:100%; height:150px; padding:1rem; border:1.5px solid var(--border); border-radius:12px; font-family:inherit; font-size:0.9rem; resize:none; outline:none;" placeholder="Mesajınızı buraya yazın..." required></textarea>
                     </div>
-                    <button type="submit" class="btn-submit-premium">
-                        <i class="fa-solid fa-paper-plane"></i> Duyuruyu Gönder
+                    <button type="submit" id="btnSendFinal" class="btn-submit-premium">
+                        <i class="fa-solid fa-paper-plane"></i> Gönderimi Başlat
                     </button>
                 </form>
             </div>

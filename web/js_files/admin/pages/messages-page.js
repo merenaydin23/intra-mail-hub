@@ -1,10 +1,10 @@
-import { sendBroadcast } from "../services/broadcast-service.js";
+import { sendBroadcast, sendDirectMessage } from "../services/broadcast-service.js";
 import { refineMessageWithAI } from "../../services/ai-service.js";
 import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
 import { writeAuditLog } from "../services/audit-service.js";
-import { getUserById } from "../services/user-service.js";
+import { getUserById, getAllUsers } from "../services/user-service.js";
 import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -445,32 +445,107 @@ async function initBroadcast() {
     const btnClose = document.getElementById('btnCloseBroadcast');
     const form = document.getElementById('broadcastForm');
     const btnAI = document.getElementById('btnBroadcastAI');
+    
+    // Toggles
+    const toggleBroadcast = document.getElementById('toggleBroadcast');
+    const toggleDirect = document.getElementById('toggleDirect');
+    const broadcastFilters = document.getElementById('broadcastFilters');
+    const directFilters = document.getElementById('directFilters');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    let messageMode = 'broadcast'; // 'broadcast' | 'direct'
+    let selectedUser = null;
 
     if (btnOpen) btnOpen.onclick = () => { if (modal) modal.style.display = 'flex'; };
     if (btnClose) btnClose.onclick = () => { if (modal) modal.style.display = 'none'; };
 
+    // Toggle Logic
+    const switchMode = (mode) => {
+        messageMode = mode;
+        if (mode === 'broadcast') {
+            toggleBroadcast.classList.add('active');
+            toggleDirect.classList.remove('active');
+            broadcastFilters.style.display = 'block';
+            directFilters.style.display = 'none';
+            modalTitle.innerHTML = '<i class="fa-solid fa-bullhorn" style="color:var(--brand); margin-right:0.5rem;"></i> Toplu Duyuru Yayınla';
+        } else {
+            toggleBroadcast.classList.remove('active');
+            toggleDirect.classList.add('active');
+            broadcastFilters.style.display = 'none';
+            directFilters.style.display = 'block';
+            modalTitle.innerHTML = '<i class="fa-solid fa-user-pen" style="color:var(--brand); margin-right:0.5rem;"></i> Bireysel Mesaj Gönder';
+        }
+    };
+
+    if (toggleBroadcast) toggleBroadcast.onclick = () => switchMode('broadcast');
+    if (toggleDirect) toggleDirect.onclick = () => switchMode('direct');
+
+    // User Search Logic
+    const searchInput = document.getElementById('userSearchInput');
+    const resultsArea = document.getElementById('userSearchResults');
+    const chipArea = document.getElementById('selectedUserChip');
+    const nameSpan = document.getElementById('selectedUserName');
+    const btnRemove = document.getElementById('btnRemoveSelectedUser');
+
+    if (searchInput) {
+        searchInput.oninput = async (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (val.length < 2) {
+                resultsArea.style.display = 'none';
+                return;
+            }
+
+            const allUsers = await getAllUsers();
+            const filtered = allUsers.filter(u => 
+                u.role !== 'admin' && 
+                ((u.name || '').toLowerCase().includes(val) || 
+                 (u.companyName || '').toLowerCase().includes(val))
+            ).slice(0, 5);
+
+            if (filtered.length > 0) {
+                resultsArea.innerHTML = filtered.map(u => `
+                    <div class="user-search-item" style="padding:0.75rem; border-bottom:1px solid var(--border); cursor:pointer;" onclick="window.__selectUserForMsg('${u.id}', '${u.name}')">
+                        <div style="font-weight:700; font-size:0.85rem;">${u.name}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${u.companyName || '-'} / ${u.region || '-'}</div>
+                    </div>
+                `).join('');
+                resultsArea.style.display = 'block';
+            } else {
+                resultsArea.innerHTML = '<div style="padding:0.75rem; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
+                resultsArea.style.display = 'block';
+            }
+        };
+    }
+
+    window.__selectUserForMsg = (id, name) => {
+        selectedUser = { id, name };
+        nameSpan.textContent = name;
+        chipArea.style.display = 'block';
+        resultsArea.style.display = 'none';
+        searchInput.value = '';
+    };
+
+    if (btnRemove) btnRemove.onclick = () => {
+        selectedUser = null;
+        chipArea.style.display = 'none';
+    };
+
+    // AI Button Logic
     if (btnAI) {
         btnAI.onclick = async () => {
             const bodyEl = document.getElementById('broadcastBody');
-            const targetEl = document.getElementById('broadcastTarget');
             const draft = bodyEl.value.trim();
             if (!draft) return showToast('Önce taslak yazın.', 'info');
-            const tMap = { all:'Sayın Bellona Ailesi Üyeleri,', factory:'Değerli Fabrika Çalışanlarımız,', regional:'Sayın Bölge Bayilerimiz,', local:'Değerli Yerel Bayilerimiz,' };
-            const greeting = tMap[targetEl.value] || tMap.all;
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
             try {
-                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuru metnine dönüştür.
-                
+                const prompt = `Sen Bellona Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuru metnine dönüştür.
                 KURALLAR:
                 1. En az 3-4 cümlelik, profesyonel ve vizyoner bir metin oluştur.
                 2. Ürün gruplarını (Nadia vb.) kişi adı sanma.
                 3. Giriş hitabı (Sayın...) ve kapanış imzasını (Saygılarımla...) KESİNLİKLE yazma, sistem otomatik ekleyecek.
                 4. Sadece mesajın gövdesini yaz, konu başlığı üretme.`;
-                
                 const response = await refineMessageWithAI(draft, prompt);
-                console.log("AI Response:", response);
-                
                 bodyEl.value = response.trim();
                 showToast('Mesaj başarıyla düzenlendi.', 'success');
             } catch (err) {
@@ -482,16 +557,15 @@ async function initBroadcast() {
         };
     }
 
+    // Submit Logic
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
-            const target = document.getElementById('broadcastTarget').value;
             const subject = document.getElementById('broadcastSubject').value;
             const body = document.getElementById('broadcastBody').value;
-            const btn = form.querySelector('button[type="submit"]');
+            const btn = document.getElementById('btnSendFinal');
+            
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
-            try {
                 const sentCount = await sendBroadcast({ target, subject, body });
                 showToast(`Duyuru ${sentCount} kişiye gönderildi.`, 'success');
                 form.reset();

@@ -129,28 +129,31 @@
             </div>
         </div>
 
-        <!-- ROW 4: Insights Grid -->
-        <div class="dashboard-grid-2col">
-            <!-- En Kalabalık Bölge Bayisi -->
+        <!-- ROW: İletişim Analizi -->
+        <div class="dashboard-grid-2col" style="margin-top: 2rem;">
+            <!-- Mesaj Yoğunluğu -->
             <div class="card card--elevated">
                 <div class="card-header">
-                    <h3><i class="fa-solid fa-medal" style="color:#3b82f6;margin-right:8px;"></i> En Kalabalık Bölge Bayisi</h3>
+                    <h3><i class="fa-solid fa-chart-line" style="color:#10b981;margin-right:8px;"></i> Mesaj Yoğunluğu (Son 5 Gün)</h3>
                 </div>
-                <div class="insight-body" id="insightBusiestRegional">
-                    <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
+                <div class="chart-center" style="height: 250px; padding: 1rem;">
+                    <canvas id="messageDensityChart"></canvas>
                 </div>
             </div>
 
-            <!-- Şirketin Duayeni -->
+            <!-- En Aktif Bayiler -->
             <div class="card card--elevated">
                 <div class="card-header">
-                    <h3><i class="fa-solid fa-star" style="color:#8b5cf6;margin-right:8px;"></i> Şirketin Duayeni</h3>
+                    <h3><i class="fa-solid fa-fire" style="color:#ef4444;margin-right:8px;"></i> En Aktif Mesaj Gönderenler (Bayiler)</h3>
                 </div>
-                <div class="insight-body" id="insightOldest">
+                <div class="insight-body" id="activeDealersList" style="padding: 1.5rem;">
                     <div class="insight-loading"><i class="fa-solid fa-spinner fa-spin"></i> Analiz ediliyor...</div>
                 </div>
             </div>
         </div>
+
+        <!-- ROW 4: Insights Grid -->
+        <div class="dashboard-grid-2col" style="margin-top: 2rem;">
 
         <!-- ROW 5: Şirket Bazlı Personel Grafiği + Doğum Günleri -->
         <div class="dashboard-grid-2col">
