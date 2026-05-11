@@ -123,14 +123,24 @@
                 </div>
 
                 <div id="archivePanel" style="display:none; flex-direction:column; height:100%;">
-                    <div style="display:grid; grid-template-columns: 220px 1fr; height:100%;">
-                        <div style="border-right:1px solid var(--border); overflow-y:auto;">
-                            <div class="archive-section-title">Arşivlenmiş Günler</div>
-                            <div id="archiveDayList"></div>
+                    <div style="display:grid; grid-template-columns: 260px 1fr; height:100%;">
+                        <!-- Sol: Gün Listesi -->
+                        <div style="border-right:1.5px solid var(--border); display:flex; flex-direction:column; background:#fafbfc;">
+                            <div style="padding:1rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+                                <span style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">📦 Arşiv Günleri</span>
+                                <span id="archiveDayCount" style="background:var(--brand-soft); color:var(--brand); font-size:0.7rem; font-weight:800; padding:2px 8px; border-radius:6px;">0</span>
+                            </div>
+                            <div id="archiveDayList" style="flex:1; overflow-y:auto; padding:0.5rem;"></div>
                         </div>
-                        <div style="overflow-y:auto;">
-                            <div class="archive-section-title">Günün Mesajları</div>
-                            <div id="archiveMsgList"></div>
+                        <!-- Sağ: Seçili Günün Mesajları -->
+                        <div style="display:flex; flex-direction:column;">
+                            <div style="padding:1rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fafbfc;">
+                                <span id="archiveSelectedTitle" style="font-size:0.85rem; font-weight:700; color:var(--brand-ink);">Bir gün seçin</span>
+                                <button id="archiveExportBtn" style="display:none; padding:5px 12px; border:1.5px solid var(--border); border-radius:8px; background:white; font-size:0.75rem; font-weight:700; color:#059669; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='white'">
+                                    <i class="fa-solid fa-file-csv"></i> CSV İndir
+                                </button>
+                            </div>
+                            <div id="archiveMsgList" style="flex:1; overflow-y:auto;"></div>
                         </div>
                     </div>
                 </div>

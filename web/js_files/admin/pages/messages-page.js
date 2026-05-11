@@ -108,13 +108,11 @@ function applyFilter() {
 function renderArchiveDays() {
     const today = new Date().toDateString();
 
-    // All messages NOT from today
     const archived = allMessages.filter(m => {
         const ts = m.timestamp?.toDate ? m.timestamp.toDate() : null;
         return ts && ts.toDateString() !== today;
     });
 
-    // Group by date string
     const groups = {};
     archived.forEach(m => {
         const d = m.timestamp.toDate();
@@ -123,51 +121,62 @@ function renderArchiveDays() {
         groups[key].msgs.push(m);
     });
 
-    // Sort by date desc
     const sortedDays = Object.entries(groups).sort((a, b) => b[1].date - a[1].date);
-
     const dayList = document.getElementById('archiveDayList');
+    const dayCountEl = document.getElementById('archiveDayCount');
+    if (dayCountEl) dayCountEl.textContent = sortedDays.length;
+
     if (!dayList) return;
 
     if (!sortedDays.length) {
-        dayList.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-light); font-size:0.85rem;">Arşivde mesaj yok.</div>';
+        dayList.innerHTML = '<div style="padding:3rem 1rem; text-align:center; color:var(--text-light); font-size:0.85rem;"><i class="fa-solid fa-box-open" style="font-size:2rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>Arşivde mesaj yok.</div>';
         return;
     }
 
-    dayList.innerHTML = sortedDays.map(([dateStr, { msgs }]) => `
-        <div class="archive-day-card" data-day="${dateStr}" onclick="window.__selectArchiveDay('${dateStr}')">
-            <div class="archive-day-icon"><i class="fa-solid fa-calendar-day"></i></div>
-            <div style="flex:1;">
-                <div style="font-weight:700; font-size:0.88rem; color:var(--brand-ink);">${dateStr}</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">${msgs.length} mesaj</div>
-            </div>
-            <button onclick="event.stopPropagation(); window.__exportDay('${dateStr}')" 
-                style="padding:4px 10px; border:1px solid var(--border); border-radius:8px; background:white; font-size:0.7rem; font-weight:700; color:var(--brand); cursor:pointer; white-space:nowrap;">
-                <i class="fa-solid fa-file-excel"></i> Excel
-            </button>
-        </div>
-    `).join('');
+    const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
 
-    // Store groups globally for export/selection
+    dayList.innerHTML = sortedDays.map(([dateStr, { date, msgs }]) => {
+        const dayName = dayNames[date.getDay()];
+        const monthDay = date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+        return `
+        <div class="arch-day-item" data-day="${dateStr}" onclick="window.__selectArchiveDay('${dateStr}')">
+            <div class="arch-day-cal">
+                <span class="arch-day-num">${date.getDate()}</span>
+                <span class="arch-day-mon">${date.toLocaleDateString('tr-TR', { month: 'short' })}</span>
+            </div>
+            <div style="flex:1; min-width:0;">
+                <div style="font-weight:700; font-size:0.85rem; color:var(--brand-ink);">${dayName}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">${monthDay} ${date.getFullYear()}</div>
+            </div>
+            <span style="background:var(--brand-soft); color:var(--brand); font-size:0.7rem; font-weight:800; padding:3px 9px; border-radius:8px; flex-shrink:0;">${msgs.length}</span>
+        </div>`;
+    }).join('');
+
     window.__archiveGroups = groups;
 
-    // Auto-select first day
-    if (sortedDays.length) {
-        window.__selectArchiveDay(sortedDays[0][0]);
-    }
+    if (sortedDays.length) window.__selectArchiveDay(sortedDays[0][0]);
 }
 
-// Global handlers for archive
 window.__selectArchiveDay = (dateStr) => {
     selectedArchiveDay = dateStr;
 
-    // Highlight
-    document.querySelectorAll('.archive-day-card').forEach(c => c.classList.remove('active'));
-    const card = document.querySelector(`.archive-day-card[data-day="${dateStr}"]`);
+    document.querySelectorAll('.arch-day-item').forEach(c => c.classList.remove('active'));
+    const card = document.querySelector(`.arch-day-item[data-day="${dateStr}"]`);
     if (card) card.classList.add('active');
 
     const groups = window.__archiveGroups || {};
     const dayMsgs = groups[dateStr]?.msgs || [];
+
+    // Update title
+    const titleEl = document.getElementById('archiveSelectedTitle');
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-calendar-check" style="color:var(--brand); margin-right:6px;"></i> ${dateStr} · <strong>${dayMsgs.length}</strong> mesaj`;
+
+    // Show export btn
+    const exportBtn = document.getElementById('archiveExportBtn');
+    if (exportBtn) {
+        exportBtn.style.display = 'inline-flex';
+        exportBtn.onclick = () => window.__exportDay(dateStr);
+    }
 
     const archiveMsgList = document.getElementById('archiveMsgList');
     if (archiveMsgList) renderMessageFeed(archiveMsgList, dayMsgs);
