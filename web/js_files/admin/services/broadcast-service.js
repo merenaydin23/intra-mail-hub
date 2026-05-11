@@ -20,20 +20,22 @@ export async function sendBroadcast({ target, subject, body }) {
     }
 
     const fullSubject = `[DUYURU] ${subject}`;
-    const fullBody = `✨ ${body}`; // Duyuru işareti
 
-    // 2. Her kullanıcıya mesaj oluştur (Batch işlemi gibi)
+    // 2. Her kullanıcıya mesaj oluştur (Otomatik Kişiselleştirme)
     const promises = users.map(user => {
+        const personalizedBody = `Sayın ${user.name} ${user.surname || ''},\n\n${body}\n\nSaygılarımla,\nBellona Fabrikası`;
+        
         return addDoc(collection(db, "messages"), {
             senderId: actor.uid,
             senderName: "BELLONA MERKEZ",
             receiverId: user.id,
             receiverName: `${user.name} ${user.surname || ''}`,
             subject: fullSubject,
-            content: fullBody,
+            content: personalizedBody,
             status: "active",
             isRead: false,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            type: "announcement"
         });
     });
 
