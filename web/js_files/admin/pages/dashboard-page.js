@@ -37,18 +37,100 @@ if (typeof Chart !== 'undefined') {
 
 export async function initDashboardPage() {
     setupRealtimeDashboard();
+
+    // Manual Bday Trigger
+    document.getElementById("upcomingBirthdayList")?.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".bday-send-btn");
+        if (btn && !btn.disabled) {
+            const { id, name, surname } = btn.dataset;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                // Fetch User Data first
+                const userSnap = await getDoc(doc(collection(db, "users"), id));
+                const userData = userSnap.data() || {};
+
+                // 1. Check for Duplicate (By Subject/Receiver - avoids composite index)
+                const today = new Date();
+                const title = getBdayTitle(userData);
+                const msgSubject = `Mutlu Yıllar ${name} ${title}! 🎂`;
+                
+                const checkQ = query(
+                    collection(db, "messages"),
+                    where("receiverId", "==", id),
+                    where("subject", "==", msgSubject),
+                    limit(5)
+                );
+                const checkSnap = await getDocs(checkQ);
+                let alreadyHandled = false;
+                checkSnap.forEach(doc => {
+                    const d = doc.data();
+                    if (d.timestamp?.toDate().toDateString() === today.toDateString()) {
+                        alreadyHandled = true;
+                    }
+                });
+
+                if (alreadyHandled) {
+                    showToast("Bu personele bugün zaten tebrik iletildi.", "info");
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Gönderildi';
+                    btn.classList.add("sent");
+                    return;
+                }
+
+                // 2. Get Real Admin Info
+                const adminId = auth.currentUser?.uid;
+                if (!adminId) throw new Error("Admin oturumu geçersiz.");
+                const adminDoc = await getDoc(doc(db, "users", adminId));
+                const adminData = adminDoc.data() || { name: "Bellona", surname: "Admin" };
+                const adminFullName = `${adminData.name} ${adminData.surname}`;
+
+                // 3. Determine Content
+                const bdayContent = `Doğum Gününüz Kutlu Olsun ${name} ${title}! 🌿\n\nDeğerli çalışma arkadaşımız ${name} ${surname}, Bellona ailesi olarak bugün seninle birlikte yeni bir yaşın heyecanını paylaşıyoruz. Ailenizle beraber sağlıklı, uzun ve başarı dolu bir ömür dileriz. Nice mutlu senelere! 🎈\n\nBellona Ailesi`;
+
+                await addDoc(collection(db, "messages"), {
+                    senderId: adminId,
+                    senderName: adminFullName,
+                    receiverId: id,
+                    receiverName: `${name} ${surname}`,
+                    participants: [adminId, id],
+                    subject: `Mutlu Yıllar ${name} ${title}! 🎂`,
+                    content: bdayContent,
+                    lastMessage: `Doğum Gününüz Kutlu Olsun ${name} ${title}! 🌿`,
+                    timestamp: serverTimestamp(),
+                    status: "active",
+                    isRead: false,
+                    type: "birthday_manual"
+                });
+
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> İletildi';
+                btn.classList.add("sent");
+                showToast("Tebrik mesajı başarıyla gönderildi ve kaydedildi.", "success");
+            } catch (err) {
+                console.error("Manual Bday Error:", err);
+                btn.disabled = false;
+                btn.innerHTML = "Hata!";
+                showToast("Mesaj gönderilemedi: " + err.message, "error");
+            }
+        }
+    });
+}
+
+function getBdayTitle(user) {
+    if (user.gender === "female") return "Hanım";
+    if (user.gender === "male") return "Bey";
+    return "Bey";
 }
 
 function setupRealtimeDashboard() {
-    // 1. Users Stream
     const qUsers = query(collection(db, "users"), where("role", "!=", "admin"));
     onSnapshot(qUsers, (snapshot) => {
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateDashboardUI(users);
+        // We don't auto-send here to give admin control, or we can keep it as a background task
         checkAndSendBirthdayMessages(users.filter(u => u.isActive !== false));
     });
 
-    // 2. Messages Stream
     const qMessages = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(1000));
     onSnapshot(qMessages, (snapshot) => {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -89,10 +171,10 @@ function updateDashboardUI(users) {
         regionBody.innerHTML = sortedRegions.map(([reg, count]) => {
             const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
             return `<tr>
-                <td style="padding:1rem 0; font-weight:700; color:#1e293b;">${reg}</td>
-                <td style="padding:1rem 0; color:#64748b; font-weight:600; text-align:center;">${count}</td>
-                <td style="padding:1rem 0; text-align:right;">
-                    <span style="background:#f1f5f9; color:#475569; font-weight:800; font-size:0.75rem; padding:4px 10px; border-radius:6px;">${pct}%</span>
+                <td style="padding:0.75rem 0; font-weight:700; color:#1e293b; font-size:0.85rem;">${reg}</td>
+                <td style="padding:0.75rem 0; color:#64748b; font-weight:600; text-align:center; font-size:0.85rem;">${count}</td>
+                <td style="padding:0.75rem 0; text-align:right;">
+                    <span style="background:#f1f5f9; color:#475569; font-weight:800; font-size:0.7rem; padding:4px 10px; border-radius:6px;">${pct}%</span>
                 </td>
             </tr>`;
         }).join("");
@@ -116,85 +198,48 @@ function buildCharts(data) {
         }
     };
 
-    // 1. Region Donut
+    // Charts
     destroy("regionChart");
     activeCharts["regionChart"] = new Chart(document.getElementById("regionChart"), {
-        type: 'doughnut',
-        data: {
-            labels: data.sortedRegions.map(r => r[0]),
-            datasets: [{ data: data.sortedRegions.map(r => r[1]), backgroundColor: CHART_PALETTE.emerald, borderWidth: 0, cutout: '70%' }]
-        },
+        type: 'doughnut', data: { labels: data.sortedRegions.map(r => r[0]), datasets: [{ data: data.sortedRegions.map(r => r[1]), backgroundColor: CHART_PALETTE.emerald, borderWidth: 0, cutout: '75%' }] },
         options: { ...baseOpts, plugins: { ...baseOpts.plugins, centerText: { display: true, label: "BÖLGE" } } }
     });
 
-    // 2. Category Donut
     destroy("categoryChart");
     activeCharts["categoryChart"] = new Chart(document.getElementById("categoryChart"), {
-        type: 'doughnut',
-        data: {
-            labels: ["Fabrika", "Bölge", "Yerel"],
-            datasets: [{ data: [data.factory.length, data.regional.length, data.local.length], backgroundColor: ['#10b981', '#6366f1', '#f59e0b'], borderWidth: 0, cutout: '70%' }]
-        },
+        type: 'doughnut', data: { labels: ["Fabrika", "Bölge", "Yerel"], datasets: [{ data: [data.factory.length, data.regional.length, data.local.length], backgroundColor: ['#10b981', '#6366f1', '#f59e0b'], borderWidth: 0, cutout: '75%' }] },
         options: { ...baseOpts, plugins: { ...baseOpts.plugins, centerText: { display: true, label: "KATEGORİ" } } }
     });
 
-    // 3. Role Donut
     destroy("roleChart");
     const managers = data.users.filter(u => u.subRole === "manager").length;
     const employees = data.users.filter(u => u.subRole === "employee").length;
     activeCharts["roleChart"] = new Chart(document.getElementById("roleChart"), {
-        type: 'doughnut',
-        data: {
-            labels: ["Yönetici", "Çalışan"],
-            datasets: [{ data: [managers, employees], backgroundColor: ['#6366f1', '#e2e8f0'], borderWidth: 0, cutout: '70%' }]
-        },
+        type: 'doughnut', data: { labels: ["Yönetici", "Çalışan"], datasets: [{ data: [managers, employees], backgroundColor: ['#6366f1', '#e2e8f0'], borderWidth: 0, cutout: '75%' }] },
         options: { ...baseOpts, plugins: { ...baseOpts.plugins, centerText: { display: true, label: "ROL" } } }
     });
 
-    // 4. Company Bar
     destroy("companyChart");
     const coStats = {};
     data.users.forEach(u => { if (u.company) coStats[u.company] = (coStats[u.company] || 0) + 1; });
-    const sortedCos = Object.entries(coStats).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    const sortedCos = Object.entries(coStats).sort((a,b) => b[1] - a[1]).slice(0, 10);
     activeCharts["companyChart"] = new Chart(document.getElementById("companyChart"), {
         type: 'bar',
-        data: {
-            labels: sortedCos.map(c => c[0]),
-            datasets: [{ label: 'Personel', data: sortedCos.map(c => c[1]), backgroundColor: '#10b981', borderRadius: 8, barThickness: 32 }]
-        },
-        options: {
-            ...baseOpts,
-            scales: {
-                y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { weight: '600' } } },
-                x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
-            }
-        }
+        data: { labels: sortedCos.map(c => c[0]), datasets: [{ label: 'Personel', data: sortedCos.map(c => c[1]), backgroundColor: '#10b981', borderRadius: 12, barThickness: 40 }] },
+        options: { ...baseOpts, scales: { y: { grid: { color: 'rgba(0,0,0,0.02)', drawBorder: false }, ticks: { font: { weight: '700' } } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: '700' } } } } }
     });
 
-    // 5. Dept Bar
     destroy("deptChart");
     const deptStats = {};
     data.users.forEach(u => { if (u.department) deptStats[u.department] = (deptStats[u.department] || 0) + 1; });
     const sortedDepts = Object.entries(deptStats).sort((a,b) => b[1] - a[1]).slice(0, 6);
     activeCharts["deptChart"] = new Chart(document.getElementById("deptChart"), {
-        type: 'bar',
-        data: {
-            labels: sortedDepts.map(d => d[0]),
-            datasets: [{ label: 'Personel', data: sortedDepts.map(d => d[1]), backgroundColor: '#64748b', borderRadius: 4, barThickness: 12 }]
-        },
-        options: {
-            ...baseOpts,
-            indexAxis: 'y',
-            scales: {
-                x: { grid: { display: false }, ticks: { display: false } },
-                y: { grid: { display: false }, ticks: { font: { weight: '600' } } }
-            }
-        }
+        type: 'bar', data: { labels: sortedDepts.map(d => d[0]), datasets: [{ label: 'Personel', data: sortedDepts.map(d => d[1]), backgroundColor: '#64748b', borderRadius: 6, barThickness: 14 }] },
+        options: { ...baseOpts, indexAxis: 'y', scales: { x: { grid: { display: false }, ticks: { display: false } }, y: { grid: { display: false }, ticks: { font: { weight: '700' } } } } }
     });
 }
 
 function buildMessageCharts(messages) {
-    // 1. Son 5 Günlük Mesaj Yoğunluğu (Bug Fix: Robust Normalization)
     const now = new Date();
     now.setHours(0,0,0,0);
     const last5Days = [];
@@ -222,50 +267,32 @@ function buildMessageCharts(messages) {
             type: 'line',
             data: {
                 labels: last5Days.map(d => d.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric' })),
-                datasets: [{
-                    data: densityData,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#10b981',
-                    pointBorderWidth: 2
-                }]
+                datasets: [{ data: densityData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.08)', fill: true, tension: 0.45, pointRadius: 6, pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 3 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { stepSize: 1, font: { weight: '600' } } },
-                    x: { grid: { display: false }, ticks: { font: { weight: '600' } } }
-                }
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { stepSize: 1, font: { weight: '700' } } }, x: { grid: { display: false }, ticks: { font: { weight: '700' } } } }
             }
         });
     }
 
-    // 2. Active Dealers Leaderboard
+    // Leaderboard
     const senderStats = {};
-    messages.forEach(m => {
-        if (m.senderName && m.senderName !== "BELLONA MERKEZ") {
-            senderStats[m.senderName] = (senderStats[m.senderName] || 0) + 1;
-        }
-    });
+    messages.forEach(m => { if (m.senderName && m.senderName !== "BELLONA MERKEZ") senderStats[m.senderName] = (senderStats[m.senderName] || 0) + 1; });
     const topSenders = Object.entries(senderStats).sort((a,b) => b[1] - a[1]).slice(0, 5);
 
     const activeList = document.getElementById("activeDealersList");
     if (activeList) {
-        if (!topSenders.length) activeList.innerHTML = '<p style="text-align:center; color:#64748b; padding:1rem;">Veri yok.</p>';
+        if (!topSenders.length) activeList.innerHTML = '<p style="text-align:center; color:#94a3b8;">Veri yok.</p>';
         else {
             activeList.innerHTML = topSenders.map(([name, count], index) => `
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding:0.5rem; background:#f8fafc; border-radius:12px;">
-                    <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <div style="width:28px; height:28px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.75rem; color:#10b981; border:1px solid #e2e8f0;">${index+1}</div>
-                        <div style="font-weight:700; font-size:0.85rem; color:#1e293b;">${name}</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:1rem; background:#fff; border:1px solid #f1f5f9; border-radius:18px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.02);">
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div style="width:32px; height:32px; background:#f1f5f9; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem; color:#10b981;">${index+1}</div>
+                        <div style="font-weight:700; font-size:0.9rem; color:#1e293b;">${name}</div>
                     </div>
-                    <div style="background:#ecfdf5; color:#059669; padding:4px 10px; border-radius:20px; font-size:0.7rem; font-weight:800;">${count} Mesaj</div>
+                    <div style="background:#ecfdf5; color:#059669; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:800;">${count} Mesaj</div>
                 </div>
             `).join("");
         }
@@ -283,9 +310,12 @@ function renderInsights(users) {
         if (sortedReg.length) {
             const [name, count] = sortedReg[0];
             busyEl.innerHTML = `
-                <div style="font-size:0.75rem; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:0.5rem;">En Kalabalık Bayi</div>
-                <div style="font-size:1.1rem; font-weight:800; color:#1e293b;">${name}</div>
-                <div style="font-size:0.85rem; color:#10b981; font-weight:700; margin-top:0.25rem;">${count} Aktif Personel</div>`;
+                <div style="font-size:0.7rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:0.75rem; letter-spacing:0.05em;">Lider Bölge Bayisi</div>
+                <div style="font-size:1.25rem; font-weight:800; color:#1e293b; line-height:1.2;">${name}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:1rem;">
+                    <div style="width:8px; height:8px; background:#10b981; border-radius:50%;"></div>
+                    <span style="font-size:0.9rem; color:#10b981; font-weight:700;">${count} Aktif Personel</span>
+                </div>`;
         } else busyEl.innerHTML = "Veri yok.";
     }
 
@@ -296,9 +326,12 @@ function renderInsights(users) {
             const u = sortedAge[0];
             const age = new Date().getFullYear() - new Date(u.birthDate).getFullYear();
             oldEl.innerHTML = `
-                <div style="font-size:0.75rem; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:0.5rem;">Şirket Duayeni</div>
-                <div style="font-size:1.1rem; font-weight:800; color:#1e293b;">${u.name} ${u.surname}</div>
-                <div style="font-size:0.85rem; color:#6366f1; font-weight:700; margin-top:0.25rem;">${age} Yaşında</div>`;
+                <div style="font-size:0.7rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:0.75rem; letter-spacing:0.05em;">Şirketin Duayeni</div>
+                <div style="font-size:1.25rem; font-weight:800; color:#1e293b; line-height:1.2;">${u.name} ${u.surname}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:1rem;">
+                    <div style="width:8px; height:8px; background:#6366f1; border-radius:50%;"></div>
+                    <span style="font-size:0.9rem; color:#6366f1; font-weight:700;">${age} Yaşında</span>
+                </div>`;
         } else oldEl.innerHTML = "Veri yok.";
     }
 }
@@ -321,22 +354,35 @@ function renderBirthdays(users) {
     const list = document.getElementById("upcomingBirthdayList");
     if (!list) return;
     if (!upcoming.length) {
-        list.innerHTML = '<p style="text-align:center; color:#64748b; padding:2rem;">Yakın zamanda doğum günü yok.</p>';
+        list.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:3rem;">Yakın zamanda doğum günü yok.</p>';
         return;
     }
 
-    list.innerHTML = upcoming.map(u => `
-        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem; padding:0.75rem; border:1px solid #f1f5f9; border-radius:12px;">
-            <div style="width:40px; height:40px; background:#fdf4ff; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#a21caf; font-weight:800;">${u.name[0]}${u.surname[0]}</div>
-            <div style="flex:1;">
-                <div style="font-weight:700; font-size:0.85rem; color:#1e293b;">${u.name} ${u.surname}</div>
-                <div style="font-size:0.75rem; color:#64748b;">${u.company || "Birim Yok"}</div>
+    list.innerHTML = upcoming.map(u => {
+        const isToday = u.daysRemaining === 0;
+        const isTomorrow = u.daysRemaining === 1;
+        const isActionable = isToday || isTomorrow;
+        
+        const actionBtn = isActionable 
+            ? `<button class="bday-send-btn" data-id="${u.id}" data-name="${u.name}" data-surname="${u.surname}" 
+                style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:8px 16px; border-radius:12px; font-size:0.75rem; font-weight:800; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-paper-plane"></i> Tebrik Et
+               </button>`
+            : `<div style="background:#f1f5f9; color:#64748b; padding:6px 12px; border-radius:10px; font-size:0.75rem; font-weight:800;">${u.daysRemaining} Gün</div>`;
+
+        return `
+            <div style="display:flex; align-items:center; gap:1.25rem; padding:1.25rem; background:white; border:1px solid #f1f5f9; border-radius:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.02); transition:0.2s;">
+                <div style="width:48px; height:48px; background:#fdf4ff; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#a21caf; font-weight:800; font-size:1rem; border:1px solid rgba(162,28,175,0.1);">${u.name[0]}${u.surname[0]}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:800; font-size:0.95rem; color:#1e293b; margin-bottom:2px;">${u.name} ${u.surname}</div>
+                    <div style="font-size:0.8rem; color:#94a3b8; font-weight:600;">${u.company || "Birim Bilgisi Yok"}</div>
+                    ${isToday ? '<div style="color:#e11d48; font-size:0.7rem; font-weight:900; margin-top:4px; text-transform:uppercase; letter-spacing:0.05em;">🎂 Bugün Kutlanıyor</div>' : ''}
+                    ${isTomorrow ? '<div style="color:#a21caf; font-size:0.7rem; font-weight:900; margin-top:4px; text-transform:uppercase; letter-spacing:0.05em;">🎉 Yarın Kutlanacak</div>' : ''}
+                </div>
+                ${actionBtn}
             </div>
-            <div style="text-align:right;">
-                <div style="font-size:0.75rem; font-weight:800; color:${u.daysRemaining <= 1 ? '#e11d48' : '#a21caf'};">${u.daysRemaining === 0 ? 'BUGÜN' : u.daysRemaining === 1 ? 'YARIN' : u.daysRemaining + ' GÜN'}</div>
-            </div>
-        </div>
-    `).join("");
+        `;
+    }).join("");
 }
 
 async function checkAndSendBirthdayMessages(users) {
