@@ -4,6 +4,7 @@ import { showToast } from "../ui/notifications.js";
 import { getSessionActor } from "../auth/session-service.js";
 import { renderMessageFeed } from "../ui/renderers.js";
 import { writeAuditLog } from "../services/audit-service.js";
+import { getUserById } from "../services/user-service.js";
 import { collection, orderBy, query, onSnapshot, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
 
@@ -296,8 +297,50 @@ function showMessageDetail(msg) {
 
     const senderEl = document.getElementById('detSender');
     if (senderEl) senderEl.textContent = msg.senderName || '-';
+    
     const receiverEl = document.getElementById('detReceiver');
     if (receiverEl) receiverEl.textContent = msg.receiverName || (msg.isBroadcast ? 'Toplu Gönderim' : '-');
+
+    // Populate Info Cards
+    const renderInfoCard = async (uid, cardId, defaultName) => {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        if (!uid) {
+            card.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">Kullanıcı bilgisi bulunamadı.</div>`;
+            return;
+        }
+        card.innerHTML = `<div style="padding:1rem; text-align:center;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--brand);"></i></div>`;
+        const user = await getUserById(uid);
+        if (!user) {
+            card.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">${defaultName} sistemde bulunamadı.</div>`;
+            return;
+        }
+        const initial = (user.name || defaultName || '?').charAt(0).toUpperCase();
+        card.innerHTML = `
+            <div class="info-card-header">
+                <div class="info-card-avatar">${initial}</div>
+                <div>
+                    <div class="info-card-title">${user.name || defaultName}</div>
+                    <div class="info-card-subtitle">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</div>
+                </div>
+            </div>
+            <div class="info-card-body">
+                <div class="info-card-row"><i class="fa-solid fa-envelope"></i> <span>${user.email || '-'}</span></div>
+                <div class="info-card-row"><i class="fa-solid fa-building"></i> <span>${user.companyName || '-'}</span></div>
+                <div class="info-card-row"><i class="fa-solid fa-map-location-dot"></i> <span>${user.region || '-'} / ${user.city || '-'}</span></div>
+                <div class="info-card-row"><i class="fa-solid fa-phone"></i> <span>${user.phone || '-'}</span></div>
+            </div>
+        `;
+    };
+
+    renderInfoCard(msg.senderId, 'senderInfoCard', msg.senderName);
+    if (!msg.isBroadcast) {
+        renderInfoCard(msg.receiverId, 'receiverInfoCard', msg.receiverName);
+    } else {
+        const rCard = document.getElementById('receiverInfoCard');
+        if (rCard) rCard.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.8rem;">Bu bir toplu gönderimdir. Alıcılar hedef kitleye göre belirlenmiştir.</div>`;
+    }
+
     const timeEl = document.getElementById('detTime');
     if (timeEl) timeEl.textContent = fmt(msg.timestamp);
     const statusEl = document.getElementById('detStatus');

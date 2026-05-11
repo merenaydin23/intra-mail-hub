@@ -47,6 +47,91 @@
         .archive-day-icon { width: 32px; height: 32px; border-radius: 8px; background: #fffbeb; color: var(--amber); display: flex; align-items: center; justify-content: center; }
 
         .msg-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; color: var(--text-light); text-align: center; font-size: 0.9rem; }
+
+        /* ── TOOLTIPS (INFO CARDS) ── */
+        .user-badge-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+        }
+        .user-info-card {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            width: 260px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .user-badge-wrapper:hover .user-info-card {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .info-card-header {
+            background: linear-gradient(135deg, var(--brand) 0%, #059669 100%);
+            padding: 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .info-card-avatar {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .info-card-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .info-card-subtitle {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .info-card-body {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .info-card-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+        .info-card-row i {
+            color: var(--brand);
+            margin-top: 0.15rem;
+            width: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -159,10 +244,20 @@
                     <div style="padding: 1.5rem 2rem; background: #f9fafb; border-bottom: 1px solid var(--border);">
                         <h2 id="detSubject" style="font-family:'Outfit'; font-size:1.3rem; margin-bottom:1rem;">-</h2>
                         <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
-                            <div style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-paper-plane" style="color:var(--brand);"></i> <span id="detSender">-</span></div>
-                            <div style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-user-tag" style="color:var(--brand);"></i> <span id="detReceiver">-</span></div>
-                            <div style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-clock" style="color:var(--brand);"></i> <span id="detTime">-</span></div>
-                            <div style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-circle-info" style="color:var(--brand);"></i> <span id="detStatus">-</span></div>
+                            <div class="user-badge-wrapper" style="font-size:0.85rem; color:var(--text-muted);">
+                                <i class="fa-solid fa-paper-plane" style="color:var(--brand);"></i> <span id="detSender">-</span>
+                                <div class="user-info-card" id="senderInfoCard"></div>
+                            </div>
+                            <div class="user-badge-wrapper" style="font-size:0.85rem; color:var(--text-muted);">
+                                <i class="fa-solid fa-user-tag" style="color:var(--brand);"></i> <span id="detReceiver">-</span>
+                                <div class="user-info-card" id="receiverInfoCard"></div>
+                            </div>
+                            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fa-solid fa-clock" style="color:var(--brand);"></i> <span id="detTime">-</span>
+                            </div>
+                            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fa-solid fa-circle-info" style="color:var(--brand);"></i> <span id="detStatus">-</span>
+                            </div>
                         </div>
                     </div>
                     <div style="flex:1; overflow-y:auto; padding:2rem;">

@@ -18,6 +18,22 @@ export async function getAllUsers() {
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+import { getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/**
+ * Belirli bir kullanıcıyı ID ile çeker.
+ */
+export async function getUserById(userId) {
+    if (!userId) return null;
+    try {
+        const d = await getDoc(doc(db, "users", userId));
+        return d.exists() ? { id: d.id, ...d.data() } : null;
+    } catch (e) {
+        console.error("getUserById hatası:", e);
+        return null;
+    }
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
