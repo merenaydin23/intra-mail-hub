@@ -284,8 +284,19 @@ function buildCharts(data) {
     };
 
     const createChart = (id, config) => {
-        const ctx = document.getElementById(id);
-        if (ctx) activeCharts[id] = new Chart(ctx, config);
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        
+        // Ensure old instance is truly gone and canvas is clean
+        if (activeCharts[id]) {
+            activeCharts[id].destroy();
+            delete activeCharts[id];
+        }
+        
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        activeCharts[id] = new Chart(canvas, config);
     };
 
     // Region Donut with Percentage Labels
@@ -318,9 +329,9 @@ function buildCharts(data) {
                         }
                     }
                 }
-            },
-            plugins: [centerTextPlugin]
-        } 
+            }
+        },
+        plugins: [centerTextPlugin]
     });
 
     // Category Doughnut
