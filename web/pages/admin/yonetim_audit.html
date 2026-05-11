@@ -133,6 +133,34 @@
             padding: 5rem 2rem;
             color: var(--text-light);
         }
+
+        /* Audit Filter Buttons */
+        .audit-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: white;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .audit-filter-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-soft);
+        }
+        .audit-filter-btn.active {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+            box-shadow: 0 4px 12px rgba(0,71,51,0.2);
+        }
     </style>
 </head>
 <body>
@@ -162,6 +190,29 @@
                 <button id="btnRefreshAudit" class="btn-outline"><i class="fa-solid fa-rotate"></i> Yenile</button>
             </div>
         </header>
+
+        <!-- Filtre Bar -->
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:2rem; flex-wrap:wrap;">
+            <button class="audit-filter-btn active" data-range="today">
+                <i class="fa-solid fa-calendar-day"></i> Bugün
+            </button>
+            <button class="audit-filter-btn" data-range="week">
+                <i class="fa-solid fa-calendar-week"></i> Bu Hafta
+            </button>
+            <button class="audit-filter-btn" data-range="month">
+                <i class="fa-solid fa-calendar"></i> Bu Ay
+            </button>
+            <button class="audit-filter-btn" data-range="all">
+                <i class="fa-solid fa-list"></i> Tümü
+            </button>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:0.5rem;">
+                <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin:0;">Tarih:</label>
+                <input type="date" id="auditDatePicker" style="padding:0.5rem 0.75rem; border:1.5px solid var(--border); border-radius:10px; font-size:0.85rem; font-family:inherit; color:var(--text); background:white; cursor:pointer; outline:none;">
+            </div>
+            <div id="auditResultCount" style="font-size:0.8rem; color:var(--text-muted); font-weight:600; white-space:nowrap;">
+                — kayıt
+            </div>
+        </div>
 
         <div id="auditTimeline" class="audit-timeline">
             <!-- Dinamik olarak yüklenecek -->
