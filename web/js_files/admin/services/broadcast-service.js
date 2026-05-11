@@ -23,13 +23,14 @@ export async function sendBroadcast({ target, subject, body }) {
 
     // Temizlik: Kullanıcının girdiği metinden gereksiz placeholder ve eski usul kalıpları temizle
     const cleanBody = body
-        .replace(/Sayın\s*\[.*?\]/gi, '') // "Sayın [Alıcı Adı]" gibi kalıpları sil
-        .replace(/\[Alıcı Adı\]/gi, '')
+        .replace(/Sayın\s*\[.*?\][.,\s]*/gi, '') // "Sayın [Alıcı Adı]," kalıbını ve peşindeki virgülü sil
+        .replace(/\[Alıcı Adı\][.,\s]*/gi, '')
         .replace(/\[Gönderen Adı\]\s*\/\s*\[Şirket Adı\]/gi, '')
         .replace(/Saygılarımla,/gi, '')
         .replace(/Bellona Fabrikası/gi, '')
         .replace(/Bilgilerinize sunar, iyi çalışmalar dilerim\./gi, '')
         .replace(/Bilgilerinize sunar/gi, '')
+        .replace(/^\s*[,.;:]\s*/, '') // Başta kalan başıboş noktalama işaretlerini temizle
         .trim();
 
     // 2. Her kullanıcıya mesaj oluştur (Otomatik Kişiselleştirme)

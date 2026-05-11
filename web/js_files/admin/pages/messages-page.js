@@ -449,7 +449,12 @@ async function initBroadcast() {
             btnAI.disabled = true;
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
             try {
-                const prompt = `Sen Bellona İletişim Uzmanısın. Taslağı profesyonel duyuruya çevir. Hitap: ${greeting} İmza: Saygılarımızla, Bellona Genel Merkezi`;
+                const prompt = `Sen Bellona Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel, yaratıcı ve güven verici bir duyuru metnine dönüştür. 
+                KURALLAR:
+                1. Taslak çok kısa olsa bile yaratıcı ol ve en az 2-3 cümlelik akıcı bir metin oluştur. 
+                2. Sadece ana gövde metnini yaz. 
+                3. Giriş hitabı (Sayın...) ve kapanış imzasını (Saygılarımla...) KESİNLİKLE yazma, sistem onları otomatik ekleyecek.
+                4. Bellona kurumsal kimliğine uygun, vizyoner bir dil kullan.`;
                 const refined = await refineMessageWithAI(draft, prompt);
                 bodyEl.value = refined;
                 showToast('Mesaj hazırlandı.', 'success');
