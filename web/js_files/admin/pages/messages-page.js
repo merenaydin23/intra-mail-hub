@@ -450,18 +450,24 @@ async function initBroadcast() {
             btnAI.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
             try {
                 const subjectEl = document.getElementById('broadcastSubject');
-                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı, tüm bayi ve personelimize yönelik, profesyonel, vizyoner ve mantıklı bir duyuruya dönüştür.
+                const prompt = `Sen Bellona Genel Merkezi Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuruya dönüştür.
                 
-                TALİMATLAR:
-                1. Metin en az 3-4 cümlelik, zengin ve ikna edici olmalı. Kısa ve kuru ifadelerden kaçın.
-                2. Taslakta geçen ürün adlarını (örn: Nadia, Vienza) kişi adı sanma! Bunlar ürün koleksiyonlarıdır. 
-                3. Giriş hitabı (Sayın...) ve kapanış imzasını (Saygılarımla...) KESİNLİKLE yazma, sistem otomatik ekliyor.
-                4. [Alıcı Adı], [Şirket Adı] gibi köşeli parantezli hiçbir ifadeyi KESİNLİKLE kullanma.
-                5. 'Bilgilerinize sunar' gibi klişe ve soğuk ifadeler yerine daha modern ve kurumsal bir dil kullan.
+                ÖNEMLİ: Hem bir KONU başlığı hem de mesaj GÖVDESİ oluşturmalısın.
+                
+                KONU BAŞLIĞI KURALLARI (Kritik):
+                - Mesaj içeriğini analiz ederek kısa, net ve kurumsal bir konu üret.
+                - Maksimum 3-4 kelime olsun (özet niteliğinde).
+                - Tamamı büyük harf olmasın, emoji kullanma, resmi ton kullan.
+                - Ekstra bilgi veya açıklama ekleme.
+                
+                MESAJ GÖVDESİ KURALLARI:
+                - En az 3-4 cümlelik, profesyonel ve vizyoner bir metin oluştur.
+                - Ürün gruplarını (Nadia vb.) kişi adı sanma.
+                - Hitap ve imza ekleme, sistem otomatik ekleyecek.
                 
                 FORMAT:
-                KONU: [Sadece 2-3 kelimeden oluşan, çok kısa ve net bir başlık]
-                MESAJ: [Yaratıcı, detaylı ve mantıklı duyuru metni]`;
+                KONU: [Buraya kurumsal konu başlığını yaz]
+                MESAJ: [Buraya yaratıcı mesaj gövdesini yaz]`;
                 
                 const response = await refineMessageWithAI(draft, prompt);
                 console.log("AI Response:", response);
