@@ -453,24 +453,30 @@ async function initBroadcast() {
                 const prompt = `Sen Bellona Kurumsal İletişim Uzmanısın. Kullanıcının girdiği taslağı profesyonel bir duyuruya dönüştür.
                 ÖNEMLİ: Hem bir KONU başlığı hem de mesaj GÖVDESİ oluşturmalısın.
                 FORMAT:
-                KONU: [Buraya kısa ve etkileyici konu başlığını yaz]
-                MESAJ: [Buraya en az 2-3 cümlelik yaratıcı ve vizyoner mesaj gövdesini yaz]
+                KONU: [Buraya konu başlığını yaz]
+                MESAJ: [Buraya mesaj gövdesini yaz]
                 
                 KURALLAR:
-                1. Sadece yukarıdaki formatta çıktı ver.
+                1. Sadece yukarıdaki formatta çıktı ver. Ek açıklama veya giriş cümlesi yazma.
                 2. Hitap ve imza ekleme, sistem otomatik ekleyecek.
-                3. Bellona kalitesine uygun, ciddi ama samimi bir dil kullan.`;
+                3. Vizyoner ve kurumsal bir dil kullan.`;
                 
                 const response = await refineMessageWithAI(draft, prompt);
+                console.log("AI Response:", response);
                 
-                // Parse response
-                const subjectMatch = response.match(/KONU:\s*(.*)/i);
-                const bodyMatch = response.match(/MESAJ:\s*([\s\S]*)/i);
+                // Flexible parsing
+                const subjectPart = response.split(/MESAJ:/i)[0].replace(/KONU:/i, '').trim();
+                const bodyPart = response.split(/MESAJ:/i)[1]?.trim();
                 
-                if (subjectMatch && subjectEl) subjectEl.value = subjectMatch[1].trim();
-                if (bodyMatch) bodyEl.value = bodyMatch[1].trim();
-                
-                showToast('Konu ve Mesaj hazırlandı.', 'success');
+                if (subjectPart && subjectEl) subjectEl.value = subjectPart;
+                if (bodyPart) {
+                    bodyEl.value = bodyPart;
+                    showToast('Konu ve Mesaj başarıyla güncellendi.', 'success');
+                } else {
+                    // Fallback if split fails
+                    bodyEl.value = response;
+                    showToast('Mesaj düzenlendi ancak konu ayrıştırılamadı.', 'warning');
+                }
             } catch (err) {
                 showToast('Hata: ' + err.message, 'error');
             } finally {
