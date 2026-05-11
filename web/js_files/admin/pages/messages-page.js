@@ -40,10 +40,31 @@ function setupTabSwitching() {
             } else {
                 if (todayPanel) todayPanel.style.display = 'none';
                 if (archivePanel) archivePanel.style.display = 'flex';
+                
+                // Reset views
+                const daysView = document.getElementById('archiveDaysView');
+                const msgsView = document.getElementById('archiveMsgsView');
+                if (daysView && msgsView) {
+                    daysView.style.transform = 'translateX(0)';
+                    msgsView.style.transform = 'translateX(100%)';
+                }
+                
                 renderArchiveDays();
             }
         });
     });
+
+    const btnBack = document.getElementById('btnArchiveBack');
+    if (btnBack) {
+        btnBack.addEventListener('click', () => {
+            const daysView = document.getElementById('archiveDaysView');
+            const msgsView = document.getElementById('archiveMsgsView');
+            if (daysView && msgsView) {
+                daysView.style.transform = 'translateX(0)';
+                msgsView.style.transform = 'translateX(100%)';
+            }
+        });
+    }
 }
 
 // ── TYPE FILTER BUTTONS ────────────────────────────────────────
@@ -153,8 +174,6 @@ function renderArchiveDays() {
     }).join('');
 
     window.__archiveGroups = groups;
-
-    if (sortedDays.length) window.__selectArchiveDay(sortedDays[0][0]);
 }
 
 window.__selectArchiveDay = (dateStr) => {
@@ -180,6 +199,14 @@ window.__selectArchiveDay = (dateStr) => {
 
     const archiveMsgList = document.getElementById('archiveMsgList');
     if (archiveMsgList) renderMessageFeed(archiveMsgList, dayMsgs);
+
+    // Slide animation
+    const daysView = document.getElementById('archiveDaysView');
+    const msgsView = document.getElementById('archiveMsgsView');
+    if (daysView && msgsView) {
+        daysView.style.transform = 'translateX(-100%)';
+        msgsView.style.transform = 'translateX(0)';
+    }
 };
 
 window.__exportDay = (dateStr) => {
