@@ -171,7 +171,7 @@ function updateDashboardUI(users) {
         regionBody.innerHTML = sortedRegions.map(([reg, count]) => {
             const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
             return `<tr>
-                <td style="padding:0.75rem 0; font-weight:700; color:#1e293b; font-size:0.85rem;">${reg}</td>
+                <td style="padding:0.75rem 0; font-weight:700; color:#1e293b; font-size:0.85rem; min-width:110px;">${reg}</td>
                 <td style="padding:0.75rem 0; color:#64748b; font-weight:600; text-align:center; font-size:0.85rem;">${count}</td>
                 <td style="padding:0.75rem 0; text-align:right;">
                     <span style="background:#f1f5f9; color:#475569; font-weight:800; font-size:0.7rem; padding:4px 10px; border-radius:6px;">${pct}%</span>
