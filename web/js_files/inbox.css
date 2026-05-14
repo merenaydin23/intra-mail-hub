@@ -591,22 +591,30 @@ body {
    COMPOSE POPUP
 ============================== */
 .compose-area {
-  position: absolute;
+  position: fixed; /* Changed to fixed for better behavior */
   bottom: 0;
   right: 2rem;
   width: 700px;
-  /* Increased from 550px */
   height: 750px;
-  /* Increased from 600px */
   background: white;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border-radius: 16px 16px 0 0;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  z-index: 100;
+  z-index: 1100;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.compose-area.minimized {
+  height: 60px !important;
+  width: 300px;
+}
+
+.compose-area.minimized .form-body,
+.compose-area.minimized .form-footer {
+  display: none;
 }
 
 .compose-header {

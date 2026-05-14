@@ -356,25 +356,51 @@ function initCompose() {
     if (categorySelect) {
         categorySelect.addEventListener('change', async (e) => {
             const cat = e.target.value;
-            
-            // Bölge filtresini göster/gizle
             if (['local_boss', 'region_dealers', 'global'].includes(cat)) {
                 regionFilterContainer?.classList.remove('hidden');
             } else {
                 regionFilterContainer?.classList.add('hidden');
                 if (regionFilterSelect) regionFilterSelect.value = "";
             }
-
             if (!cat) {
                 searchInput.disabled = true;
                 searchInput.value = "";
                 return;
             }
-            
             searchInput.disabled = false;
             searchInput.placeholder = "Yükleniyor...";
             currentReceivers = await loadReceiversByCategory(cat, regionFilterSelect?.value);
             searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
+        });
+    }
+
+    if (regionFilterSelect) {
+        regionFilterSelect.addEventListener('change', async () => {
+            const cat = categorySelect.value;
+            if (!cat) return;
+            searchInput.placeholder = "Filtreleniyor...";
+            currentReceivers = await loadReceiversByCategory(cat, regionFilterSelect.value);
+            searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
+        });
+    }
+
+    if (closeCompose) {
+        closeCompose.addEventListener('click', () => {
+            composeArea.classList.add('hidden');
+            composeArea.classList.remove('minimized');
+        });
+    }
+
+    const minimizeBtn = document.getElementById('minimizeCompose');
+    if (minimizeBtn && composeArea) {
+        minimizeBtn.addEventListener('click', () => {
+            composeArea.classList.toggle('minimized');
+            const icon = minimizeBtn.querySelector('i');
+            if (composeArea.classList.contains('minimized')) {
+                icon.className = 'fa-solid fa-window-maximize';
+            } else {
+                icon.className = 'fa-solid fa-minus';
+            }
         });
     }
 
