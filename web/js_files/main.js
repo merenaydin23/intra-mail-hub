@@ -60,7 +60,13 @@ if (loginForm) {
           }
         }, 1200);
       } else {
-        throw new Error("Kullanıcı kaydı doğrulanamadı. Firestore verisi eksik.");
+        // Firestore kaydı eksik → repair sayfasına yönlendir
+        messageDiv.innerHTML = `⚠️ Sistem kaydınız bulunamadı. Onarım sayfasına yönlendiriliyorsunuz...`;
+        messageDiv.style.color = "#f59e0b";
+        setTimeout(() => {
+          window.location.href = `/repair.html?email=${encodeURIComponent(email)}`;
+        }, 1500);
+        return;
       }
 
     } catch (error) {

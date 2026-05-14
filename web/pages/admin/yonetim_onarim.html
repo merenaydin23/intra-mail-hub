@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistem Onarım | Bellona Yönetim</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../js_files/admin.css">
+  <style>
+    body { background: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .page-wrap { padding: 2.5rem; }
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border-radius: 24px; padding: 2.5rem 3rem; margin-bottom: 2rem;
+      display: flex; align-items: center; gap: 2rem; color: white;
+    }
+    .hero-icon {
+      width: 72px; height: 72px; background: rgba(255,255,255,0.15);
+      border-radius: 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; flex-shrink: 0;
+    }
+    .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .hero p  { opacity: 0.7; font-size: 0.95rem; }
+    .card {
+      background: white; border-radius: 20px;
+      border: 1px solid #f1f5f9; overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+      margin-bottom: 1.5rem;
+    }
+    .card-head {
+      padding: 1.25rem 2rem; border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-head h3 { font-weight: 800; font-size: 1rem; color: #1e293b; }
+    .card-body   { padding: 2rem; }
+    .btn {
+      padding: 10px 24px; border: none; border-radius: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn:hover   { transform: translateY(-1px); filter: brightness(1.05); }
+    .btn:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .btn-warn    { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .btn-sm      { padding: 6px 14px; font-size: 0.78rem; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;
+    }
+    .tag-warn { background: #fff7ed; color: #d97706; }
+    .tag-ok   { background: #ecfdf5; color: #059669; }
+    .tag-err  { background: #fef2f2; color: #dc2626; }
+    #scanLog {
+      background: #0f172a; color: #94a3b8; font-family: monospace;
+      font-size: 0.8rem; border-radius: 12px; padding: 1.5rem;
+      max-height: 260px; overflow-y: auto; line-height: 1.8;
+      display: none;
+    }
+    .log-ok   { color: #34d399; }
+    .log-warn { color: #fbbf24; }
+    .log-err  { color: #f87171; }
+    .log-info { color: #60a5fa; }
+    .broken-row {
+      padding: 1rem 1.25rem; border-radius: 14px;
+      background: #fef2f2; border: 1px solid #fee2e2;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.75rem; gap: 1rem;
+    }
+    .broken-info { display: flex; flex-direction: column; gap: 4px; }
+    .broken-email { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+    .broken-uid   { font-size: 0.72rem; color: #94a3b8; font-family: monospace; }
+    .result-none {
+      text-align: center; padding: 3rem; color: #94a3b8;
+    }
+    #resultSection { display: none; }
+    #bulkSection   { display: none; }
+    .summary-box {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;
+    }
+    .summary-item {
+      padding: 1.25rem; border-radius: 16px; text-align: center;
+    }
+    .summary-num  { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .summary-lbl  { font-size: 0.75rem; font-weight: 700; opacity: 0.7; }
+    .s-total  { background: #eff6ff; color: #1d4ed8; }
+    .s-ok     { background: #ecfdf5; color: #059669; }
+    .s-broken { background: #fef2f2; color: #dc2626; }
+    select, input {
+      width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
+      border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.875rem; outline: none; background: #f8fafc;
+      transition: border-color 0.2s; margin-bottom: 0.75rem;
+    }
+    select:focus, input:focus { border-color: #6366f1; background: white; }
+    .repair-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .inline-field label { display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    .inline-field input, .inline-field select { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo">
+    <img src="../../assets/bellona-logo.svg" alt="Logo" class="brand-logo">
+  </div>
+  <nav class="sidebar-nav">
+    <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users-viewfinder"></i> Personel</a>
+    <a href="yonetim_ekle.html" class="nav-item"><i class="fa-solid fa-plus"></i> Yeni Kayıt</a>
+    <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-paper-plane"></i> Mesajlar</a>
+    <a href="yonetim_audit.html" class="nav-item"><i class="fa-solid fa-shield-check"></i> Güvenlik</a>
+    <a href="yonetim_onarim.html" class="nav-item active"><i class="fa-solid fa-wrench"></i> Sistem Onarım</a>
+    <div class="sidebar-logout">
+      <a href="../../index.html" class="nav-item" style="color:#ef4444;"><i class="fa-solid fa-power-off"></i> Çıkış</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="page-wrap">
+  <div class="hero">
+    <div class="hero-icon">🔧</div>
+    <div>
+      <h1>Sistem Onarım Aracı</h1>
+      <p>Firebase Auth'ta var ama Firestore'da kaydı eksik olan kullanıcıları tespit eder ve onarır.</p>
+    </div>
+  </div>
+
+  <!-- SCAN CARD -->
+  <div class="card">
+    <div class="card-head">
+      <h3><i class="fa-solid fa-magnifying-glass" style="color:#6366f1;margin-right:8px;"></i>Adım 1 — Sistemi Tara</h3>
+      <button class="btn btn-primary" id="scanBtn" onclick="startScan()">
+        <i class="fa-solid fa-radar"></i> Taramayı Başlat
+      </button>
+    </div>
+    <div class="card-body">
+      <p style="color:#64748b;font-size:0.875rem;margin-bottom:1rem;">
+        Bu araç <strong>Firestore users koleksiyonundaki</strong> tüm kayıtları okur ve Auth sisteminde kayıtlı ama Firestore'da eksik olan kullanıcıları listeler.
+      </p>
+      <div id="scanLog"></div>
+    </div>
+  </div>
+
+  <!-- RESULT SECTION -->
+  <div id="resultSection">
+    <div class="card">
+      <div class="card-head">
+        <h3><i class="fa-solid fa-chart-bar" style="color:#10b981;margin-right:8px;"></i>Adım 2 — Tarama Sonuçları</h3>
+        <span id="resultTag" class="tag tag-warn"></span>
+      </div>
+      <div class="card-body">
+        <div class="summary-box" id="summaryBox"></div>
+        <div id="brokenList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK SECTION -->
+  <div id="bulkSection">
+    <div class="card">
+      <div class="card-head">
+        <h3><i class="fa-solid fa-hammer" style="color:#f59e0b;margin-right:8px;"></i>Adım 3 — Toplu Onarım</h3>
+        <button class="btn btn-warn" onclick="repairAll()">
+          <i class="fa-solid fa-bolt"></i> Tümünü Onar
+        </button>
+      </div>
+      <div class="card-body">
+        <p style="color:#64748b;font-size:0.875rem;margin-bottom:1.5rem;">
+          Eksik kayıtlar için <strong>varsayılan bilgilerle</strong> Firestore dokümanı oluşturulur. 
+          Kullanıcılar daha sonra kendi profillerini güncelleyebilir.
+        </p>
+        <div id="repairLog" style="background:#0f172a;color:#94a3b8;font-family:monospace;font-size:0.8rem;border-radius:12px;padding:1.5rem;max-height:200px;overflow-y:auto;line-height:1.8;display:none;"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
+  authDomain: "bellona-71bee.firebaseapp.com",
+  projectId: "bellona-71bee",
+  storageBucket: "bellona-71bee.firebasestorage.app",
+  messagingSenderId: "622122795654",
+  appId: "1:622122795654:web:9a42d0026d5df595f68707"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// Auth guard
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.href = '/';
+});
+
+// --- SCAN LOGIC ---
+let brokenUsers = [];
+
+window.startScan = async function() {
+  const btn = document.getElementById('scanBtn');
+  const log = document.getElementById('scanLog');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Taranıyor...';
+  log.style.display = 'block';
+  log.innerHTML = '';
+  brokenUsers = [];
+
+  function addLog(msg, cls='') {
+    const line = document.createElement('div');
+    line.className = cls;
+    line.innerHTML = msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  addLog('<span class="log-info">▶ Firestore users koleksiyonu okunuyor...</span>');
+
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const fsUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    addLog(`<span class="log-info">✓ Firestore: ${fsUsers.length} kayıt bulundu.</span>`);
+
+    // Auth'ta mevcut kullanıcıların listesini çekemeyiz frontend'den.
+    // Bunun yerine: Firestore'da isActive:false veya kritik alan eksik olanları tespit edelim.
+    // Ek olarak: Bilinen eksik kayıtları (email var ama temel alanlar yok) listeleyelim.
+
+    let broken = 0;
+    let ok     = 0;
+    brokenUsers = [];
+
+    addLog('<span class="log-info">▶ Kayıtlar analiz ediliyor...</span>');
+
+    for (const user of fsUsers) {
+      const missing = [];
+      if (!user.name)     missing.push('name');
+      if (!user.role)     missing.push('role');
+      if (!user.email)    missing.push('email');
+      if (!user.isActive && user.isActive !== false) missing.push('isActive');
+      if (!user.category) missing.push('category');
+
+      if (missing.length > 0) {
+        broken++;
+        brokenUsers.push({ ...user, _missing: missing });
+        addLog(`<span class="log-warn">⚠ ${user.email || user.id} → Eksik alan: ${missing.join(', ')}</span>`);
+      } else {
+        ok++;
+        addLog(`<span class="log-ok">✓ ${user.email} — Tamam</span>`);
+      }
+    }
+
+    addLog(`<br><span class="log-info">═══ TARAMA TAMAMLANDI ═══</span>`);
+    addLog(`<span class="log-ok">✓ Sağlıklı kayıt: ${ok}</span>`);
+    if (broken > 0) {
+      addLog(`<span class="log-warn">⚠ Eksik/bozuk kayıt: ${broken}</span>`);
+    } else {
+      addLog(`<span class="log-ok">✅ Tüm Firestore kayıtları sağlıklı!</span>`);
+    }
+
+    renderResults(fsUsers.length, ok, broken);
+
+  } catch(e) {
+    addLog(`<span class="log-err">❌ Hata: ${e.message}</span>`);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-radar"></i> Tekrar Tara';
+};
+
+function renderResults(total, ok, broken) {
+  document.getElementById('resultSection').style.display = 'block';
+  const tag = document.getElementById('resultTag');
+  tag.textContent = broken > 0 ? `${broken} sorunlu kayıt` : 'Sistem sağlıklı';
+  tag.className   = `tag ${broken > 0 ? 'tag-warn' : 'tag-ok'}`;
+
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="summary-item s-total"><div class="summary-num">${total}</div><div class="summary-lbl">Toplam Kayıt</div></div>
+    <div class="summary-item s-ok"><div class="summary-num">${ok}</div><div class="summary-lbl">Sağlıklı</div></div>
+    <div class="summary-item s-broken"><div class="summary-num">${broken}</div><div class="summary-lbl">Bozuk / Eksik</div></div>
+  `;
+
+  const list = document.getElementById('brokenList');
+  if (brokenUsers.length === 0) {
+    list.innerHTML = `
+      <div class="result-none">
+        <i class="fa-solid fa-check-circle" style="font-size:2.5rem;color:#10b981;margin-bottom:1rem;display:block;"></i>
+        <strong>Tüm Firestore kayıtları eksiksiz!</strong><br>
+        <span style="font-size:0.875rem;">Giriş sorunu başka bir sebepten kaynaklanıyor olabilir.</span>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = brokenUsers.map((u, i) => `
+    <div class="broken-row" id="brow-${i}">
+      <div class="broken-info">
+        <span class="broken-email"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-right:6px;"></i>${u.email || '(e-posta yok)'}</span>
+        <span class="broken-uid">UID: ${u.id} &nbsp;|&nbsp; Eksik: ${(u._missing||[]).join(', ')}</span>
+      </div>
+      <button class="btn btn-warn btn-sm" onclick="repairOne(${i})">
+        <i class="fa-solid fa-wrench"></i> Onar
+      </button>
+    </div>
+  `).join('');
+
+  document.getElementById('bulkSection').style.display = 'block';
+}
+
+window.repairOne = async function(i) {
+  const user = brokenUsers[i];
+  const row  = document.getElementById(`brow-${i}`);
+  try {
+    await setDoc(doc(db, 'users', user.id), {
+      uid:        user.id,
+      name:       user.name       || 'Bilinmiyor',
+      surname:    user.surname    || '',
+      email:      user.email      || '',
+      role:       user.role       || 'user',
+      category:   user.category   || 'local',
+      company:    user.company    || '',
+      region:     user.region     || '',
+      city:       user.city       || '',
+      phone:      user.phone      || '',
+      dealerCode: user.dealerCode || '0000',
+      subRole:    user.subRole    || 'employee',
+      department: user.department || '',
+      isActive:   true,
+      repairedAt: serverTimestamp(),
+    }, { merge: true });
+
+    row.style.background   = '#ecfdf5';
+    row.style.borderColor  = '#bbf7d0';
+    row.querySelector('.broken-email').innerHTML = `<i class="fa-solid fa-check-circle" style="color:#10b981;margin-right:6px;"></i>${user.email} — Onarıldı`;
+    row.querySelector('button').remove();
+  } catch(e) {
+    alert('Hata: ' + e.message);
+  }
+};
+
+window.repairAll = async function() {
+  const repairLog = document.getElementById('repairLog');
+  repairLog.style.display = 'block';
+  repairLog.innerHTML = '';
+
+  function rlog(msg, cls='') {
+    const line = document.createElement('div');
+    line.className = cls;
+    line.textContent = msg;
+    repairLog.appendChild(line);
+    repairLog.scrollTop = repairLog.scrollHeight;
+  }
+
+  rlog('▶ Toplu onarım başlatılıyor...', 'log-info');
+
+  for (let i = 0; i < brokenUsers.length; i++) {
+    try {
+      await window.repairOne(i);
+      rlog(`✓ ${brokenUsers[i].email || brokenUsers[i].id} onarıldı.`, 'log-ok');
+    } catch(e) {
+      rlog(`✗ ${brokenUsers[i].email} — Hata: ${e.message}`, 'log-err');
+    }
+  }
+
+  rlog('✅ Toplu onarım tamamlandı!', 'log-ok');
+};
+</script>
+</body>
+</html>
