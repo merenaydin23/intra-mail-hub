@@ -528,10 +528,18 @@ async function initBroadcast() {
             }
 
             const allUsers = await getAllUsers();
+            const filterCat = document.getElementById('directSearchCategory')?.value || 'all';
+            const filterReg = document.getElementById('directSearchRegion')?.value || 'all';
+
             const filtered = allUsers.filter(u => {
-                if (u.role === 'admin' && u.id !== 'admin_id_if_any') { // Adminleri de istersen burayı düzenleyebilirsin
-                    // Genelde adminler de aranabilir olmalı
-                }
+                if (u.role === 'admin') return false;
+                
+                // Kategori Filtresi
+                if (filterCat !== 'all' && u.category !== filterCat) return false;
+                
+                // Bölge Filtresi
+                if (filterReg !== 'all' && u.region !== filterReg) return false;
+
                 const searchStr = `${u.name} ${u.surname} ${u.companyName} ${u.dealerCode} ${u.city} ${u.region} ${u.category}`.toLowerCase();
                 return searchStr.includes(val);
             }).slice(0, 15);
