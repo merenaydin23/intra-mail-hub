@@ -582,6 +582,16 @@ async function initBroadcast() {
         };
     }
 
+    // Filtreler değiştiğinde aramayı tetikle
+    ['directSearchCategory', 'directSearchRegion'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => {
+            if (searchInput && searchInput.value.length >= 2) {
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    });
+
     window.__selectUserForMsg = (id, name) => {
         selectedUser = { id, name };
         nameSpan.textContent = name;
