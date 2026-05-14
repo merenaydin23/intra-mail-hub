@@ -326,12 +326,10 @@ function initCompose() {
     // Search Elements
     const searchInput = document.getElementById('receiverSearchInput');
     const resultsArea = document.getElementById('receiverSearchResults');
-    const chipArea = document.getElementById('selectedReceiverChip');
-    const nameSpan = document.getElementById('selectedReceiverName');
-    const btnRemove = document.getElementById('removeReceiverBtn');
-    const hiddenInput = document.getElementById('receiverSelect');
+    const receiversList = document.getElementById('selectedReceiversList');
 
     let currentReceivers = [];
+    let selectedReceivers = []; // [{id, name, type: 'individual'|'bulk'}]
 
     if (composeBtn && composeArea) {
         composeBtn.addEventListener('click', () => {
@@ -347,8 +345,8 @@ function initCompose() {
                 searchInput.disabled = true;
             }
             if (resultsArea) resultsArea.classList.add('hidden');
-            if (chipArea) chipArea.classList.add('hidden');
-            if (hiddenInput) hiddenInput.value = "";
+            selectedReceivers = [];
+            renderReceivers();
         });
     }
 
@@ -365,10 +363,6 @@ function initCompose() {
             searchInput.placeholder = "Yükleniyor...";
             currentReceivers = await loadReceiversByCategory(cat);
             searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
-            
-            // Eğer birim değişirse mevcut seçimi temizle
-            if (chipArea) chipArea.classList.add('hidden');
-            if (hiddenInput) hiddenInput.value = "";
         });
     }
 
@@ -387,11 +381,14 @@ function initCompose() {
 
             let html = "";
             
-            // Toplu Gönderim Opsiyonu (Eğer sonuç varsa veya arama terimiyle eşleşiyorsa)
+            // Toplu Gönderim Opsiyonu
+            const catVal = categorySelect.value;
+            const catText = categorySelect.options[categorySelect.selectedIndex].text;
+            
             if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
                 html += `
-                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('ALL_IN_CATEGORY', '📢 TÜMÜNE GÖNDER (${currentReceivers.length} Kişi)')">
-                        <div class="item-title">📢 TÜMÜNE GÖNDER (${currentReceivers.length} Kişi)</div>
+                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK_${catVal}', '📢 ${catText}', 'bulk')">
+                        <div class="item-title">📢 ${catText} (${currentReceivers.length} Kişi)</div>
                         <div class="item-subtitle">Seçili birimdeki tüm personele mesaj gider.</div>
                     </div>
                 `;
@@ -399,49 +396,59 @@ function initCompose() {
 
             if (filtered.length > 0) {
                 html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}')">
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="item-title">${u.name} ${u.surname || ''}</span>
                             <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
                         </div>
                         <div class="item-subtitle">
                             <i class="fa-solid fa-building" style="font-size:0.7rem;"></i> ${u.company || 'Bellona'} 
-                            ${u.city ? ` · <i class="fa-solid fa-location-dot" style="font-size:0.7rem;"></i> ${u.city}` : ''}
                         </div>
                     </div>
                 `).join('');
             }
 
-            if (!html) {
-                html = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
-            }
+            if (!html) html = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
 
             resultsArea.innerHTML = html;
             resultsArea.classList.remove('hidden');
         });
     }
 
-    window.__selectReceiver = (id, name) => {
-        if (hiddenInput) hiddenInput.value = id;
-        if (nameSpan) nameSpan.textContent = name;
-        if (chipArea) chipArea.classList.remove('hidden');
+    window.__selectReceiver = (id, name, type) => {
+        if (selectedReceivers.find(r => r.id === id)) {
+            resultsArea.classList.add('hidden');
+            searchInput.value = "";
+            return;
+        }
+
+        selectedReceivers.push({ id, name, type });
+        renderReceivers();
+        
         if (resultsArea) resultsArea.classList.add('hidden');
         if (searchInput) {
             searchInput.value = "";
-            searchInput.style.display = "none";
+            searchInput.focus();
         }
     };
 
-    if (btnRemove) {
-        btnRemove.onclick = () => {
-            if (hiddenInput) hiddenInput.value = "";
-            if (chipArea) chipArea.classList.add('hidden');
-            if (searchInput) {
-                searchInput.style.display = "block";
-                searchInput.focus();
-            }
-        };
+    function renderReceivers() {
+        if (!receiversList) return;
+        receiversList.innerHTML = selectedReceivers.map((r, index) => `
+            <div class="receiver-chip ${r.type === 'bulk' ? 'bulk' : ''}">
+                <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
+                <span>${r.name}</span>
+                <i class="fa-solid fa-circle-xmark remove-chip" onclick="window.__removeReceiver(${index})"></i>
+            </div>
+        `).join('');
     }
+
+    window.__removeReceiver = (index) => {
+        selectedReceivers.splice(index, 1);
+        renderReceivers();
+    };
+
+    window.__getSelectedReceivers = () => selectedReceivers;
 
     if (closeCompose) {
         closeCompose.addEventListener('click', () => resetDetailView());
@@ -463,8 +470,7 @@ function initCompose() {
     if (aiSuggestBtn) {
         aiSuggestBtn.addEventListener('click', async () => {
             const bodyInput = document.getElementById('messageBodyInput');
-            const receiverNameEl = document.getElementById('selectedReceiverName');
-            if (!bodyInput || !receiverNameEl) return;
+            if (!bodyInput || selectedReceivers.length === 0) return;
 
             let currentText = bodyInput.value.trim();
             if (!currentText) return;
@@ -473,7 +479,7 @@ function initCompose() {
                 lastOriginalText = currentText;
             }
 
-            const receiverName = receiverNameEl.textContent.split('(')[0].trim();
+            const receiverName = selectedReceivers[0].name.split('(')[0].trim();
             const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
             const myCompany = currentUserData.company || "Bellona";
 
@@ -513,8 +519,9 @@ async function loadReceiversByCategory(category) {
             where("subRole", "==", "manager")
         );
     } else if (category === 'local_colleagues') {
+        // Kullanıcının kendi bölgesindeki herkes
         q = query(usersRef, 
-            where("company", "==", currentUserData.company)
+            where("region", "==", currentUserData.region)
         );
     } else if (category === 'region_dealers') {
         q = query(usersRef, 
@@ -525,6 +532,9 @@ async function loadReceiversByCategory(category) {
         q = query(usersRef, 
             where("category", "==", "factory")
         );
+    } else if (category === 'global') {
+        // Tüm sistem (Global Arama)
+        q = query(usersRef);
     } else {
         return [];
     }
@@ -550,12 +560,12 @@ async function handleComposeSubmit(e) {
     if (sendBtn) sendBtn.disabled = true;
 
     try {
-        const receiverId = document.getElementById('receiverSelect').value;
+        const selected = window.__getSelectedReceivers();
         const subject = document.getElementById('subjectInput').value.trim() || 'Konu Yok';
         const body = document.getElementById('messageBodyInput').value.trim();
 
-        if (!receiverId || !body) {
-            alert("Lütfen alıcı ve mesaj içeriğini doldurunuz.");
+        if (selected.length === 0 || !body) {
+            alert("Lütfen en az bir alıcı ve mesaj içeriğini doldurunuz.");
             if (sendBtn) sendBtn.disabled = false;
             return;
         }
@@ -573,44 +583,28 @@ async function handleComposeSubmit(e) {
             attachmentUrl = await getDownloadURL(uploadResult.ref);
         }
 
-        // Toplu Gönderim Kontrolü
-        if (receiverId === "ALL_IN_CATEGORY") {
-            const cat = document.getElementById('receiverCategorySelect').value;
-            const targetUsers = await loadReceiversByCategory(cat);
-            
-            if (targetUsers.length === 0) throw new Error("Gönderilecek kimse bulunamadı.");
+        // Alıcıları Çözümle (Toplu grupları bireylere dök)
+        const finalRecipients = new Map(); // id -> {name}
 
-            const promises = targetUsers.map(async (u) => {
-                return addDoc(collection(db, "messages"), {
-                    senderId: currentUserData.id,
-                    senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
-                    receiverId: u.id,
-                    receiverName: `${u.name} ${u.surname || ''}`,
-                    participants: [currentUserData.id, u.id],
-                    subject: `[TOPLU] ${subject}`,
-                    content: body,
-                    lastMessage: body,
-                    status: 'active',
-                    isRead: false,
-                    timestamp: serverTimestamp(),
-                    attachmentUrl,
-                    attachmentName
-                });
-            });
+        for (const item of selected) {
+            if (item.type === 'bulk') {
+                const cat = item.id.replace('BULK_', '');
+                const users = await loadReceiversByCategory(cat);
+                users.forEach(u => finalRecipients.set(u.id, { name: `${u.name} ${u.surname || ''}` }));
+            } else {
+                finalRecipients.set(item.id, { name: item.name });
+            }
+        }
 
-            await Promise.all(promises);
-            alert(`${targetUsers.length} kişiye toplu mesaj başarıyla gönderildi!`);
-        } else {
-            // Tekli Gönderim
-            const receiverDoc = await getDoc(doc(db, "users", receiverId));
-            const rData = receiverDoc.data();
+        if (finalRecipients.size === 0) throw new Error("Gönderilecek alıcı bulunamadı.");
 
-            await addDoc(collection(db, "messages"), {
+        const promises = Array.from(finalRecipients.entries()).map(async ([tid, tdata]) => {
+            return addDoc(collection(db, "messages"), {
                 senderId: currentUserData.id,
                 senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
-                receiverId: receiverId,
-                receiverName: `${rData.name} ${rData.surname || ''}`,
-                participants: [currentUserData.id, receiverId],
+                receiverId: tid,
+                receiverName: tdata.name,
+                participants: [currentUserData.id, tid],
                 subject: subject,
                 content: body,
                 lastMessage: body,
@@ -620,8 +614,10 @@ async function handleComposeSubmit(e) {
                 attachmentUrl,
                 attachmentName
             });
-            alert("Mesaj başarıyla gönderildi!");
-        }
+        });
+
+        await Promise.all(promises);
+        alert(`${finalRecipients.size} farklı alıcıya mesaj başarıyla gönderildi!`);
         
         if (fileInput) fileInput.value = '';
         resetDetailView();
