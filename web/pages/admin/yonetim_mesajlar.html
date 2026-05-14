@@ -340,13 +340,41 @@
 
                     <!-- BİREYSEL MESAJ SEÇİMİ -->
                     <div id="directFilters" style="display:none; margin-bottom:1.5rem;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+                            <div class="form-group">
+                                <label style="font-size:0.75rem;">Filtre: Kategori</label>
+                                <div class="input-box" style="height:38px;">
+                                    <select id="directSearchCategory" style="font-size:0.8rem;">
+                                        <option value="all">Tüm Kategoriler</option>
+                                        <option value="factory">Fabrika</option>
+                                        <option value="regional">Bölge Bayisi</option>
+                                        <option value="local">Yerel Bayi</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:0.75rem;">Filtre: Bölge</label>
+                                <div class="input-box" style="height:38px;">
+                                    <select id="directSearchRegion" style="font-size:0.8rem;">
+                                        <option value="all">Tüm Bölgeler</option>
+                                        <option value="Marmara">Marmara</option>
+                                        <option value="İç Anadolu">İç Anadolu</option>
+                                        <option value="Ege">Ege</option>
+                                        <option value="Akdeniz">Akdeniz</option>
+                                        <option value="Karadeniz">Karadeniz</option>
+                                        <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                                        <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label>Alıcı Ara</label>
                             <div class="input-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                                 <input type="text" id="userSearchInput" placeholder="İsim veya şirket adı yazın..." />
                             </div>
-                            <div id="userSearchResults" style="margin-top:0.5rem; max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; display:none;">
+                            <div id="userSearchResults" style="margin-top:0.5rem; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:12px; display:none; background:white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
                                 <!-- Arama sonuçları buraya -->
                             </div>
                             <div id="selectedUserChip" style="margin-top:0.5rem; display:none;">
