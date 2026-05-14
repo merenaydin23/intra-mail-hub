@@ -400,8 +400,10 @@ function initCompose() {
                 return;
             }
             const catText = categorySelect.options[categorySelect.selectedIndex].text;
-            const regText = regionFilterSelect.value ? ` (${regionFilterSelect.value})` : '';
-            window.__selectReceiver(`BULK_${catVal}_${regionFilterSelect.value}`, `📢 ${catText}${regText}`, 'bulk');
+            const regVal = regionFilterSelect.value || "";
+            const regText = regVal ? ` (${regVal})` : '';
+            // Use ':' as delimiter to avoid conflict with '_' in category names
+            window.__selectReceiver(`BULK:${catVal}:${regVal}`, `📢 ${catText}${regText}`, 'bulk');
         });
     }
 
@@ -459,14 +461,14 @@ function initCompose() {
         const chipEl = receiversList.querySelector(`[data-index="${index}"]`);
         if (chipEl) chipEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
 
-        const parts = item.id.split('_');
+        const parts = item.id.split(':');
         const cat = parts[1];
         const reg = parts[2] || "";
         
         const users = await loadReceiversByCategory(cat, reg);
         
         if (users.length === 0) {
-            alert("Bu grupta kimse bulunamadı.");
+            alert(`Bu grupta (${item.name}) kimse bulunamadı.`);
             renderReceivers();
             return;
         }
@@ -525,7 +527,7 @@ function initCompose() {
             
             if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
                 html += `
-                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK_${catVal}_${regVal}', '📢 ${catText}${regText}', 'bulk')">
+                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK:${catVal}:${regVal}', '📢 ${catText}${regText}', 'bulk')">
                         <div class="item-title">📢 ${catText}${regText} (${currentReceivers.length} Kişi)</div>
                         <div class="item-subtitle">Filtrelenen birimdeki tüm personele mesaj gider.</div>
                     </div>
@@ -676,8 +678,10 @@ async function handleComposeSubmit(e) {
 
         for (const item of selected) {
             if (item.type === 'bulk') {
-                const cat = item.id.replace('BULK_', '');
-                const users = await loadReceiversByCategory(cat);
+                const parts = item.id.split(':');
+                const cat = parts[1];
+                const reg = parts[2] || "";
+                const users = await loadReceiversByCategory(cat, reg);
                 users.forEach(u => finalRecipients.set(u.id, { name: `${u.name} ${u.surname || ''}` }));
             } else {
                 finalRecipients.set(item.id, { name: item.name });
