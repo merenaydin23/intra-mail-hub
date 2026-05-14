@@ -407,14 +407,14 @@ function initCompose() {
         });
     }
 
-    window.__selectReceiver = (id, name, type) => {
+    window.__selectReceiver = (id, name, type, region = "", company = "") => {
         if (selectedReceivers.find(r => r.id === id)) {
             if (resultsArea) resultsArea.classList.add('hidden');
             if (searchInput) searchInput.value = "";
             return;
         }
 
-        selectedReceivers.push({ id, name, type });
+        selectedReceivers.push({ id, name, type, region, company });
         renderReceivers();
         
         if (resultsArea) resultsArea.classList.add('hidden');
@@ -424,16 +424,32 @@ function initCompose() {
         }
     };
 
+    function getRegionClass(region) {
+        if (!region) return "";
+        const r = region.toLowerCase();
+        if (r.includes("marmara")) return "reg-marmara";
+        if (r.includes("iç anadolu")) return "reg-icanadolu";
+        if (r.includes("ege")) return "reg-ege";
+        if (r.includes("akdeniz")) return "reg-akdeniz";
+        if (r.includes("karadeniz")) return "reg-karadeniz";
+        if (r.includes("doğu anadolu")) return "reg-dogu";
+        if (r.includes("güneydoğu anadolu")) return "reg-guneydogu";
+        return "";
+    }
+
     function renderReceivers() {
         if (!receiversList) return;
-        receiversList.innerHTML = selectedReceivers.map((r, index) => `
-            <div class="receiver-chip ${r.type === 'bulk' ? 'bulk' : ''}" data-index="${index}">
-                <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
-                <span>${r.name}</span>
-                ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt expand-trigger" title="Grubu Dağıt" style="cursor:pointer; opacity:0.6; margin-left:5px;"></i>` : ''}
-                <i class="fa-solid fa-circle-xmark remove-chip-trigger" style="cursor:pointer; margin-left:5px;"></i>
-            </div>
-        `).join('');
+        receiversList.innerHTML = selectedReceivers.map((r, index) => {
+            const regClass = r.type === 'bulk' ? 'bulk' : getRegionClass(r.region);
+            return `
+                <div class="receiver-chip ${regClass}" data-index="${index}" title="${r.company || ''} ${r.region ? `(${r.region})` : ''}">
+                    <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
+                    <span>${r.name}</span>
+                    ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt expand-trigger" title="Grubu Dağıt"></i>` : ''}
+                    <i class="fa-solid fa-circle-xmark remove-chip-trigger" title="Kaldır"></i>
+                </div>
+            `;
+        }).join('');
 
         // Event delegation for chip actions
         receiversList.querySelectorAll('.receiver-chip').forEach(chip => {
@@ -476,7 +492,13 @@ function initCompose() {
         selectedReceivers.splice(index, 1);
         users.forEach(u => {
             if (u.id !== currentUserData.id && !selectedReceivers.find(r => r.id === u.id)) {
-                selectedReceivers.push({ id: u.id, name: `${u.name} ${u.surname || ''}`, type: 'individual' });
+                selectedReceivers.push({ 
+                    id: u.id, 
+                    name: `${u.name} ${u.surname || ''}`, 
+                    type: 'individual',
+                    region: u.region,
+                    company: u.company
+                });
             }
         });
 
@@ -536,7 +558,7 @@ function initCompose() {
 
             if (filtered.length > 0) {
                 html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual')">
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="item-title">${u.name} ${u.surname || ''}</span>
                             <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
