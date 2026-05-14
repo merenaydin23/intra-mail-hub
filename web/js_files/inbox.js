@@ -415,10 +415,28 @@ function initCompose() {
         });
     }
 
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+
+    if (addCategoryBtn) {
+        addCategoryBtn.addEventListener('click', () => {
+            const catVal = categorySelect.value;
+            if (!catVal) {
+                alert("Lütfen önce bir birim seçiniz.");
+                return;
+            }
+            if (catVal === 'global') {
+                alert("Global arama birimi toplu olarak eklenemez, lütfen arama yapınız.");
+                return;
+            }
+            const catText = categorySelect.options[categorySelect.selectedIndex].text;
+            window.__selectReceiver(`BULK_${catVal}`, `📢 ${catText}`, 'bulk');
+        });
+    }
+
     window.__selectReceiver = (id, name, type) => {
         if (selectedReceivers.find(r => r.id === id)) {
-            resultsArea.classList.add('hidden');
-            searchInput.value = "";
+            if (resultsArea) resultsArea.classList.add('hidden');
+            if (searchInput) searchInput.value = "";
             return;
         }
 
@@ -438,13 +456,34 @@ function initCompose() {
             <div class="receiver-chip ${r.type === 'bulk' ? 'bulk' : ''}">
                 <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
                 <span>${r.name}</span>
+                ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt" title="Grubu Dağıt (Bireysel Seçime Dönüştür)" style="cursor:pointer; opacity:0.6; margin-left:5px;" onclick="window.__expandBulk(${index})"></i>` : ''}
                 <i class="fa-solid fa-circle-xmark remove-chip" onclick="window.__removeReceiver(${index})"></i>
             </div>
         `).join('');
     }
 
-    window.__removeReceiver = (index) => {
+    window.__expandBulk = async (index) => {
+        const item = selectedReceivers[index];
+        if (item.type !== 'bulk') return;
+
+        const cat = item.id.replace('BULK_', '');
+        const users = await loadReceiversByCategory(cat);
+        
+        if (users.length === 0) {
+            alert("Bu grupta kimse bulunamadı.");
+            return;
+        }
+
+        // Grubu kaldır ve içindekileri ekle (Mükerrer kontrolü ile)
         selectedReceivers.splice(index, 1);
+        users.forEach(u => {
+            const uid = u.id;
+            const uname = `${u.name} ${u.surname || ''}`;
+            if (!selectedReceivers.find(r => r.id === uid)) {
+                selectedReceivers.push({ id: uid, name: uname, type: 'individual' });
+            }
+        });
+
         renderReceivers();
     };
 
