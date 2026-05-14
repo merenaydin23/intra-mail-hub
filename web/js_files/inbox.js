@@ -407,14 +407,14 @@ function initCompose() {
         });
     }
 
-    window.__selectReceiver = (id, name, type, region = "", company = "") => {
+    window.__selectReceiver = (id, name, type, region = "", company = "", category = "") => {
         if (selectedReceivers.find(r => r.id === id)) {
             if (resultsArea) resultsArea.classList.add('hidden');
             if (searchInput) searchInput.value = "";
             return;
         }
 
-        selectedReceivers.push({ id, name, type, region, company });
+        selectedReceivers.push({ id, name, type, region, company, category });
         renderReceivers();
         
         if (resultsArea) resultsArea.classList.add('hidden');
@@ -441,15 +441,21 @@ function initCompose() {
         if (!receiversList) return;
         receiversList.innerHTML = selectedReceivers.map((r, index) => {
             const regClass = r.type === 'bulk' ? 'bulk' : getRegionClass(r.region);
+            const unitLabel = r.type === 'bulk' ? 'GRUP' : (r.category === 'factory' ? 'FB' : (r.category === 'regional' ? 'BLG' : 'BYI'));
+            
             return `
-                <div class="receiver-chip ${regClass}" data-index="${index}" title="${r.company || ''} ${r.region ? `(${r.region})` : ''}">
+                <div class="receiver-chip ${regClass}" data-index="${index}" data-cat="${r.category || ''}" title="${r.company || ''} ${r.region ? `(${r.region})` : ''}">
                     <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
                     <span>${r.name}</span>
+                    <span class="unit-badge">${unitLabel}</span>
                     ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt expand-trigger" title="Grubu Dağıt"></i>` : ''}
                     <i class="fa-solid fa-circle-xmark remove-chip-trigger" title="Kaldır"></i>
                 </div>
             `;
         }).join('');
+
+        // Auto-scroll to bottom
+        receiversList.scrollTop = receiversList.scrollHeight;
 
         // Event delegation for chip actions
         receiversList.querySelectorAll('.receiver-chip').forEach(chip => {
@@ -497,7 +503,8 @@ function initCompose() {
                     name: `${u.name} ${u.surname || ''}`, 
                     type: 'individual',
                     region: u.region,
-                    company: u.company
+                    company: u.company,
+                    category: u.category
                 });
             }
         });
@@ -558,7 +565,7 @@ function initCompose() {
 
             if (filtered.length > 0) {
                 html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}')">
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}', '${u.category || ''}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="item-title">${u.name} ${u.surname || ''}</span>
                             <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>

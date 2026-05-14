@@ -766,17 +766,26 @@ body {
     font-weight: 500;
 }
 
-/* Selected Receivers Grid */
+/* Selected Receivers Grid & Scroll Logic */
 .selected-receivers-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
     margin-top: 0.75rem;
-    padding: 0.75rem;
+    padding: 1rem;
     background: rgba(var(--primary-rgb), 0.02);
-    border-radius: 14px;
-    min-height: 50px;
+    border-radius: 16px;
+    max-height: 180px; /* Limit height for better form usability */
+    overflow-y: auto;
     border: 1px dashed var(--border);
+    transition: all 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-soft) transparent;
+}
+
+.selected-receivers-list:hover {
+    background: rgba(var(--primary-rgb), 0.04);
+    border-color: var(--primary-soft);
 }
 
 .receiver-chip {
@@ -802,7 +811,7 @@ body {
     border-color: var(--primary);
 }
 
-/* Regional Identity Colors */
+/* Regional Identity Colors & Icons */
 .receiver-chip.reg-marmara { border-left: 4px solid #3498db; background: #f0f7ff; }
 .receiver-chip.reg-icanadolu { border-left: 4px solid #f1c40f; background: #fffdf0; }
 .receiver-chip.reg-ege { border-left: 4px solid #2ecc71; background: #f0fff4; }
@@ -811,17 +820,35 @@ body {
 .receiver-chip.reg-dogu { border-left: 4px solid #9b59b6; background: #faf5ff; }
 .receiver-chip.reg-guneydogu { border-left: 4px solid #e67e22; background: #fff9f0; }
 
+/* Unit Specific Indicators */
+.receiver-chip[data-cat="factory"] { background: #f8fafc; border-right: 3px solid #64748b; }
+.receiver-chip[data-cat="regional"] { background: #f5f3ff; border-right: 3px solid #8b5cf6; }
+.receiver-chip[data-cat="local"] { background: #f0fdf4; border-right: 3px solid #22c55e; }
+
 .receiver-chip.bulk {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     border: none;
     padding-right: 12px;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
 }
 
 .receiver-chip i {
     font-size: 0.75rem;
-    opacity: 0.8;
+    opacity: 0.9;
 }
+
+.receiver-chip .unit-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    font-weight: 800;
+}
+
+.receiver-chip.bulk .unit-badge { background: rgba(255,255,255,0.2); }
 
 .receiver-chip .remove-chip-trigger {
     cursor: pointer;
