@@ -529,29 +529,46 @@ async function initBroadcast() {
 
             const allUsers = await getAllUsers();
             const filtered = allUsers.filter(u => {
-                if (u.role === 'admin') return false;
-                const searchStr = `${u.name} ${u.surname} ${u.companyName} ${u.dealerCode} ${u.city}`.toLowerCase();
+                if (u.role === 'admin' && u.id !== 'admin_id_if_any') { // Adminleri de istersen burayı düzenleyebilirsin
+                    // Genelde adminler de aranabilir olmalı
+                }
+                const searchStr = `${u.name} ${u.surname} ${u.companyName} ${u.dealerCode} ${u.city} ${u.region} ${u.category}`.toLowerCase();
                 return searchStr.includes(val);
-            }).slice(0, 8);
+            }).slice(0, 15);
 
             if (filtered.length > 0) {
-                resultsArea.innerHTML = filtered.map(u => `
-                    <div class="user-search-item" style="padding:0.85rem; border-bottom:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:4px;" onclick="window.__selectUserForMsg('${u.id}', '${u.name} ${u.surname}')">
+                resultsArea.innerHTML = filtered.map(u => {
+                    const catMap = { factory: 'Fabrika', regional: 'Bölge Bayi', local: 'Yerel Bayi' };
+                    const catColor = { factory: '#ef4444', regional: '#3b82f6', local: '#10b981' };
+                    const catName = catMap[u.category] || 'Personel';
+                    const color = catColor[u.category] || 'var(--brand)';
+                    
+                    return `
+                    <div class="user-search-item" style="padding:1rem; border-bottom:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:6px; transition: background 0.2s;" 
+                         onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'"
+                         onclick="window.__selectUserForMsg('${u.id}', '${u.name} ${u.surname}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:800; font-size:0.9rem; color:var(--brand-ink);">${u.name} ${u.surname}</span>
-                            <span style="background:var(--brand-soft); color:var(--brand); font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:6px;">${u.dealerCode || 'KOD YOK'}</span>
+                            <span style="font-weight:800; font-size:0.95rem; color:var(--brand-ink);">${u.name} ${u.surname}</span>
+                            <span style="background:${color}15; color:${color}; font-size:0.65rem; font-weight:800; padding:3px 10px; border-radius:100px; border: 1px solid ${color}30;">
+                                ${catName.toUpperCase()}
+                            </span>
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">
-                            <i class="fa-solid fa-building" style="margin-right:4px; opacity:0.6;"></i> ${u.companyName || '-'}
+                        <div style="display:flex; align-items:center; gap:10px;">
+                             <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; display:flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-building" style="opacity:0.6;"></i> ${u.companyName || '-'}
+                            </div>
+                            <div style="background:var(--brand-soft); color:var(--brand); font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:6px;">
+                                #${u.dealerCode || '0000'}
+                            </div>
                         </div>
-                        <div style="font-size:0.7rem; color:var(--text-light);">
-                            <i class="fa-solid fa-map-pin" style="margin-right:4px; opacity:0.6;"></i> ${u.region || '-'} / ${u.city || '-'}
+                        <div style="font-size:0.7rem; color:var(--text-light); display:flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-map-location-dot" style="opacity:0.6;"></i> ${u.region || '-'} / ${u.city || '-'}
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
                 resultsArea.style.display = 'block';
             } else {
-                resultsArea.innerHTML = '<div style="padding:0.75rem; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
+                resultsArea.innerHTML = '<div style="padding:1rem; text-align:center; font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-magnifying-glass" style="display:block; margin-bottom:0.5rem; opacity:0.3; font-size:1.5rem;"></i>Sonuç bulunamadı.</div>';
                 resultsArea.style.display = 'block';
             }
         };
