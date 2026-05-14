@@ -350,9 +350,21 @@ function initCompose() {
         });
     }
 
+    const regionFilterContainer = document.getElementById('regionFilterContainer');
+    const regionFilterSelect = document.getElementById('regionFilterSelect');
+
     if (categorySelect) {
         categorySelect.addEventListener('change', async (e) => {
             const cat = e.target.value;
+            
+            // Bölge filtresini göster/gizle
+            if (['local_boss', 'region_dealers', 'global'].includes(cat)) {
+                regionFilterContainer?.classList.remove('hidden');
+            } else {
+                regionFilterContainer?.classList.add('hidden');
+                if (regionFilterSelect) regionFilterSelect.value = "";
+            }
+
             if (!cat) {
                 searchInput.disabled = true;
                 searchInput.value = "";
@@ -361,61 +373,20 @@ function initCompose() {
             
             searchInput.disabled = false;
             searchInput.placeholder = "Yükleniyor...";
-            currentReceivers = await loadReceiversByCategory(cat);
+            currentReceivers = await loadReceiversByCategory(cat, regionFilterSelect?.value);
             searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
         });
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim().toLowerCase();
-            if (!val) {
-                resultsArea.classList.add('hidden');
-                return;
-            }
-
-            const filtered = currentReceivers.filter(u => {
-                const searchStr = `${u.name} ${u.surname || ''} ${u.company || ''} ${u.dealerCode || ''} ${u.city || ''}`.toLowerCase();
-                return searchStr.includes(val);
-            }).slice(0, 10);
-
-            let html = "";
-            
-            // Toplu Gönderim Opsiyonu
-            const catVal = categorySelect.value;
-            const catText = categorySelect.options[categorySelect.selectedIndex].text;
-            
-            if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
-                html += `
-                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK_${catVal}', '📢 ${catText}', 'bulk')">
-                        <div class="item-title">📢 ${catText} (${currentReceivers.length} Kişi)</div>
-                        <div class="item-subtitle">Seçili birimdeki tüm personele mesaj gider.</div>
-                    </div>
-                `;
-            }
-
-            if (filtered.length > 0) {
-                html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual')">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="item-title">${u.name} ${u.surname || ''}</span>
-                            <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
-                        </div>
-                        <div class="item-subtitle">
-                            <i class="fa-solid fa-building" style="font-size:0.7rem;"></i> ${u.company || 'Bellona'} 
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            if (!html) html = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
-
-            resultsArea.innerHTML = html;
-            resultsArea.classList.remove('hidden');
+    if (regionFilterSelect) {
+        regionFilterSelect.addEventListener('change', async () => {
+            const cat = categorySelect.value;
+            if (!cat) return;
+            searchInput.placeholder = "Filtreleniyor...";
+            currentReceivers = await loadReceiversByCategory(cat, regionFilterSelect.value);
+            searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
         });
     }
-
-    const addCategoryBtn = document.getElementById('addCategoryBtn');
 
     if (addCategoryBtn) {
         addCategoryBtn.addEventListener('click', () => {
@@ -424,12 +395,13 @@ function initCompose() {
                 alert("Lütfen önce bir birim seçiniz.");
                 return;
             }
-            if (catVal === 'global') {
-                alert("Global arama birimi toplu olarak eklenemez, lütfen arama yapınız.");
+            if (catVal === 'global' && !regionFilterSelect.value) {
+                alert("Global birim tümüyle eklenemez, lütfen bölge seçiniz veya arama yapınız.");
                 return;
             }
             const catText = categorySelect.options[categorySelect.selectedIndex].text;
-            window.__selectReceiver(`BULK_${catVal}`, `📢 ${catText}`, 'bulk');
+            const regText = regionFilterSelect.value ? ` (${regionFilterSelect.value})` : '';
+            window.__selectReceiver(`BULK_${catVal}_${regionFilterSelect.value}`, `📢 ${catText}${regText}`, 'bulk');
         });
     }
 
@@ -453,37 +425,64 @@ function initCompose() {
     function renderReceivers() {
         if (!receiversList) return;
         receiversList.innerHTML = selectedReceivers.map((r, index) => `
-            <div class="receiver-chip ${r.type === 'bulk' ? 'bulk' : ''}">
+            <div class="receiver-chip ${r.type === 'bulk' ? 'bulk' : ''}" data-index="${index}">
                 <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
                 <span>${r.name}</span>
-                ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt" title="Grubu Dağıt (Bireysel Seçime Dönüştür)" style="cursor:pointer; opacity:0.6; margin-left:5px;" onclick="window.__expandBulk(${index})"></i>` : ''}
-                <i class="fa-solid fa-circle-xmark remove-chip" onclick="window.__removeReceiver(${index})"></i>
+                ${r.type === 'bulk' ? `<i class="fa-solid fa-expand-arrows-alt expand-trigger" title="Grubu Dağıt" style="cursor:pointer; opacity:0.6; margin-left:5px;"></i>` : ''}
+                <i class="fa-solid fa-circle-xmark remove-chip-trigger" style="cursor:pointer; margin-left:5px;"></i>
             </div>
         `).join('');
+
+        // Event delegation for chip actions
+        receiversList.querySelectorAll('.receiver-chip').forEach(chip => {
+            const index = parseInt(chip.getAttribute('data-index'));
+            
+            chip.querySelector('.remove-chip-trigger').onclick = (e) => {
+                e.stopPropagation();
+                window.__removeReceiver(index);
+            };
+
+            const expandBtn = chip.querySelector('.expand-trigger');
+            if (expandBtn) {
+                expandBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    window.__expandBulk(index);
+                };
+            }
+        });
     }
 
     window.__expandBulk = async (index) => {
         const item = selectedReceivers[index];
         if (item.type !== 'bulk') return;
 
-        const cat = item.id.replace('BULK_', '');
-        const users = await loadReceiversByCategory(cat);
+        const chipEl = receiversList.querySelector(`[data-index="${index}"]`);
+        if (chipEl) chipEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+
+        const parts = item.id.split('_');
+        const cat = parts[1];
+        const reg = parts[2] || "";
+        
+        const users = await loadReceiversByCategory(cat, reg);
         
         if (users.length === 0) {
             alert("Bu grupta kimse bulunamadı.");
+            renderReceivers();
             return;
         }
 
-        // Grubu kaldır ve içindekileri ekle (Mükerrer kontrolü ile)
         selectedReceivers.splice(index, 1);
         users.forEach(u => {
-            const uid = u.id;
-            const uname = `${u.name} ${u.surname || ''}`;
-            if (!selectedReceivers.find(r => r.id === uid)) {
-                selectedReceivers.push({ id: uid, name: uname, type: 'individual' });
+            if (u.id !== currentUserData.id && !selectedReceivers.find(r => r.id === u.id)) {
+                selectedReceivers.push({ id: u.id, name: `${u.name} ${u.surname || ''}`, type: 'individual' });
             }
         });
 
+        renderReceivers();
+    };
+
+    window.__removeReceiver = (index) => {
+        selectedReceivers.splice(index, 1);
         renderReceivers();
     };
 
@@ -501,6 +500,57 @@ function initCompose() {
     const replyBtn = document.getElementById('sendReply');
     if (replyBtn) {
         replyBtn.addEventListener('click', handleReplySubmit);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (!val) {
+                resultsArea.classList.add('hidden');
+                return;
+            }
+
+            const filtered = currentReceivers.filter(u => {
+                const searchStr = `${u.name} ${u.surname || ''} ${u.company || ''} ${u.dealerCode || ''} ${u.city || ''}`.toLowerCase();
+                return searchStr.includes(val);
+            }).slice(0, 10);
+
+            let html = "";
+            
+            // Toplu Gönderim Opsiyonu
+            const catVal = categorySelect.value;
+            const catText = categorySelect.options[categorySelect.selectedIndex].text;
+            const regVal = regionFilterSelect?.value || "";
+            const regText = regVal ? ` (${regVal})` : '';
+            
+            if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
+                html += `
+                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK_${catVal}_${regVal}', '📢 ${catText}${regText}', 'bulk')">
+                        <div class="item-title">📢 ${catText}${regText} (${currentReceivers.length} Kişi)</div>
+                        <div class="item-subtitle">Filtrelenen birimdeki tüm personele mesaj gider.</div>
+                    </div>
+                `;
+            }
+
+            if (filtered.length > 0) {
+                html += filtered.map(u => `
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="item-title">${u.name} ${u.surname || ''}</span>
+                            <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
+                        </div>
+                        <div class="item-subtitle">
+                            <i class="fa-solid fa-building" style="font-size:0.7rem;"></i> ${u.company || 'Bellona'} 
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (!html) html = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
+
+            resultsArea.innerHTML = html;
+            resultsArea.classList.remove('hidden');
+        });
     }
 
     const aiSuggestBtn = document.getElementById('aiSuggestBtn');
@@ -547,33 +597,32 @@ function initCompose() {
     }
 }
 
-async function loadReceiversByCategory(category) {
+async function loadReceiversByCategory(category, regionFilter = "") {
     let q;
     const usersRef = collection(db, "users");
 
     if (category === 'local_boss') {
-        q = query(usersRef, 
-            where("region", "==", currentUserData.region),
-            where("category", "==", "local"),
-            where("subRole", "==", "manager")
-        );
+        if (regionFilter) {
+            q = query(usersRef, where("category", "==", "local"), where("subRole", "==", "manager"), where("region", "==", regionFilter));
+        } else {
+            q = query(usersRef, where("region", "==", currentUserData.region), where("category", "==", "local"), where("subRole", "==", "manager"));
+        }
     } else if (category === 'local_colleagues') {
-        // Kullanıcının kendi bölgesindeki herkes
-        q = query(usersRef, 
-            where("region", "==", currentUserData.region)
-        );
+        q = query(usersRef, where("region", "==", currentUserData.region));
     } else if (category === 'region_dealers') {
-        q = query(usersRef, 
-            where("region", "==", currentUserData.region),
-            where("category", "==", "regional")
-        );
+        if (regionFilter) {
+            q = query(usersRef, where("category", "==", "regional"), where("region", "==", regionFilter));
+        } else {
+            q = query(usersRef, where("region", "==", currentUserData.region), where("category", "==", "regional"));
+        }
     } else if (category === 'factory_hq') {
-        q = query(usersRef, 
-            where("category", "==", "factory")
-        );
+        q = query(usersRef, where("category", "==", "factory"));
     } else if (category === 'global') {
-        // Tüm sistem (Global Arama)
-        q = query(usersRef);
+        if (regionFilter) {
+            q = query(usersRef, where("region", "==", regionFilter));
+        } else {
+            q = query(usersRef);
+        }
     } else {
         return [];
     }
