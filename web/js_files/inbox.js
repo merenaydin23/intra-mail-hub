@@ -323,25 +323,124 @@ function initCompose() {
     const closeCompose = document.getElementById('closeComposeBtn');
     const categorySelect = document.getElementById('receiverCategorySelect');
     
+    // Search Elements
+    const searchInput = document.getElementById('receiverSearchInput');
+    const resultsArea = document.getElementById('receiverSearchResults');
+    const chipArea = document.getElementById('selectedReceiverChip');
+    const nameSpan = document.getElementById('selectedReceiverName');
+    const btnRemove = document.getElementById('removeReceiverBtn');
+    const hiddenInput = document.getElementById('receiverSelect');
+
+    let currentReceivers = [];
+
     if (composeBtn && composeArea) {
         composeBtn.addEventListener('click', () => {
             resetDetailView();
             document.getElementById('detailEmptyState')?.classList.add('hidden');
             document.getElementById('emptyView')?.classList.add('hidden');
             composeArea.classList.remove('hidden');
+            
+            // Reset form
             if (categorySelect) categorySelect.value = "";
-            const recSelect = document.getElementById('receiverSelect');
-            if (recSelect) {
-                recSelect.innerHTML = '<option value="">Önce birim seçiniz...</option>';
-                recSelect.disabled = true;
+            if (searchInput) {
+                searchInput.value = "";
+                searchInput.disabled = true;
             }
+            if (resultsArea) resultsArea.classList.add('hidden');
+            if (chipArea) chipArea.classList.add('hidden');
+            if (hiddenInput) hiddenInput.value = "";
         });
     }
 
     if (categorySelect) {
-        categorySelect.addEventListener('change', (e) => {
-            loadReceiversByCategory(e.target.value);
+        categorySelect.addEventListener('change', async (e) => {
+            const cat = e.target.value;
+            if (!cat) {
+                searchInput.disabled = true;
+                searchInput.value = "";
+                return;
+            }
+            
+            searchInput.disabled = false;
+            searchInput.placeholder = "Yükleniyor...";
+            currentReceivers = await loadReceiversByCategory(cat);
+            searchInput.placeholder = "İsim, şirket veya bayi kodu ile ara...";
+            
+            // Eğer birim değişirse mevcut seçimi temizle
+            if (chipArea) chipArea.classList.add('hidden');
+            if (hiddenInput) hiddenInput.value = "";
         });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (!val) {
+                resultsArea.classList.add('hidden');
+                return;
+            }
+
+            const filtered = currentReceivers.filter(u => {
+                const searchStr = `${u.name} ${u.surname || ''} ${u.company || ''} ${u.dealerCode || ''} ${u.city || ''}`.toLowerCase();
+                return searchStr.includes(val);
+            }).slice(0, 10);
+
+            let html = "";
+            
+            // Toplu Gönderim Opsiyonu (Eğer sonuç varsa veya arama terimiyle eşleşiyorsa)
+            if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
+                html += `
+                    <div class="search-result-item bulk-option" onclick="window.__selectReceiver('ALL_IN_CATEGORY', '📢 TÜMÜNE GÖNDER (${currentReceivers.length} Kişi)')">
+                        <div class="item-title">📢 TÜMÜNE GÖNDER (${currentReceivers.length} Kişi)</div>
+                        <div class="item-subtitle">Seçili birimdeki tüm personele mesaj gider.</div>
+                    </div>
+                `;
+            }
+
+            if (filtered.length > 0) {
+                html += filtered.map(u => `
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="item-title">${u.name} ${u.surname || ''}</span>
+                            <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
+                        </div>
+                        <div class="item-subtitle">
+                            <i class="fa-solid fa-building" style="font-size:0.7rem;"></i> ${u.company || 'Bellona'} 
+                            ${u.city ? ` · <i class="fa-solid fa-location-dot" style="font-size:0.7rem;"></i> ${u.city}` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (!html) {
+                html = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Sonuç bulunamadı.</div>';
+            }
+
+            resultsArea.innerHTML = html;
+            resultsArea.classList.remove('hidden');
+        });
+    }
+
+    window.__selectReceiver = (id, name) => {
+        if (hiddenInput) hiddenInput.value = id;
+        if (nameSpan) nameSpan.textContent = name;
+        if (chipArea) chipArea.classList.remove('hidden');
+        if (resultsArea) resultsArea.classList.add('hidden');
+        if (searchInput) {
+            searchInput.value = "";
+            searchInput.style.display = "none";
+        }
+    };
+
+    if (btnRemove) {
+        btnRemove.onclick = () => {
+            if (hiddenInput) hiddenInput.value = "";
+            if (chipArea) chipArea.classList.add('hidden');
+            if (searchInput) {
+                searchInput.style.display = "block";
+                searchInput.focus();
+            }
+        };
     }
 
     if (closeCompose) {
@@ -359,26 +458,22 @@ function initCompose() {
     }
 
     const aiSuggestBtn = document.getElementById('aiSuggestBtn');
-    let lastOriginalText = ""; // Sil baştan yapmak için ham metni saklıyoruz
+    let lastOriginalText = ""; 
 
     if (aiSuggestBtn) {
         aiSuggestBtn.addEventListener('click', async () => {
             const bodyInput = document.getElementById('messageBodyInput');
-            const recSelect = document.getElementById('receiverSelect');
-            if (!bodyInput || !recSelect) return;
+            const receiverNameEl = document.getElementById('selectedReceiverName');
+            if (!bodyInput || !receiverNameEl) return;
 
             let currentText = bodyInput.value.trim();
             if (!currentText) return;
 
-            // Eğer metin zaten AI tarafından düzenlenmişse (✨ varsa), 
-            // ve biz hala aynı oturumdaysak, sakladığımız ham metni kullanalım.
-            // Aksi takdirde mevcut metni yeni "ham metin" olarak kabul edelim.
             if (!currentText.includes("✨") || !lastOriginalText) {
                 lastOriginalText = currentText;
             }
 
-            const receiverText = recSelect.options[recSelect.selectedIndex]?.text || "Yetkili";
-            const receiverName = receiverText.split('(')[0].trim();
+            const receiverName = receiverNameEl.textContent.split('(')[0].trim();
             const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
             const myCompany = currentUserData.company || "Bellona";
 
@@ -393,8 +488,6 @@ function initCompose() {
                 });
                 
                 if (refinedText.error) throw new Error(refinedText.error);
-
-                // Sadece Mesaj Gövdesini Güncelle (Sil Baştan)
                 bodyInput.value = "✨ " + refinedText;
                 
                 if (statusEl) {
@@ -410,48 +503,30 @@ function initCompose() {
 }
 
 async function loadReceiversByCategory(category) {
-    const select = document.getElementById('receiverSelect');
-    if (!select) return;
-
-    if (!category) {
-        select.innerHTML = '<option value="">Önce birim seçiniz...</option>';
-        select.disabled = true;
-        return;
-    }
-
-    select.disabled = false;
-    select.innerHTML = '<option value="">Yükleniyor...</option>';
-
     let q;
     const usersRef = collection(db, "users");
 
     if (category === 'local_boss') {
-        // Bölgedeki tüm yerel bayi sorumluları (yöneticiler)
         q = query(usersRef, 
             where("region", "==", currentUserData.region),
             where("category", "==", "local"),
             where("subRole", "==", "manager")
         );
     } else if (category === 'local_colleagues') {
-        // Kendi mağazasındaki herkes (hem çalışan hem diğer yöneticiler)
         q = query(usersRef, 
             where("company", "==", currentUserData.company)
         );
     } else if (category === 'region_dealers') {
-        // Bağlı olduğu bölgedeki diğer bayi sorumluları/çalışanları
         q = query(usersRef, 
             where("region", "==", currentUserData.region),
             where("category", "==", "regional")
         );
     } else if (category === 'factory_hq') {
-        // Fabrika Genel Müdürlük kullanıcıları
         q = query(usersRef, 
             where("category", "==", "factory")
         );
     } else {
-        // Fallback or restricted access
-        select.innerHTML = '<option value="">Yetkiniz olmayan birim</option>';
-        return;
+        return [];
     }
 
     try {
@@ -462,19 +537,10 @@ async function loadReceiversByCategory(category) {
                 users.push({ id: doc.id, ...doc.data() });
             }
         });
-
-        select.innerHTML = `<option value="">${users.length === 0 ? 'Alıcı bulunamadı' : 'Alıcı seçiniz...'}</option>`;
-        
-        if (users.length > 1) {
-            select.innerHTML += `<option value="ALL_IN_CATEGORY" style="font-weight:bold; color:var(--primary);">📢 --- TÜMÜNE GÖNDER (${users.length} Kişi) ---</option>`;
-        }
-
-        users.forEach(u => {
-            select.innerHTML += `<option value="${u.id}">${u.name} ${u.surname || ''} (${u.role === 'admin' ? 'Sistem' : (u.company || 'Bellona')})</option>`;
-        });
+        return users;
     } catch (err) {
         console.error("Load receivers error:", err);
-        select.innerHTML = '<option value="">Yükleme hatası!</option>';
+        return [];
     }
 }
 
@@ -509,19 +575,18 @@ async function handleComposeSubmit(e) {
 
         // Toplu Gönderim Kontrolü
         if (receiverId === "ALL_IN_CATEGORY") {
-            const select = document.getElementById('receiverSelect');
-            const targetIds = Array.from(select.options)
-                .map(opt => opt.value)
-                .filter(val => val && val !== "" && val !== "ALL_IN_CATEGORY");
+            const cat = document.getElementById('receiverCategorySelect').value;
+            const targetUsers = await loadReceiversByCategory(cat);
+            
+            if (targetUsers.length === 0) throw new Error("Gönderilecek kimse bulunamadı.");
 
-            const promises = targetIds.map(async (tid) => {
-                const rOpt = Array.from(select.options).find(o => o.value === tid);
+            const promises = targetUsers.map(async (u) => {
                 return addDoc(collection(db, "messages"), {
                     senderId: currentUserData.id,
                     senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
-                    receiverId: tid,
-                    receiverName: rOpt ? rOpt.text.split('(')[0].trim() : 'Bilinmeyen',
-                    participants: [currentUserData.id, tid],
+                    receiverId: u.id,
+                    receiverName: `${u.name} ${u.surname || ''}`,
+                    participants: [currentUserData.id, u.id],
                     subject: `[TOPLU] ${subject}`,
                     content: body,
                     lastMessage: body,
@@ -534,7 +599,7 @@ async function handleComposeSubmit(e) {
             });
 
             await Promise.all(promises);
-            alert(`${targetIds.length} kişiye toplu mesaj başarıyla gönderildi!`);
+            alert(`${targetUsers.length} kişiye toplu mesaj başarıyla gönderildi!`);
         } else {
             // Tekli Gönderim
             const receiverDoc = await getDoc(doc(db, "users", receiverId));
