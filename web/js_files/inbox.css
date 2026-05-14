@@ -592,19 +592,26 @@ body {
 ============================== */
 .compose-area {
   position: fixed;
-  bottom: 0;
-  right: 2rem;
+  bottom: 20px; /* Floating from bottom */
+  right: 20px; /* Floating from right */
   width: 520px;
-  max-height: 85vh; /* Safe height for all screens */
+  height: 620px; /* Safe fixed height */
+  max-height: 85vh; /* Responsive fallback */
   background: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  border-radius: 20px 20px 0 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border-radius: 20px; /* Rounded all corners for prestige */
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  z-index: 1200;
+  z-index: 2000; /* Over everything */
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: floatIn 0.4s ease-out;
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .compose-area.minimized {
@@ -620,7 +627,7 @@ body {
 .compose-header {
   background: linear-gradient(135deg, #1e293b, #0f172a);
   color: white;
-  padding: 0.85rem 1.5rem; /* More compact */
+  padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -629,31 +636,33 @@ body {
 }
 
 .compose-header h3 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-family: var(--font-heading);
+  flex: 1;
+  text-align: center; /* Centered as requested */
+  margin-left: 30px; /* Offset to center better with icons */
 }
 
 .form-body {
   flex: 1;
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   overflow-y: auto;
   scrollbar-width: thin;
-  min-height: 200px; /* Ensure some space for typing */
 }
 
 .form-footer {
-  padding: 1rem 1.5rem 1.5rem 1.5rem; /* Extra bottom padding for safety */
+  padding: 1.25rem 1.5rem;
   border-top: 1px solid var(--border);
   background: #f8fafc;
   flex-shrink: 0;
 }
 
 .submit-row {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .header-title {
