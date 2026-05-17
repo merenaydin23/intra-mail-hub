@@ -2,22 +2,22 @@
    DESIGN SYSTEM & TOKENS
 ============================== */
 :root {
-  --primary: #0a2e2e;
-  --primary-hover: #082424;
-  --primary-soft: #eef7f7;
-  --accent: #2a7f7f;
-  --bg-app: #f8fafc;
+  --primary: #00828a;
+  --primary-hover: #006b72;
+  --primary-soft: #eaf7f7;
+  --accent: #00a4ad;
+  --bg-app: #f5f9f9;
   --surface: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-  --danger: #ef4444;
+  --text-main: #0c2d30;
+  --text-muted: #5c7b7d;
+  --border: #e0ecec;
+  --danger: #f43f5e;
   --success: #10b981;
   --glass: #ffffff;
-  --glass-dark: rgba(10, 46, 46, 0.05);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --glass-dark: rgba(0, 130, 138, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 130, 138, 0.06), 0 1px 2px rgba(0, 130, 138, 0.04);
+  --shadow-md: 0 4px 12px -1px rgba(0, 130, 138, 0.08);
+  --shadow-lg: 0 16px 28px -3px rgba(0, 130, 138, 0.12);
 }
 
 * {
@@ -51,21 +51,33 @@ body {
 
 .sidebar-header {
   padding: 2rem 1.5rem;
+  background: linear-gradient(to bottom, rgba(0, 130, 138, 0.03), transparent);
+  border-bottom: 1px solid rgba(0, 130, 138, 0.05);
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--primary);
+  justify-content: center;
+  width: 100%;
 }
 
 .brand-logo-img {
-  max-height: 40px;
-  border-radius: 6px;
+  max-height: 56px;
+  width: auto;
+  border-radius: 12px;
+  padding: 5px;
+  background: white;
+  box-shadow: 0 8px 24px rgba(0, 130, 138, 0.12), 0 2px 6px rgba(0, 130, 138, 0.06);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brand-logo-img:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 130, 138, 0.22), 0 4px 10px rgba(0, 130, 138, 0.1);
 }
 
 .compose-btn {

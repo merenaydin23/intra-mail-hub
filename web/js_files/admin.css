@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
 
 :root {
-    /* Sophisticated Minimalist Emerald - Simple & Clean */
-    --brand: #10b981;
-    --brand-dark: #059669;
-    --brand-light: #34d399;
-    --brand-soft: #f0fdf4;
-    --brand-glow: rgba(16, 185, 129, 0.08);
-    --brand-ink: #064e3b;
+    /* Sophisticated Bellona Corporate Teal Identity */
+    --brand: #00828a;
+    --brand-dark: #006066;
+    --brand-light: #00a4ad;
+    --brand-soft: #f0fbfc;
+    --brand-glow: rgba(0, 130, 138, 0.08);
+    --brand-ink: #003a3d;
     
-    --bg-page: #f8fafc;
+    --bg-page: #f4f8f8;
     --bg-card: #ffffff;
     --bg-sidebar: #ffffff;
     
