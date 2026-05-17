@@ -1361,6 +1361,77 @@ body {
   white-space: pre-wrap;
 }
 
+/* Targeted Replies & Visual Badging */
+.reply-item-for-me {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.03), rgba(245, 158, 11, 0.06)) !important;
+  border-left: 5px solid #f59e0b !important; /* Golden priority border */
+  box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -4px rgba(245, 158, 11, 0.05) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.reply-item-for-me:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 10px 20px -3px rgba(245, 158, 11, 0.15), 0 4px 6px -4px rgba(245, 158, 11, 0.1) !important;
+}
+
+.reply-item-targeted {
+  background: linear-gradient(135deg, rgba(0, 130, 138, 0.02), rgba(0, 164, 173, 0.04)) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-color: rgba(0, 164, 173, 0.15) !important;
+}
+
+.reply-item-targeted:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 164, 173, 0.35) !important;
+}
+
+.reply-item-general {
+  background: white !important;
+  border-left: 4px solid #64748b !important; /* Slate grey neutral border */
+  border-color: var(--border) !important;
+}
+
+.reply-item-general:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1 !important;
+}
+
+/* Badge Styling */
+.reply-badge-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+}
+
+.reply-badge-target.for-me {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.reply-badge-target.targeted {
+  background: rgba(0, 130, 138, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(0, 130, 138, 0.12);
+}
+
+.reply-badge-target.general {
+  background: rgba(100, 116, 139, 0.08);
+  color: #475569;
+  border: 1px solid rgba(100, 116, 139, 0.12);
+}
+
+.reply-badge-target i {
+  font-size: 0.7rem;
+}
+
 /* ===== QUICK REPLY EDITOR PANEL ===== */
 .reply-section {
   margin-top: 3rem;

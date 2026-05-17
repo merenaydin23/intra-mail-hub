@@ -592,17 +592,43 @@ window.selectThread = async (id) => {
                         </div>
                     `;
                 } else {
-                    const directedStr = r.directedToName 
-                        ? ` <i class="fa-solid fa-angle-right" style="font-size:0.75rem; color:var(--text-muted); margin:0 0.25rem;"></i> <span style="color:var(--accent); font-weight:600;"><i class="fa-solid fa-reply-all" style="font-size:0.7rem;"></i> ${r.directedToName}</span>` 
-                        : '';
+                    let targetBadge = '';
+                    let itemClass = 'reply-item';
+                    
+                    if (r.directedToId) {
+                        if (r.directedToId === currentUserData.id) {
+                            itemClass += ' reply-item-for-me';
+                            targetBadge = `
+                                <span class="reply-badge-target for-me" title="Bu yanıt doğrudan size hitaben yazılmıştır.">
+                                    <i class="fa-solid fa-star"></i> Sizin İçin Öncelikli
+                                </span>`;
+                        } else {
+                            itemClass += ' reply-item-targeted';
+                            const targetCleanName = (r.directedToName || 'Bilinmeyen').split('(')[0].trim();
+                            targetBadge = `
+                                <span class="reply-badge-target targeted" title="Bu yanıt ${targetCleanName} kullanıcısına hitaben yazılmıştır.">
+                                    <i class="fa-solid fa-bullseye"></i> ${targetCleanName} Hedefli
+                                </span>`;
+                        }
+                    } else {
+                        itemClass += ' reply-item-general';
+                        targetBadge = `
+                            <span class="reply-badge-target general" title="Bu yanıt konuşmadaki tüm katılımcıların ortak bilgilendirilmesi içindir.">
+                                <i class="fa-solid fa-bullhorn"></i> Herkese Açık (Genel)
+                            </span>`;
+                    }
                     
                     repliesHtml += `
-                        <div class="reply-item">
-                            <div class="reply-header">
-                                <span class="reply-author"><i class="fa-solid fa-reply"></i> ${r.authorName}${directedStr}</span>
-                                <span class="reply-date">${rDate}</span>
+                        <div class="${itemClass}">
+                            <div class="reply-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                <span class="reply-author" style="display:flex; align-items:center; gap:0.5rem;">
+                                    <i class="fa-solid fa-user-pen" style="color:var(--primary); font-size:0.85rem;"></i> 
+                                    <strong>${r.authorName}</strong>
+                                </span>
+                                ${targetBadge}
+                                <span class="reply-date" style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-left:auto;">${rDate}</span>
                             </div>
-                            <div class="reply-text">${r.text}</div>
+                            <div class="reply-text" style="margin-top:0.75rem;">${r.text}</div>
                         </div>
                     `;
                 }
