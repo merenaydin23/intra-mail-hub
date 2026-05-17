@@ -831,9 +831,11 @@ body {
 }
 
 .selected-receivers-list::-webkit-resizer {
-    background-color: var(--primary-soft);
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    background: var(--primary) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2L16 6H8L12 2ZM12 22L8 18H16L12 22ZM12 6C12.5523 6 13 6.44772 13 7V17C13 17.5523 12.5523 18 12 18C11.4477 18 11 17.5523 11 17V7C11 6.44772 11.4477 6 12 6Z"/></svg>') no-repeat center;
+    background-size: 11px;
+    border-radius: 6px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     cursor: ns-resize;
 }
 
