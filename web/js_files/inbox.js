@@ -358,17 +358,17 @@ window.selectThread = async (id) => {
         // Render Replies (Threading)
         const repliesBody = document.getElementById('detailBody');
         if (data.replies && data.replies.length > 0) {
-            let repliesHtml = '<div class="replies-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1rem;">';
-            repliesHtml += '<h4 style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase;">Yanıtlar</h4>';
+            let repliesHtml = '<div class="replies-section">';
+            repliesHtml += '<h4 class="replies-title"><i class="fa-solid fa-comments"></i> Yanıtlar</h4>';
             data.replies.forEach(r => {
                 const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
                 repliesHtml += `
-                    <div class="reply-item" style="margin-bottom:1.5rem; background:var(--bg-app); padding:1rem; border-radius:12px; border:1px solid var(--border);">
-                        <div class="reply-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.85rem;">
-                            <span style="font-weight:700; color:var(--primary);"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
-                            <span style="color:var(--text-muted);">${rDate}</span>
+                    <div class="reply-item">
+                        <div class="reply-header">
+                            <span class="reply-author"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
+                            <span class="reply-date">${rDate}</span>
                         </div>
-                        <div class="reply-text" style="line-height:1.6; color:var(--text-main); font-size:0.95rem;">${r.text}</div>
+                        <div class="reply-text">${r.text}</div>
                     </div>
                 `;
             });
