@@ -327,18 +327,27 @@ body {
 
 .msg-item {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  margin: 0.5rem 0.75rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  background: white;
+  border: 1px solid var(--border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .msg-item:hover {
   background-color: var(--primary-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 130, 138, 0.06);
+  border-color: rgba(0, 130, 138, 0.15);
 }
 
 .msg-item.active {
   background-color: var(--primary-soft);
+  border: 1px solid rgba(0, 130, 138, 0.25);
   border-left: 4px solid var(--primary);
+  box-shadow: 0 8px 24px rgba(0, 130, 138, 0.08);
+  transform: translateY(-2px);
 }
 
 .msg-header {
@@ -1796,4 +1805,23 @@ body {
 .reply-item.system-log i {
   color: var(--accent);
   font-size: 1rem;
+}
+
+/* ==============================
+   PREMIUM CUSTOM GLOBAL SCROLLBARS
+ ============================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 130, 138, 0.15);
+  border-radius: 99px;
+  transition: all 0.3s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 130, 138, 0.3);
 }
