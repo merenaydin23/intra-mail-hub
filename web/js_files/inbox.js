@@ -27,6 +27,7 @@ function cleanTextForSearch(str) {
 let currentUserData = null;
 let activeThreadId = null;
 let activeThreadData = null;
+let activeThreadListener = null;
 let currentFolder = 'inbox';
 let forwardOriginalMessageId = null;
 let forwardOriginalSenderId = null;
@@ -142,6 +143,11 @@ function resetDetailView() {
     activeThreadId = null;
     forwardOriginalMessageId = null;
     forwardOriginalSenderId = null;
+
+    if (activeThreadListener) {
+        activeThreadListener();
+        activeThreadListener = null;
+    }
 }
 
 // =====================
@@ -163,7 +169,7 @@ function loadFolder(folder) {
 
     try {
         if (folder === 'sent') {
-            q = query(baseRef, where("senderId", "==", currentUserData.id));
+            q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", "active"));
         } else if (['spam', 'archive', 'trash'].includes(folder)) {
             q = query(baseRef, where("participants", "array-contains", currentUserData.id), where("status", "==", folder));
         } else {
@@ -178,16 +184,19 @@ function loadFolder(folder) {
                 filteredDocs = filteredDocs.filter(doc => {
                     const m = doc.data();
                     if (m.senderId === currentUserData.id) {
-                        // I am the sender of this message
-                        if (!m.replies || m.replies.length === 0) {
-                            // No replies yet, so this belongs only in "Sent", not in Gelen Kutusu
-                            return false;
-                        }
-                        // Only show in Gelen Kutusu if someone else replied to it
-                        return m.replies.some(r => r.authorId !== currentUserData.id);
+                        // I am the sender. Only show in Inbox if there is a discussion (replies exist)
+                        return m.replies && m.replies.length > 0;
                     }
-                    // I am the receiver, so it definitely belongs in Gelen Kutusu
+                    // I am the receiver. It definitely belongs in Gelen Kutusu
                     return true;
+                });
+            } else if (folder === 'sent') {
+                filteredDocs = filteredDocs.filter(doc => {
+                    const m = doc.data();
+                    // Show in Sent if I am the original sender OR if I wrote a reply in this thread
+                    const isOriginalSender = m.senderId === currentUserData.id;
+                    const hasMyReply = m.replies && m.replies.some(r => r.authorId === currentUserData.id);
+                    return isOriginalSender || hasMyReply;
                 });
             }
 
@@ -303,108 +312,113 @@ function handleForwardMessage(id, data) {
 
 window.selectThread = async (id) => {
     activeThreadId = id;
-    const docSnap = await getDoc(doc(db, "messages", id));
-    if (!docSnap.exists()) return;
-    const data = docSnap.data();
-    activeThreadData = data;
-
-    const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
-    const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
-    const composeArea = document.getElementById('composeArea');
     
-    if (emptyState) emptyState.classList.add('hidden');
-    if (contentArea) contentArea.classList.remove('hidden');
-    if (composeArea) composeArea.classList.add('hidden');
-    
-    document.querySelectorAll('.msg-item').forEach(el => {
-        if(el.textContent.includes(data.subject)) el.classList.add('active');
-        else el.classList.remove('active');
-    });
-
-    const dateObj = data.timestamp?.toDate();
-    const fullDate = dateObj ? dateObj.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
-
-    const map = {
-        'detailSubject': data.subject,
-        'detailSenderName': data.senderName,
-        'detailSenderEmail': `Alıcı: ${data.receiverName || 'Bilinmiyor'}`,
-        'detailDate': fullDate,
-        'detailBody': data.content
-    };
-
-    Object.entries(map).forEach(([id, val]) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = val || '';
-    });
-
-    Object.entries(map).forEach(([id, val]) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = val || '';
-    });
-
-    // Render Replies (Threading)
-    const repliesBody = document.getElementById('detailBody');
-    if (data.replies && data.replies.length > 0) {
-        let repliesHtml = '<div class="replies-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1rem;">';
-        repliesHtml += '<h4 style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase;">Yanıtlar</h4>';
-        data.replies.forEach(r => {
-            const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-            repliesHtml += `
-                <div class="reply-item" style="margin-bottom:1.5rem; background:var(--bg-app); padding:1rem; border-radius:12px; border:1px solid var(--border);">
-                    <div class="reply-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.85rem;">
-                        <span style="font-weight:700; color:var(--primary);"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
-                        <span style="color:var(--text-muted);">${rDate}</span>
-                    </div>
-                    <div class="reply-text" style="line-height:1.6; color:var(--text-main); font-size:0.95rem;">${r.text}</div>
-                </div>
-            `;
-        });
-        repliesHtml += '</div>';
-        if (repliesBody) repliesBody.innerHTML += repliesHtml;
+    // Unsubscribe from previous listener if exists
+    if (activeThreadListener) {
+        activeThreadListener();
+        activeThreadListener = null;
     }
 
-    // Ekli Dosya Görüntüleme
-    const attachmentsArea = document.getElementById('attachmentsArea');
-    const attachmentsList = document.getElementById('attachmentsList');
-    if (attachmentsArea && attachmentsList) {
-        if (data.attachmentUrl) {
-            attachmentsArea.classList.remove('hidden');
-            attachmentsList.innerHTML = `
-                <div class="attachment-item">
-                    <i class="fa-solid fa-file-pdf"></i>
-                    <div class="attachment-info">
-                        <span class="file-name">${data.attachmentName || 'Ekli Dosya'}</span>
-                        <a href="${data.attachmentUrl}" target="_blank" class="btn-download">
-                            <i class="fa-solid fa-download"></i> İndir / Görüntüle
-                        </a>
+    const docRef = doc(db, "messages", id);
+    
+    activeThreadListener = onSnapshot(docRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data();
+        activeThreadData = data;
+
+        const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
+        const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
+        const composeArea = document.getElementById('composeArea');
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        if (contentArea) contentArea.classList.remove('hidden');
+        if (composeArea) composeArea.classList.add('hidden');
+        
+        document.querySelectorAll('.msg-item').forEach(el => {
+            if(el.textContent.includes(data.subject)) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+        const dateObj = data.timestamp?.toDate();
+        const fullDate = dateObj ? dateObj.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+
+        const map = {
+            'detailSubject': data.subject,
+            'detailSenderName': data.senderName,
+            'detailSenderEmail': `Alıcı: ${data.receiverName || 'Bilinmiyor'}`,
+            'detailDate': fullDate,
+            'detailBody': data.content
+        };
+
+        Object.entries(map).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = val || '';
+        });
+
+        // Render Replies (Threading)
+        const repliesBody = document.getElementById('detailBody');
+        if (data.replies && data.replies.length > 0) {
+            let repliesHtml = '<div class="replies-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1rem;">';
+            repliesHtml += '<h4 style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase;">Yanıtlar</h4>';
+            data.replies.forEach(r => {
+                const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+                repliesHtml += `
+                    <div class="reply-item" style="margin-bottom:1.5rem; background:var(--bg-app); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+                        <div class="reply-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.85rem;">
+                            <span style="font-weight:700; color:var(--primary);"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
+                            <span style="color:var(--text-muted);">${rDate}</span>
+                        </div>
+                        <div class="reply-text" style="line-height:1.6; color:var(--text-main); font-size:0.95rem;">${r.text}</div>
                     </div>
-                </div>
-            `;
-        } else {
-            attachmentsArea.classList.add('hidden');
-            attachmentsList.innerHTML = '';
+                `;
+            });
+            repliesHtml += '</div>';
+            if (repliesBody) repliesBody.innerHTML += repliesHtml;
         }
-    }
 
-    // Dynamic Forward Button Addition
-    const btnGroup = document.querySelector('.meta-row .btn-group') || document.querySelector('.action-row .btn-group');
-    if (btnGroup) {
-        const existingFwd = document.getElementById('btnForward');
-        if (existingFwd) existingFwd.remove();
+        // Ekli Dosya Görüntüleme
+        const attachmentsArea = document.getElementById('attachmentsArea');
+        const attachmentsList = document.getElementById('attachmentsList');
+        if (attachmentsArea && attachmentsList) {
+            if (data.attachmentUrl) {
+                attachmentsArea.classList.remove('hidden');
+                attachmentsList.innerHTML = `
+                    <div class="attachment-item">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <div class="attachment-info">
+                            <span class="file-name">${data.attachmentName || 'Ekli Dosya'}</span>
+                            <a href="${data.attachmentUrl}" target="_blank" class="btn-download">
+                                <i class="fa-solid fa-download"></i> İndir / Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                attachmentsArea.classList.add('hidden');
+                attachmentsList.innerHTML = '';
+            }
+        }
 
-        const fwdBtn = document.createElement('button');
-        fwdBtn.id = 'btnForward';
-        fwdBtn.className = 'btn-action';
-        fwdBtn.title = 'İlet / Paylaş';
-        fwdBtn.style.background = 'var(--primary-soft)';
-        fwdBtn.style.color = 'var(--primary)';
-        fwdBtn.style.marginLeft = '4px';
-        fwdBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
-        fwdBtn.addEventListener('click', () => {
-            handleForwardMessage(id, data);
-        });
-        btnGroup.appendChild(fwdBtn);
-    }
+        // Dynamic Forward Button Addition
+        const btnGroup = document.querySelector('.meta-row .btn-group') || document.querySelector('.action-row .btn-group');
+        if (btnGroup) {
+            const existingFwd = document.getElementById('btnForward');
+            if (existingFwd) existingFwd.remove();
+
+            const fwdBtn = document.createElement('button');
+            fwdBtn.id = 'btnForward';
+            fwdBtn.className = 'btn-action';
+            fwdBtn.title = 'İlet / Paylaş';
+            fwdBtn.style.background = 'var(--primary-soft)';
+            fwdBtn.style.color = 'var(--primary)';
+            fwdBtn.style.marginLeft = '4px';
+            fwdBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
+            fwdBtn.addEventListener('click', () => {
+                handleForwardMessage(id, data);
+            });
+            btnGroup.appendChild(fwdBtn);
+        }
+    });
 };
 
 // =====================
@@ -1217,6 +1231,5 @@ async function handleReplySubmit() {
         });
         
         input.value = '';
-        selectThread(activeThreadId);
     } catch (err) { console.error("Reply error:", err); }
 }
