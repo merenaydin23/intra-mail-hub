@@ -379,15 +379,30 @@ window.selectThread = async (id) => {
             repliesHtml += '<h4 class="replies-title"><i class="fa-solid fa-comments"></i> Yanıtlar</h4>';
             data.replies.forEach(r => {
                 const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-                repliesHtml += `
-                    <div class="reply-item">
-                        <div class="reply-header">
-                            <span class="reply-author"><i class="fa-solid fa-reply"></i> ${r.authorName}</span>
-                            <span class="reply-date">${rDate}</span>
+                
+                if (r.isSystem) {
+                    repliesHtml += `
+                        <div class="reply-item system-log">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>${r.text}</span>
+                            <span style="margin-left:auto; font-size:0.72rem; color:var(--text-muted); font-weight:500;">${rDate}</span>
                         </div>
-                        <div class="reply-text">${r.text}</div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    const directedStr = r.directedToName 
+                        ? ` <i class="fa-solid fa-angle-right" style="font-size:0.75rem; color:var(--text-muted); margin:0 0.25rem;"></i> <span style="color:var(--accent); font-weight:600;"><i class="fa-solid fa-reply-all" style="font-size:0.7rem;"></i> ${r.directedToName}</span>` 
+                        : '';
+                    
+                    repliesHtml += `
+                        <div class="reply-item">
+                            <div class="reply-header">
+                                <span class="reply-author"><i class="fa-solid fa-reply"></i> ${r.authorName}${directedStr}</span>
+                                <span class="reply-date">${rDate}</span>
+                            </div>
+                            <div class="reply-text">${r.text}</div>
+                        </div>
+                    `;
+                }
             });
             repliesHtml += '</div>';
             if (repliesBody) repliesBody.innerHTML += repliesHtml;
@@ -416,6 +431,54 @@ window.selectThread = async (id) => {
             }
         }
 
+        // Setup Targeted Reply Dropdown dynamically
+        const replyActionsRow = document.querySelector('.reply-actions-row');
+        if (replyActionsRow) {
+            let existingTargetWrapper = document.getElementById('replyTargetWrapper');
+            if (existingTargetWrapper) existingTargetWrapper.remove();
+
+            const targetWrapper = document.createElement('div');
+            targetWrapper.id = 'replyTargetWrapper';
+            targetWrapper.style.marginBottom = '0.75rem';
+            targetWrapper.style.display = 'flex';
+            targetWrapper.style.alignItems = 'center';
+            targetWrapper.style.gap = '0.5rem';
+            targetWrapper.style.fontSize = '0.85rem';
+
+            const otherParticipants = [];
+            if (data.senderId !== currentUserData.id) {
+                otherParticipants.push({ id: data.senderId, name: data.senderName });
+            }
+            if (data.receiverId !== currentUserData.id) {
+                otherParticipants.push({ id: data.receiverId, name: data.receiverName });
+            }
+            if (data.originalSenderId && data.originalSenderId !== currentUserData.id) {
+                otherParticipants.push({ id: data.originalSenderId, name: data.originalSenderName });
+            }
+            
+            if (data.replies) {
+                data.replies.forEach(rep => {
+                    if (rep.authorId && rep.authorId !== currentUserData.id && !otherParticipants.find(p => p.id === rep.authorId)) {
+                        otherParticipants.push({ id: rep.authorId, name: rep.authorName });
+                    }
+                });
+            }
+
+            let optionsHtml = '<option value="">📢 Herkese Açık (Genel)</option>';
+            otherParticipants.forEach(p => {
+                optionsHtml += `<option value="${p.id}" data-name="${p.name}">🎯 ${p.name} (Öncelikli)</option>`;
+            });
+
+            targetWrapper.innerHTML = `
+                <span style="font-weight:600; color:var(--text-muted); display:inline-flex; align-items:center; gap:0.25rem;"><i class="fa-solid fa-bullseye"></i> Kime Hitaben?</span>
+                <select id="replyTargetSelect" style="padding:0.35rem 0.75rem; border:1px solid var(--border); border-radius:6px; font-family:inherit; font-size:0.8rem; background:white; color:var(--text-main); outline:none; cursor:pointer;">
+                    ${optionsHtml}
+                </select>
+            `;
+
+            replyActionsRow.parentNode.insertBefore(targetWrapper, replyActionsRow);
+        }
+
         // Dynamic Forward Button Addition
         const btnGroup = document.querySelector('.meta-row .btn-group') || document.querySelector('.action-row .btn-group');
         if (btnGroup) {
@@ -425,13 +488,13 @@ window.selectThread = async (id) => {
             const fwdBtn = document.createElement('button');
             fwdBtn.id = 'btnForward';
             fwdBtn.className = 'btn-action';
-            fwdBtn.title = 'İlet / Paylaş';
+            fwdBtn.title = 'Konuşmaya Dahil Et / Grup';
             fwdBtn.style.background = 'var(--primary-soft)';
             fwdBtn.style.color = 'var(--primary)';
             fwdBtn.style.marginLeft = '4px';
-            fwdBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
+            fwdBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i>';
             fwdBtn.addEventListener('click', () => {
-                handleForwardMessage(id, data);
+                openLoopInModal(id, data);
             });
             btnGroup.appendChild(fwdBtn);
         }
@@ -1221,6 +1284,154 @@ async function handleComposeSubmit(e) {
     }
 }
 
+async function openLoopInModal(threadId, threadData) {
+    let backdrop = document.getElementById('loopinModalBackdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'loopinModalBackdrop';
+        backdrop.className = 'loopin-modal-backdrop';
+        backdrop.innerHTML = `
+            <div class="loopin-modal">
+                <div class="loopin-modal-header">
+                    <h3><i class="fa-solid fa-users-gear"></i> Konuşmaya Yeni Kişi Ekle (Grup)</h3>
+                    <button class="loopin-modal-close" onclick="document.getElementById('loopinModalBackdrop').classList.remove('active')">&times;</button>
+                </div>
+                <div class="loopin-modal-body">
+                    <div class="loopin-select-group">
+                        <label>1. Eklenecek Birim Seçin</label>
+                        <select id="loopinCategorySelect">
+                            <option value="">-- Birim Seçin --</option>
+                            <option value="factory_hq">🏢 Fabrika Genel (HQ)</option>
+                            <option value="region_dealers">🗺️ Bölge Sorumluları</option>
+                            <option value="local_boss">🏪 Bayi Patronları</option>
+                            <option value="global">🌐 Tüm intra-Mail Kullanıcıları</option>
+                        </select>
+                    </div>
+                    <div class="loopin-select-group">
+                        <label>2. Kullanıcı Arayın</label>
+                        <input type="text" id="loopinSearchInput" placeholder="Birim seçtikten sonra arama yapın..." disabled>
+                    </div>
+                    <div class="loopin-results" id="loopinResults" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; margin-top: 0.5rem; display:none;">
+                    </div>
+                </div>
+                <div class="loopin-modal-footer">
+                    <button class="btn-loopin-cancel" onclick="document.getElementById('loopinModalBackdrop').classList.remove('active')">Vazgeç</button>
+                    <button class="btn-loopin-confirm" id="btnLoopinConfirm" disabled>Katılımcı Olarak Ekle</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+    }
+
+    const catSelect = document.getElementById('loopinCategorySelect');
+    const searchInp = document.getElementById('loopinSearchInput');
+    const resultsDiv = document.getElementById('loopinResults');
+    const confirmBtn = document.getElementById('btnLoopinConfirm');
+    
+    catSelect.value = "";
+    searchInp.value = "";
+    searchInp.disabled = true;
+    resultsDiv.innerHTML = "";
+    resultsDiv.style.display = "none";
+    confirmBtn.disabled = true;
+
+    let loopinReceivers = [];
+    let selectedUser = null;
+
+    catSelect.onchange = async (e) => {
+        const cat = e.target.value;
+        if (!cat) {
+            searchInp.disabled = true;
+            searchInp.value = "";
+            resultsDiv.style.display = "none";
+            return;
+        }
+        searchInp.disabled = false;
+        searchInp.placeholder = "Yükleniyor...";
+        loopinReceivers = await loadReceiversByCategory(cat);
+        searchInp.placeholder = "İsim veya şirket adı ile arayın...";
+    };
+
+    searchInp.oninput = (e) => {
+        const val = cleanTextForSearch(e.target.value);
+        if (!val) {
+            resultsDiv.style.display = "none";
+            return;
+        }
+
+        const filtered = loopinReceivers.filter(u => {
+            const searchStr = cleanTextForSearch(`${u.name} ${u.surname || ''} ${u.company || ''}`);
+            return searchStr.includes(val) && !threadData.participants.includes(u.id);
+        }).slice(0, 8);
+
+        if (filtered.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding:1rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">Eklenebilecek kullanıcı bulunamadı.</div>';
+        } else {
+            resultsDiv.innerHTML = filtered.map(u => `
+                <div class="loopin-result-item" data-uid="${u.id}" data-uname="${u.name} ${u.surname || ''}">
+                    <span style="font-weight:600;">${u.name} ${u.surname || ''}</span>
+                    <span style="font-size:0.7rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px;">${u.company || 'Bellona'}</span>
+                </div>
+            `).join('');
+
+            resultsDiv.querySelectorAll('.loopin-result-item').forEach(item => {
+                item.onclick = () => {
+                    resultsDiv.querySelectorAll('.loopin-result-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedUser = {
+                        id: item.getAttribute('data-uid'),
+                        name: item.getAttribute('data-uname')
+                    };
+                    confirmBtn.disabled = false;
+                };
+            });
+        }
+        resultsDiv.style.display = "block";
+    };
+
+    confirmBtn.onclick = async () => {
+        if (!selectedUser) return;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ekleniyor...';
+
+        try {
+            const docRef = doc(db, "messages", threadId);
+            const docSnap = await getDoc(docRef);
+            const currentData = docSnap.data();
+
+            const pArr = currentData.participants || [];
+            if (!pArr.includes(selectedUser.id)) {
+                pArr.push(selectedUser.id);
+            }
+
+            const replies = currentData.replies || [];
+            replies.push({
+                authorName: "Sistem",
+                isSystem: true,
+                timestamp: new Date().toISOString(),
+                text: `📢 <strong>${currentUserData.name} ${currentUserData.surname || ''}</strong> bu konuşmaya <strong>${selectedUser.name}</strong> kullanıcısını dahil etti. (Grup Mesajlaşması)`
+            });
+
+            await updateDoc(docRef, {
+                participants: pArr,
+                replies: replies,
+                timestamp: serverTimestamp()
+            });
+
+            backdrop.classList.remove('active');
+            alert(`🎉 ${selectedUser.name} konuşmaya başarıyla dahil edildi! Artık ortak grup olarak yazışabilirsiniz.`);
+        } catch (err) {
+            console.error("Loop-in error:", err);
+            alert("Kullanıcı eklenirken hata oluştu.");
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = "Katılımcı Olarak Ekle";
+        }
+    };
+
+    backdrop.classList.add('active');
+}
+
 async function handleReplySubmit() {
     const input = document.getElementById('replyInput');
     if (!input || !input.value.trim() || !activeThreadId) return;
@@ -1234,6 +1445,13 @@ async function handleReplySubmit() {
         text: replyText,
         timestamp: now.toISOString()
     };
+
+    const targetSelect = document.getElementById('replyTargetSelect');
+    if (targetSelect && targetSelect.value) {
+        replyObj.directedToId = targetSelect.value;
+        const selectedOption = targetSelect.options[targetSelect.selectedIndex];
+        replyObj.directedToName = selectedOption.getAttribute('data-name');
+    }
 
     try {
         const docRef = doc(db, "messages", activeThreadId);
