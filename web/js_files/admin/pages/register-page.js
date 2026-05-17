@@ -342,7 +342,11 @@ export function initRegisterPage() {
             phone: phoneIn?.value.trim() || "", city: cityIn?.value || "",
             category: catIn.value, region: regionIn.value, company: finalCompany,
             dealerCode: dealerCode, subRole: roleIn.value, email: emailPreview.value,
-            department: roleIn.value === "manager" ? (catIn.value === "factory" ? "Fabrika Müdürü" : "Bayi Sahibi") : document.getElementById("newDept").value,
+            department: roleIn.value === "manager" ? (
+                catIn.value === "factory" ? "Fabrika Genel Müdürü" : (
+                    catIn.value === "regional" ? "Bölge Müdürü" : "Bayi Yöneticisi"
+                )
+            ) : document.getElementById("newDept").value,
             password: pwIn.value, role: "user", isActive: true
         };
 

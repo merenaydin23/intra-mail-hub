@@ -78,7 +78,7 @@ async function seedData() {
                         dealerCode,
                         subRole,
                         email,
-                        department: subRole === "manager" ? "Bayi Sahibi" : "Mağaza Satış Temsilcisi",
+                        department: subRole === "manager" ? "Bayi Yöneticisi" : "Mağaza Satış Temsilcisi",
                         password,
                         role: "user",
                         isActive: true,

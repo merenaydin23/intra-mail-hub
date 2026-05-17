@@ -19,7 +19,7 @@ async function seed() {
             role: "user",
             isActive: true,
             region: "Belirtilmedi",
-            department: "Yönetici / Patron",
+            department: "Bölge Müdürü",
             createdAt: serverTimestamp()
         });
         console.log(`✅ ${d.company} eklendi.`);

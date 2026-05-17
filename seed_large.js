@@ -76,7 +76,7 @@ async function seed() {
                     category: "local",
                     region: region,
                     company: company,
-                    department: i === 0 ? "Mağaza Sahibi / Patron" : localDepts[Math.floor(Math.random() * localDepts.length)],
+                    department: i === 0 ? "Bayi Yöneticisi" : localDepts[Math.floor(Math.random() * localDepts.length)],
                     isActive: true,
                     birthDate: `19${Math.floor(Math.random() * 40) + 60}-0${Math.floor(Math.random() * 9) + 1}-0${Math.floor(Math.random() * 9) + 1}`,
                     createdAt: serverTimestamp()
