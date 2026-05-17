@@ -1517,23 +1517,44 @@ async function handleComposeSubmit(e) {
                 attachmentUrl = await getDownloadURL(uploadResult.ref);
                 console.log("[Storage] Standard upload successful! URL:", attachmentUrl);
             } catch (storageErr) {
-                console.warn("[Storage] Standard upload failed, executing high-resilience Base64 fallback. Error:", storageErr);
+                console.warn("[Storage] Standard Firebase Storage upload failed, trying cloud fallback (tmpfiles.org)...", storageErr);
                 
-                // Firestore limit is 1MB per document, so we limit local Base64 attachments to 800KB
-                if (file.size > 800 * 1024) {
-                    alert("Seçilen dosya çok büyük. Bulut depolama hatası nedeniyle yerel yükleme moduna geçildi, bu mod için limit 800KB'tır. Lütfen daha küçük bir dosya seçiniz.");
-                    if (sendBtn) sendBtn.disabled = false;
-                    return;
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!res.ok) throw new Error("Cloud fallback server status " + res.status);
+                    const json = await res.json();
+                    
+                    if (json && json.data && json.data.url) {
+                        // Convert view link to direct download link (e.g. tmpfiles.org/1234 -> tmpfiles.org/dl/1234)
+                        attachmentUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                        console.log("[Storage] Cloud fallback upload successful! URL:", attachmentUrl);
+                    } else {
+                        throw new Error("Invalid response schema from cloud fallback");
+                    }
+                } catch (fallbackErr) {
+                    console.warn("[Storage] Cloud fallback failed, executing Tier 3 Base64 fallback...", fallbackErr);
+                    
+                    // Firestore limit is 1MB per document, so we limit local Base64 attachments to 800KB
+                    if (file.size > 800 * 1024) {
+                        alert("Seçilen dosya çok büyük ve bulut depolama sunucuları meşgul. Lütfen daha küçük bir dosya (en fazla 800KB) seçiniz veya internet bağlantınızı kontrol ediniz.");
+                        if (sendBtn) sendBtn.disabled = false;
+                        return;
+                    }
+                    
+                    // Read as Base64 Data URL
+                    attachmentUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = (e) => reject(e);
+                        reader.readAsDataURL(file);
+                    });
+                    console.log("[Storage] Base64 fallback successful! Length:", attachmentUrl.length);
                 }
-                
-                // Read as Base64 Data URL
-                attachmentUrl = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = (e) => reject(e);
-                    reader.readAsDataURL(file);
-                });
-                console.log("[Storage] Base64 fallback successful! Length:", attachmentUrl.length);
             }
         }
 
