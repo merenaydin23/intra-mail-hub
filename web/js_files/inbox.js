@@ -506,7 +506,7 @@ function initCompose() {
         });
     }
 
-    window.__selectReceiver = (id, name, type, region = "", company = "", category = "", subRole = "") => {
+    window.__selectReceiver = (id, name, type, region = "", company = "", category = "", subRole = "", dealerCode = "") => {
         if (selectedReceivers.find(r => r.id === id)) {
             if (resultsArea) resultsArea.classList.add('hidden');
             if (searchInput) searchInput.value = "";
@@ -561,7 +561,7 @@ function initCompose() {
             });
         }
 
-        selectedReceivers.push({ id, name, type, region, company, category, subRole });
+        selectedReceivers.push({ id, name, type, region, company, category, subRole, dealerCode });
         renderReceivers();
         
         if (resultsArea) resultsArea.classList.add('hidden');
@@ -584,6 +584,90 @@ function initCompose() {
         return "";
     }
 
+    function showCustomTooltip(e) {
+        let tooltip = document.getElementById('receiverTooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'receiverTooltip';
+            tooltip.className = 'receiver-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        const ds = e.currentTarget.dataset;
+        const name = ds.name || '';
+        const company = ds.company || 'Bellona Kurumsal';
+        const region = ds.region || 'Genel';
+        const rawRole = ds.role || '';
+        const category = ds.cat || '';
+        const code = ds.code || '0000';
+
+        let roleText = 'Mağaza Personeli';
+        if (category === 'factory') roleText = 'Fabrika Yetkilisi';
+        else if (category === 'regional') roleText = 'Bölge Sorumlusu';
+        else if (rawRole === 'manager') roleText = 'Yönetici / Patron';
+
+        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        tooltip.innerHTML = `
+          <div class="tooltip-header">
+            <div class="tooltip-avatar">${initials}</div>
+            <div class="tooltip-title-area">
+              <div class="tooltip-name">${name}</div>
+              <div class="tooltip-role">${roleText}</div>
+            </div>
+          </div>
+          <div class="tooltip-body">
+            <div class="tooltip-info-row">
+              <span class="info-label"><i class="fa-solid fa-building"></i> Şirket:</span>
+              <span class="info-value">${company}</span>
+            </div>
+            <div class="tooltip-info-row">
+              <span class="info-label"><i class="fa-solid fa-map-location-dot"></i> Bölge:</span>
+              <span class="info-value">${region}</span>
+            </div>
+            <div class="tooltip-info-row">
+              <span class="info-label"><i class="fa-solid fa-barcode"></i> Bayi Kodu:</span>
+              <span class="info-value">#${code}</span>
+            </div>
+          </div>
+        `;
+
+        tooltip.classList.add('visible');
+        positionCustomTooltip(e);
+    }
+
+    function positionCustomTooltip(e) {
+        const tooltip = document.getElementById('receiverTooltip');
+        if (!tooltip) return;
+
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+
+        // Check boundary
+        const tooltipWidth = tooltip.offsetWidth || 290;
+        const tooltipHeight = tooltip.offsetHeight || 150;
+
+        let finalX = x;
+        let finalY = y;
+
+        if (x + tooltipWidth > window.innerWidth) {
+            finalX = e.clientX - tooltipWidth - 15;
+        }
+        if (y + tooltipHeight > window.innerHeight) {
+            finalY = e.clientY - tooltipHeight - 15;
+        }
+
+        tooltip.style.left = `${finalX}px`;
+        tooltip.style.top = `${finalY}px`;
+    }
+
+    function hideCustomTooltip() {
+        const tooltip = document.getElementById('receiverTooltip');
+        if (tooltip) {
+            tooltip.classList.remove('visible');
+        }
+    }
+
     function renderReceivers() {
         if (!receiversList) return;
         receiversList.innerHTML = selectedReceivers.map((r, index) => {
@@ -591,7 +675,7 @@ function initCompose() {
             const unitLabel = r.type === 'bulk' ? 'GRUP' : (r.category === 'factory' ? 'FB' : (r.category === 'regional' ? 'BLG' : 'BYI'));
             
             return `
-                <div class="receiver-chip ${regClass}" data-index="${index}" data-cat="${r.category || ''}" title="${r.company || ''} ${r.region ? `(${r.region})` : ''}">
+                <div class="receiver-chip ${regClass}" data-index="${index}" data-cat="${r.category || ''}" data-name="${r.name}" data-type="${r.type}" data-company="${r.company || ''}" data-region="${r.region || ''}" data-role="${r.subRole || ''}" data-code="${r.dealerCode || ''}">
                     <i class="fa-solid ${r.type === 'bulk' ? 'fa-users' : 'fa-user'}"></i>
                     <span>${r.name}</span>
                     <span class="unit-badge">${unitLabel}</span>
@@ -610,6 +694,9 @@ function initCompose() {
             
             chip.querySelector('.remove-chip-trigger').onclick = (e) => {
                 e.stopPropagation();
+                // Hide tooltip if it was showing for this chip
+                const tooltip = document.getElementById('receiverTooltip');
+                if (tooltip) tooltip.classList.remove('visible');
                 window.__removeReceiver(index);
             };
 
@@ -619,6 +706,19 @@ function initCompose() {
                     e.stopPropagation();
                     window.__expandBulk(index);
                 };
+            }
+
+            // Hover Tooltip Events
+            if (chip.getAttribute('data-type') !== 'bulk') {
+                chip.addEventListener('mouseenter', (e) => {
+                    showCustomTooltip(e);
+                });
+                chip.addEventListener('mousemove', (e) => {
+                    positionCustomTooltip(e);
+                });
+                chip.addEventListener('mouseleave', () => {
+                    hideCustomTooltip();
+                });
             }
         });
     }
@@ -713,7 +813,7 @@ function initCompose() {
 
             if (filtered.length > 0) {
                 html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}', '${u.category || ''}', '${u.subRole || ''}')">
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}', '${u.category || ''}', '${u.subRole || ''}', '${u.dealerCode || ''}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="item-title">${u.name} ${u.surname || ''}</span>
                             <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>

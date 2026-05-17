@@ -1138,3 +1138,95 @@ body {
 .reply-time {
   color: var(--text-muted);
 }
+
+/* Premium Receiver Hover Tooltip */
+.receiver-tooltip {
+    position: fixed;
+    z-index: 9999;
+    width: 290px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(10, 46, 46, 0.12);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(10, 46, 46, 0.05);
+    pointer-events: none;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+    left: 0;
+    top: 0;
+}
+
+.receiver-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.receiver-tooltip .tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.receiver-tooltip .tooltip-avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid rgba(10, 46, 46, 0.1);
+}
+
+.receiver-tooltip .tooltip-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.receiver-tooltip .tooltip-role {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.receiver-tooltip .tooltip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.receiver-tooltip .tooltip-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+}
+
+.receiver-tooltip .info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.receiver-tooltip .info-value {
+    color: var(--text-main);
+    font-weight: 700;
+    text-align: right;
+    max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
