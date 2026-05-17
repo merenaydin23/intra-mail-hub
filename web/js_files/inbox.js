@@ -477,6 +477,18 @@ window.selectThread = async (id) => {
             `;
 
             replyActionsRow.parentNode.insertBefore(targetWrapper, replyActionsRow);
+
+            const tSel = targetWrapper.querySelector('#replyTargetSelect');
+            const rInp = document.getElementById('replyInput');
+            if (tSel && rInp) {
+                tSel.addEventListener('change', () => {
+                    const opt = tSel.options[tSel.selectedIndex];
+                    const name = opt.getAttribute('data-name');
+                    if (name) {
+                        rInp.value = customizeMessageForRecipient(rInp.value, name);
+                    }
+                });
+            }
         }
 
         // Dynamic Forward Button Addition
@@ -1446,11 +1458,14 @@ async function handleReplySubmit() {
         timestamp: now.toISOString()
     };
 
+    let finalReplyText = replyText;
     const targetSelect = document.getElementById('replyTargetSelect');
     if (targetSelect && targetSelect.value) {
         replyObj.directedToId = targetSelect.value;
         const selectedOption = targetSelect.options[targetSelect.selectedIndex];
         replyObj.directedToName = selectedOption.getAttribute('data-name');
+        finalReplyText = customizeMessageForRecipient(replyText, replyObj.directedToName);
+        replyObj.text = finalReplyText;
     }
 
     try {
@@ -1463,7 +1478,7 @@ async function handleReplySubmit() {
 
         await updateDoc(docRef, {
             replies: replies,
-            lastMessage: replyText,
+            lastMessage: finalReplyText,
             timestamp: serverTimestamp()
         });
         
