@@ -1825,3 +1825,67 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 130, 138, 0.3);
 }
+
+/* ==============================
+   PREMIUM SAAS DESIGN IMPROVEMENTS
+ ============================== */
+.fa-check-double {
+  animation: checkDoublePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: drop-shadow(0 0 2px rgba(0, 164, 173, 0.4));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.fa-check-double:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 5px rgba(0, 164, 173, 0.8));
+  cursor: help;
+}
+
+.fa-check {
+  transition: transform 0.2s ease;
+}
+
+.fa-check:hover {
+  transform: scale(1.1);
+  cursor: help;
+}
+
+@keyframes checkDoublePop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.receiver-chip {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.receiver-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 130, 138, 0.12) !important;
+  border-color: rgba(0, 164, 173, 0.3) !important;
+}
+
+.trash-notice-box {
+  animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.05), 0 8px 16px -6px rgba(225, 29, 72, 0.05);
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
