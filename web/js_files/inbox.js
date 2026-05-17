@@ -110,6 +110,65 @@ function initNavigation() {
     logoutBtns.forEach(btn => {
         btn.addEventListener('click', () => signOut(auth).then(() => window.location.href = '/index.html'));
     });
+
+    const archiveBtn = document.getElementById('btnArchive');
+    if (archiveBtn) {
+        archiveBtn.addEventListener('click', async () => {
+            if (!activeThreadId) {
+                alert("Lütfen önce işlem yapılacak bir mesaj seçin.");
+                return;
+            }
+            try {
+                const docRef = doc(db, "messages", activeThreadId);
+                const nextStatus = currentFolder === 'archive' ? 'active' : 'archive';
+                
+                await updateDoc(docRef, { status: nextStatus });
+                alert(currentFolder === 'archive' ? "Mesaj Gelen Kutusuna geri taşındı!" : "Mesaj başarıyla arşive taşındı!");
+                
+                resetDetailView();
+                loadFolder(currentFolder);
+            } catch (err) {
+                console.error("Archive toggle error:", err);
+                alert("İşlem gerçekleştirilirken bir hata oluştu.");
+            }
+        });
+    }
+
+    const trashBtn = document.getElementById('btnTrash');
+    if (trashBtn) {
+        trashBtn.addEventListener('click', async () => {
+            if (!activeThreadId) {
+                alert("Lütfen önce işlem yapılacak bir mesaj seçin.");
+                return;
+            }
+            const docRef = doc(db, "messages", activeThreadId);
+            if (currentFolder === 'trash') {
+                // Restore from trash
+                try {
+                    await updateDoc(docRef, { status: 'active' });
+                    alert("Mesaj Gelen Kutusuna geri yüklendi!");
+                    resetDetailView();
+                    loadFolder(currentFolder);
+                } catch (err) {
+                    console.error("Restore error:", err);
+                    alert("Mesaj geri yüklenirken bir hata oluştu.");
+                }
+            } else {
+                // Move to trash
+                if (confirm("Bu mesajı silmek (çöp kutusuna taşımak) istediğinize emin misiniz?")) {
+                    try {
+                        await updateDoc(docRef, { status: 'trash' });
+                        alert("Mesaj çöp kutusuna taşındı!");
+                        resetDetailView();
+                        loadFolder(currentFolder);
+                    } catch (err) {
+                        console.error("Trash error:", err);
+                        alert("Mesaj silinirken hata oluştu.");
+                    }
+                }
+            }
+        });
+    }
 }
 
 function switchFolder(folder, clickedElement) {
@@ -514,6 +573,28 @@ window.selectThread = async (id) => {
                 openLoopInModal(id, data);
             });
             btnGroup.appendChild(fwdBtn);
+        }
+
+        const archiveBtn = document.getElementById('btnArchive');
+        if (archiveBtn) {
+            if (currentFolder === 'archive') {
+                archiveBtn.innerHTML = '<i class="fa-solid fa-envelope-open"></i>';
+                archiveBtn.title = 'Gelen Kutusuna Taşı';
+            } else {
+                archiveBtn.innerHTML = '<i class="fa-solid fa-box-archive"></i>';
+                archiveBtn.title = 'Arşivle';
+            }
+        }
+
+        const trashBtn = document.getElementById('btnTrash');
+        if (trashBtn) {
+            if (currentFolder === 'trash') {
+                trashBtn.innerHTML = '<i class="fa-solid fa-trash-arrow-up"></i>';
+                trashBtn.title = 'Geri Yükle';
+            } else {
+                trashBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                trashBtn.title = 'Sil';
+            }
         }
     });
 };
