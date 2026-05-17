@@ -1509,9 +1509,32 @@ async function handleComposeSubmit(e) {
         if (fileInput && fileInput.files[0]) {
             const file = fileInput.files[0];
             attachmentName = file.name;
-            const fileRef = ref(storage, `messages/${Date.now()}_${file.name}`);
-            const uploadResult = await uploadBytes(fileRef, file);
-            attachmentUrl = await getDownloadURL(uploadResult.ref);
+            
+            try {
+                console.log("[Storage] Attempting standard Firebase Storage upload...");
+                const fileRef = ref(storage, `messages/${Date.now()}_${file.name}`);
+                const uploadResult = await uploadBytes(fileRef, file);
+                attachmentUrl = await getDownloadURL(uploadResult.ref);
+                console.log("[Storage] Standard upload successful! URL:", attachmentUrl);
+            } catch (storageErr) {
+                console.warn("[Storage] Standard upload failed, executing high-resilience Base64 fallback. Error:", storageErr);
+                
+                // Firestore limit is 1MB per document, so we limit local Base64 attachments to 800KB
+                if (file.size > 800 * 1024) {
+                    alert("Seçilen dosya çok büyük. Bulut depolama hatası nedeniyle yerel yükleme moduna geçildi, bu mod için limit 800KB'tır. Lütfen daha küçük bir dosya seçiniz.");
+                    if (sendBtn) sendBtn.disabled = false;
+                    return;
+                }
+                
+                // Read as Base64 Data URL
+                attachmentUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (e) => reject(e);
+                    reader.readAsDataURL(file);
+                });
+                console.log("[Storage] Base64 fallback successful! Length:", attachmentUrl.length);
+            }
         }
 
         // Alıcıları Çözümle (Toplu grupları bireylere dök)
