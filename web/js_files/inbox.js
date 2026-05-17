@@ -367,6 +367,20 @@ function loadFolder(folder) {
                                 const isSentByMe = m.senderId === currentUserData.id;
                 const senderDisplay = isSentByMe ? `<i class="fa-solid fa-share" style="font-size:0.7rem; color:var(--primary)"></i> Alıcı: ${m.receiverName}` : m.senderName;
                 
+                // Read Receipt status check
+                let receiptHtml = '';
+                if (isSentByMe) {
+                    if (m.isRead) {
+                        const readDate = m.readAt?.toDate();
+                        const readTooltip = readDate 
+                            ? `Okundu: ${readDate.toLocaleString('tr-TR')}` 
+                            : 'Okundu';
+                        receiptHtml = `<i class="fas fa-check-double" style="color: #00a4ad; margin-left: 4px;" title="${readTooltip}"></i>`;
+                    } else {
+                        receiptHtml = `<i class="fas fa-check" style="color: var(--text-muted); opacity: 0.6; margin-left: 4px;" title="İletildi (Okunmadı)"></i>`;
+                    }
+                }
+
                 const replyCount = m.replies ? m.replies.length : 0;
                 const totalMessages = 1 + replyCount;
                 const badgeHtml = replyCount > 0 
@@ -379,7 +393,7 @@ function loadFolder(folder) {
                             <span class="msg-sender">${senderDisplay}</span>
                             <div class="msg-meta-side" style="display:flex; align-items:center; gap:0.5rem;">
                                 ${badgeHtml}
-                                <span class="msg-time">${timeStr}</span>
+                                <span class="msg-time">${timeStr}${receiptHtml}</span>
                             </div>
                         </div>
                         <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
@@ -451,10 +465,22 @@ window.selectThread = async (id) => {
 
     const docRef = doc(db, "messages", id);
     
-    activeThreadListener = onSnapshot(docRef, (docSnap) => {
+    activeThreadListener = onSnapshot(docRef, async (docSnap) => {
         if (!docSnap.exists()) return;
         const data = docSnap.data();
         activeThreadData = data;
+
+        // Okundu Bilgisi İşleme (Read Receipt Trigger)
+        if (data.receiverId === currentUserData.id && data.isRead === false) {
+            try {
+                await updateDoc(docRef, {
+                    isRead: true,
+                    readAt: serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Okundu bilgisi güncellenirken hata:", err);
+            }
+        }
 
         const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
         const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
@@ -477,11 +503,23 @@ window.selectThread = async (id) => {
             receiverDisplay += ` <span style="margin: 0 0.5rem; color: var(--border);">|</span> <span class="to-label" style="background:var(--primary-soft); color:var(--primary); font-weight:700; border:1px solid rgba(10,46,46,0.1); border-radius:6px; padding:0.125rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Bayi ile başlayan ortak yazışma zinciri"><i class="fa-solid fa-link"></i> Ortak Zincir: <strong>${data.originalSenderName}</strong> <i class="fa-solid fa-arrow-right-long" style="font-size:0.7rem; color:var(--accent);"></i> <strong>${data.senderName}</strong> <i class="fa-solid fa-arrow-right-long" style="font-size:0.7rem; color:var(--accent);"></i> <strong>${data.receiverName}</strong></span>`;
         }
 
+        // Detail Read Receipt rendering
+        let detailReceiptHtml = '';
+        if (data.senderId === currentUserData.id) {
+            if (data.isRead) {
+                const readDate = data.readAt?.toDate();
+                const readDateStr = readDate ? readDate.toLocaleString('tr-TR') : '--';
+                detailReceiptHtml = ` <span style="margin-left: 8px; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: #00a4ad; font-weight: 600;"><i class="fas fa-check-double" style="color: #00a4ad;"></i> Okundu (${readDateStr})</span>`;
+            } else {
+                detailReceiptHtml = ` <span style="margin-left: 8px; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; color: var(--text-muted); opacity: 0.8;"><i class="fas fa-check"></i> İletildi</span>`;
+            }
+        }
+
         const map = {
             'detailSubject': data.subject,
             'detailSenderName': data.senderName,
             'detailSenderEmail': receiverDisplay,
-            'detailDate': fullDate,
+            'detailDate': fullDate + detailReceiptHtml,
             'detailBody': data.content
         };
 
@@ -1685,7 +1723,9 @@ async function handleReplySubmit() {
         await updateDoc(docRef, {
             replies: replies,
             lastMessage: finalReplyText,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            isRead: false,
+            readAt: null
         });
         
         input.value = '';
