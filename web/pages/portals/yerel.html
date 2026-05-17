@@ -151,6 +151,25 @@
           <div class="attachments-header"><i class="fa-solid fa-paperclip"></i> Ekli Dosyalar</div>
           <div id="attachmentsList" class="attachments-list"></div>
         </div>
+
+        <!-- Cevapla Alanı -->
+        <div class="reply-section" id="replySection">
+          <h4 class="reply-section-title"><i class="fa-solid fa-pen-nib"></i> Hızlı Yanıt Yaz</h4>
+          <div class="reply-input-wrapper">
+            <textarea id="replyInput" placeholder="Cevabınızı buraya yazın..."></textarea>
+            <div class="reply-actions-row">
+              <div class="ai-panel">
+                <div class="ai-status" id="replyAIStatus"></div>
+                <button type="button" class="btn-ai-reply" id="aiReplySuggestBtn" title="Yapay Zeka ile Cevabı Düzenle">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Akıllı Düzenle
+                </button>
+              </div>
+              <button id="sendReply" class="btn-reply-submit">
+                <i class="fa-solid fa-reply"></i> Cevapla
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
