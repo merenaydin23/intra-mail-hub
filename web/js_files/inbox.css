@@ -596,7 +596,7 @@ body {
   right: 20px; /* Floating from right */
   width: 520px;
   height: 620px; /* Safe fixed height */
-  max-height: 85vh; /* Responsive fallback */
+  max-height: 90vh; /* Responsive fallback */
   background: white;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   border-radius: 20px; /* Rounded all corners for prestige */
@@ -605,8 +605,25 @@ body {
   border: 1px solid var(--border);
   z-index: 2000; /* Over everything */
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s, transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s;
   animation: floatIn 0.4s ease-out;
+}
+
+.compose-top-resizer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  z-index: 2010;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.compose-top-resizer:hover,
+.compose-top-resizer.active {
+  background: rgba(10, 46, 46, 0.1);
 }
 
 @keyframes floatIn {
@@ -707,6 +724,22 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-soft) transparent;
+}
+
+.form-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-body::-webkit-scrollbar-thumb {
+  background-color: var(--primary-soft);
+  border-radius: 3px;
 }
 
 .flex-1 {

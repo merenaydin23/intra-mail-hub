@@ -516,6 +516,44 @@ function initCompose() {
         });
     }
 
+    // Dynamically Inject Top Resizer for the Entire Compose Area
+    if (composeArea && !document.getElementById('composeTopResizer')) {
+        const topResizer = document.createElement('div');
+        topResizer.className = 'compose-top-resizer';
+        topResizer.id = 'composeTopResizer';
+        composeArea.appendChild(topResizer);
+
+        let isResizingArea = false;
+        let startY, startHeight;
+
+        topResizer.addEventListener('mousedown', (e) => {
+            if (composeArea.classList.contains('minimized')) return;
+            isResizingArea = true;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(composeArea).height, 10);
+            document.documentElement.addEventListener('mousemove', doDragArea, false);
+            document.documentElement.addEventListener('mouseup', stopDragArea, false);
+            topResizer.classList.add('active');
+            e.preventDefault();
+        });
+
+        function doDragArea(e) {
+            if (!isResizingArea) return;
+            const currentHeight = startHeight - (e.clientY - startY);
+            const maxHeight = window.innerHeight * 0.9;
+            if (currentHeight >= 400 && currentHeight <= maxHeight) {
+                composeArea.style.height = `${currentHeight}px`;
+            }
+        }
+
+        function stopDragArea(e) {
+            isResizingArea = false;
+            document.documentElement.removeEventListener('mousemove', doDragArea, false);
+            document.documentElement.removeEventListener('mouseup', stopDragArea, false);
+            topResizer.classList.remove('active');
+        }
+    }
+
     if (regionFilterSelect) {
         regionFilterSelect.addEventListener('change', async () => {
             const cat = categorySelect.value;
