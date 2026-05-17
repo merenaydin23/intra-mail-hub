@@ -713,9 +713,10 @@ body {
 }
 
 .compose-form {
-  flex: 1;
+  height: calc(100% - 60px);
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .form-body {
@@ -725,6 +726,7 @@ body {
   flex-direction: column;
   gap: 1.25rem;
   overflow-y: auto;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-soft) transparent;
 }
