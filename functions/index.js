@@ -223,3 +223,39 @@ exports.archiveDailyMessages = onSchedule(
         console.log(`[Archive] ${snapshot.size} mesaj ${dateKey} arşivine başarıyla yazıldı.`);
     }
 );
+
+/**
+ * ÇÖP KUTUSU OTOMATİK TEMİZLİK SERVİSİ (Firebase Cloud Functions)
+ * Her gece gece yarısı (00:00) çalışır.
+ * messages koleksiyonunda status === 'trash' olan ve deletedAt zamanı 15 günden eski olan dokümanları 500'erli paketler halinde kalıcı siler.
+ */
+exports.cleanupTrashMessages = onSchedule(
+    { schedule: "0 0 * * *", timeZone: "Europe/Istanbul" },
+    async () => {
+        const db = admin.firestore();
+        const now = new Date();
+        const fifteenDaysAgo = new Date(now);
+        fifteenDaysAgo.setDate(now.getDate() - 15);
+
+        console.log(`[Cleanup] 15 günden eski çöp kutusundaki mesajlar siliniyor. Sınır: ${fifteenDaysAgo.toISOString()}`);
+
+        const snapshot = await db.collection("messages")
+            .where("status", "==", "trash")
+            .where("deletedAt", "<=", admin.firestore.Timestamp.fromDate(fifteenDaysAgo))
+            .limit(500)
+            .get();
+
+        if (snapshot.empty) {
+            console.log("[Cleanup] Silinecek eski çöp kutusu mesajı bulunamadı.");
+            return;
+        }
+
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+        console.log(`[Cleanup] ${snapshot.size} adet eski çöp kutusu mesajı kalıcı olarak başarıyla silindi.`);
+    }
+);

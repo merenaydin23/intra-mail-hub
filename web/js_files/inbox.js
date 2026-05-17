@@ -145,7 +145,10 @@ function initNavigation() {
             if (currentFolder === 'trash') {
                 // Restore from trash
                 try {
-                    await updateDoc(docRef, { status: 'active' });
+                    await updateDoc(docRef, { 
+                        status: 'active',
+                        deletedAt: null
+                    });
                     alert("Mesaj Gelen Kutusuna geri yüklendi!");
                     resetDetailView();
                     loadFolder(currentFolder);
@@ -157,7 +160,10 @@ function initNavigation() {
                 // Move to trash
                 if (confirm("Bu mesajı silmek (çöp kutusuna taşımak) istediğinize emin misiniz?")) {
                     try {
-                        await updateDoc(docRef, { status: 'trash' });
+                        await updateDoc(docRef, { 
+                            status: 'trash',
+                            deletedAt: serverTimestamp()
+                        });
                         alert("Mesaj çöp kutusuna taşındı!");
                         resetDetailView();
                         loadFolder(currentFolder);
