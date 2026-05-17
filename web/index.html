@@ -13,34 +13,44 @@
     <link rel="stylesheet" href="./js_files/style.css">
   </head>
   <body>
+    <!-- Glow spots for premium reflections -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+
     <div class="background-overlay"></div>
+
     <div class="login-container">
-      
+      <!-- Left Card: Highly Transparent Form Section with Centered Logo -->
       <main class="login-card">
         <header class="card-header">
-          <div class="logo">
-            <i class="fa-solid fa-paper-plane"></i>
-            <span>IntraMail <strong>Hub</strong></span>
+          <div class="logo-centered">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" class="brand-logo-svg">
+              <text x="160" y="45" font-family="'Outfit', 'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="32" fill="var(--primary)" text-anchor="middle" dominant-baseline="middle" letter-spacing="8">BELLONA</text>
+            </svg>
           </div>
           <h2>Fabrika & Bayi Portalı</h2>
-          <p>Yönetim, Bölge ve Yerel Bayi İletişim Ağı.</p>
+          <p>Bellona Kurumsal Yönetim, Bölge ve Bayi Ortak İletişim Ağı</p>
         </header>
 
         <form id="login-form">
           <div class="input-group">
             <i class="fa-regular fa-envelope field-icon"></i>
             <input type="email" id="email" placeholder="Kurumsal E-posta (@intramail.corp)" required />
+            <div class="input-line"></div>
           </div>
 
           <div class="input-group">
             <i class="fa-solid fa-lock field-icon"></i>
             <input type="password" id="password" placeholder="Şifre" required />
             <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+            <div class="input-line"></div>
           </div>
 
           <div class="form-options">
             <label class="remember-me">
               <input type="checkbox" id="remember">
+              <span class="checkbox-custom"></span>
               <span>Beni Hatırla</span>
             </label>
             <a href="#" class="forgot-password">Şifremi Unuttum?</a>
@@ -48,33 +58,35 @@
 
           <button type="submit" class="btn-login">
             <span>Giriş Yap</span>
-            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            <i class="fa-solid fa-chevron-right btn-arrow"></i>
           </button>
         </form>
 
         <footer class="card-footer">
           <div id="message" class="status-msg"></div>
-          <p class="copyright">© 2026 IntraMail Hub · Muhammed Eren Aydın</p>
+          <p class="copyright">© 2026 Bellona Hub · M. Eren Aydın</p>
         </footer>
       </main>
 
+      <!-- Right Card: Rich Brand Story Section -->
       <aside class="hero-section">
         <div class="hero-content">
-          <span class="badge">Sürüm 2.0 - AI Powered</span>
-          <h1>Güvenli ve Akıllı <br>Kurumsal İletişim</h1>
-          <p><strong>Gemini API</strong> destekli otomatik çeviri, spam tespiti ve akıllı yanıt önerileri ile departmanlar arası iletişimi hızlandırın.</p>
+          <span class="badge">Bellona Corporate - AI Connected</span>
+          <h1>Akıllı Arayüz <br>Sonsuz Konfor</h1>
+          <p><strong>Gemini AI</strong> destekli bölge bazlı alıcı filtreleme, anlık çeviri ve otomatik yanıt asistanı ile Bellona bayileri ve fabrikaları arasında kusursuz bir iletişim deneyimi.</p>
+          
           <div class="features-list">
             <div class="feature-item">
-              <i class="fa-solid fa-language"></i>
-              <span>Anlık Çeviri</span>
+              <i class="fa-solid fa-hotel"></i>
+              <span>Bayi Yönetimi</span>
             </div>
             <div class="feature-item">
-              <i class="fa-solid fa-shield-virus"></i>
-              <span>Spam Koruması</span>
+              <i class="fa-solid fa-route"></i>
+              <span>Bölge Filtresi</span>
             </div>
             <div class="feature-item">
-              <i class="fa-solid fa-bolt-lightning"></i>
-              <span>Akıllı Yanıt</span>
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>AI Asistan</span>
             </div>
           </div>
         </div>
@@ -85,4 +97,3 @@
     <script type="module" src="./js_files/main.js"></script>
   </body>
 </html>
-
