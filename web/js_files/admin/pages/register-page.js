@@ -243,65 +243,82 @@ export function initRegisterPage() {
             }
         }
 
-        deptGroup.style.display = roleIn.value === "manager" ? "none" : "block";
+        deptGroup.style.display = "block";
         
         const deptInput = document.getElementById("newDept");
         if (deptInput) {
             const currentVal = deptInput.value;
             deptInput.innerHTML = '<option value="">Seçiniz...</option>';
             
-            const factoryDepts = [
-                "Fabrika Üretim Planlama",
-                "Fabrika Lojistik ve Depo",
-                "Fabrika Kalite Kontrol",
-                "Fabrika Ar-Ge",
-                "Fabrika İnsan Kaynakları",
-                "Fabrika Bilgi Teknolojileri"
-            ];
-            const regionalDepts = [
-                "Bölge Satış Yönetimi",
-                "Bölge Pazarlama Sorumlusu",
-                "Bölge Muhasebe Müdürü",
-                "Bölge Sevkiyat Koordinatörü"
-            ];
-            const localDepts = [
-                "Mağaza Satış Temsilcisi",
-                "Mağaza Muhasebe",
-                "Mağaza Teknik Servis",
-                "Mağaza Depo Sorumlusu"
-            ];
-
-            let activeGroup = null;
-            if (catIn.value === "factory") {
-                activeGroup = document.createElement("optgroup");
-                activeGroup.label = "Fabrika Birimleri";
-                factoryDepts.forEach(d => {
-                    const opt = document.createElement("option");
-                    opt.value = d;
-                    opt.textContent = d;
-                    activeGroup.appendChild(opt);
-                });
-            } else if (catIn.value === "regional") {
-                activeGroup = document.createElement("optgroup");
-                activeGroup.label = "Bölge Birimleri";
-                regionalDepts.forEach(d => {
-                    const opt = document.createElement("option");
-                    opt.value = d;
-                    opt.textContent = d;
-                    activeGroup.appendChild(opt);
-                });
-            } else if (catIn.value === "local") {
-                activeGroup = document.createElement("optgroup");
-                activeGroup.label = "Yerel Mağaza Birimleri";
-                localDepts.forEach(d => {
-                    const opt = document.createElement("option");
-                    opt.value = d;
-                    opt.textContent = d;
-                    activeGroup.appendChild(opt);
-                });
+            let activeDepts = [];
+            let groupLabel = "";
+            
+            if (roleIn.value === "manager") {
+                if (catIn.value === "factory") {
+                    groupLabel = "Fabrika Yönetici Unvanları";
+                    activeDepts = [
+                        "Fabrika Genel Müdürü",
+                        "Fabrika Ar-Ge Yöneticisi",
+                        "Fabrika Servis Yöneticisi",
+                        "Fabrika Üretim Yöneticisi",
+                        "Fabrika Lojistik Yöneticisi",
+                        "Fabrika Kalite Kontrol Yöneticisi"
+                    ];
+                } else if (catIn.value === "regional") {
+                    groupLabel = "Bölge Yönetici Unvanları";
+                    activeDepts = [
+                        "Bölge Müdürü",
+                        "Bölge Sevkiyat Yöneticisi",
+                        "Bölge Satış Yöneticisi",
+                        "Bölge Pazarlama Yöneticisi",
+                        "Bölge Muhasebe Yöneticisi"
+                    ];
+                } else if (catIn.value === "local") {
+                    groupLabel = "Yerel Bayi Yönetici Unvanları";
+                    activeDepts = [
+                        "Bayi Yöneticisi",
+                        "Mağaza Müdürü"
+                    ];
+                }
+            } else {
+                if (catIn.value === "factory") {
+                    groupLabel = "Fabrika Personel Birimleri";
+                    activeDepts = [
+                        "Fabrika Üretim Planlama",
+                        "Fabrika Lojistik ve Depo",
+                        "Fabrika Kalite Kontrol",
+                        "Fabrika Ar-Ge",
+                        "Fabrika İnsan Kaynakları",
+                        "Fabrika Bilgi Teknolojileri"
+                    ];
+                } else if (catIn.value === "regional") {
+                    groupLabel = "Bölge Personel Birimleri";
+                    activeDepts = [
+                        "Bölge Satış Yönetimi",
+                        "Bölge Pazarlama Sorumlusu",
+                        "Bölge Muhasebe Müdürü",
+                        "Bölge Sevkiyat Koordinatörü"
+                    ];
+                } else if (catIn.value === "local") {
+                    groupLabel = "Yerel Mağaza Personel Birimleri";
+                    activeDepts = [
+                        "Mağaza Satış Temsilcisi",
+                        "Mağaza Muhasebe",
+                        "Mağaza Teknik Servis",
+                        "Mağaza Depo Sorumlusu"
+                    ];
+                }
             }
             
-            if (activeGroup) {
+            if (activeDepts.length > 0) {
+                const activeGroup = document.createElement("optgroup");
+                activeGroup.label = groupLabel;
+                activeDepts.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d;
+                    opt.textContent = d;
+                    activeGroup.appendChild(opt);
+                });
                 deptInput.appendChild(activeGroup);
             }
             
@@ -342,11 +359,7 @@ export function initRegisterPage() {
             phone: phoneIn?.value.trim() || "", city: cityIn?.value || "",
             category: catIn.value, region: regionIn.value, company: finalCompany,
             dealerCode: dealerCode, subRole: roleIn.value, email: emailPreview.value,
-            department: roleIn.value === "manager" ? (
-                catIn.value === "factory" ? "Fabrika Genel Müdürü" : (
-                    catIn.value === "regional" ? "Bölge Müdürü" : "Bayi Yöneticisi"
-                )
-            ) : document.getElementById("newDept").value,
+            department: document.getElementById("newDept").value,
             password: pwIn.value, role: "user", isActive: true
         };
 
