@@ -31,7 +31,7 @@ async function seed() {
         for (let i = 0; i < 25; i++) {
             const name = names[Math.floor(Math.random() * names.length)];
             const surname = surnames[Math.floor(Math.random() * surnames.length)];
-            const email = `${name.toLowerCase()}.${surname.toLowerCase()}.${Math.floor(Math.random()*1000)}@bellona.com.tr`;
+            const email = `${name.toLowerCase()}.${surname.toLowerCase()}.0003@bellona.com.tr`;
             const gender = Math.random() > 0.5 ? "Kadın" : "Erkek";
             
             await addDoc(collection(db, "users"), {
@@ -45,7 +45,8 @@ async function seed() {
                 category: "regional",
                 region: regRegion,
                 company: regName,
-                department: i === 0 ? "Bölge Koordinatörü" : regionalDepts[Math.floor(Math.random() * regionalDepts.length)],
+                dealerCode: "0003",
+                department: i === 0 ? "Bölge Müdürü" : regionalDepts[Math.floor(Math.random() * regionalDepts.length)],
                 isActive: true,
                 birthDate: `19${Math.floor(Math.random() * 40) + 60}-0${Math.floor(Math.random() * 9) + 1}-0${Math.floor(Math.random() * 9) + 1}`,
                 createdAt: serverTimestamp()
