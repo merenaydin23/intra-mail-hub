@@ -165,9 +165,9 @@ body {
 }
 
 .brand-logo-svg {
-  height: 52px;
+  height: 64px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgba(10, 46, 46, 0.05));
+  filter: drop-shadow(0 2px 4px rgba(0, 130, 138, 0.05));
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
