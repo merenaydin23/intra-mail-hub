@@ -1408,6 +1408,7 @@ body {
   letter-spacing: 0.5px;
   padding: 0.2rem 0.6rem;
   border-radius: 99px;
+  margin-left: 0.75rem; /* Uzaklık sağlandı */
 }
 
 .reply-badge-target.for-me {

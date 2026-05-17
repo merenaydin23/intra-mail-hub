@@ -620,13 +620,13 @@ window.selectThread = async (id) => {
                     
                     repliesHtml += `
                         <div class="${itemClass}">
-                            <div class="reply-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                                <span class="reply-author" style="display:flex; align-items:center; gap:0.5rem;">
+                            <div class="reply-header" style="display:flex; align-items:center; width:100%; gap:0.5rem;">
+                                <span class="reply-author" style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
                                     <i class="fa-solid fa-user-pen" style="color:var(--primary); font-size:0.85rem;"></i> 
                                     <strong>${r.authorName}</strong>
                                 </span>
                                 ${targetBadge}
-                                <span class="reply-date" style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-left:auto;">${rDate}</span>
+                                <span class="reply-date" style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-left:auto; flex-shrink:0;">${rDate}</span>
                             </div>
                             <div class="reply-text" style="margin-top:0.75rem;">${r.text}</div>
                         </div>
