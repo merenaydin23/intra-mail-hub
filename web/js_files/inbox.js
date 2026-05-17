@@ -27,6 +27,8 @@ function cleanTextForSearch(str) {
 let currentUserData = null;
 let activeThreadId = null;
 let currentFolder = 'inbox';
+let forwardOriginalMessageId = null;
+let forwardOriginalSenderId = null;
 
 // =====================
 // AUTH & INITIALIZATION
@@ -137,6 +139,8 @@ function resetDetailView() {
     if (contentArea) contentArea.classList.add('hidden');
     if (composeArea) composeArea.classList.add('hidden');
     activeThreadId = null;
+    forwardOriginalMessageId = null;
+    forwardOriginalSenderId = null;
 }
 
 // =====================
@@ -243,6 +247,40 @@ function loadFolder(folder) {
 // =====================
 // MESSAGE ACTIONS
 // =====================
+function handleForwardMessage(id, data) {
+    const composeArea = document.getElementById('composeArea');
+    if (!composeArea) return;
+
+    // Show compose area and reset recipient selection
+    resetDetailView();
+    document.getElementById('detailEmptyState')?.classList.add('hidden');
+    document.getElementById('emptyView')?.classList.add('hidden');
+    composeArea.classList.remove('hidden');
+    
+    // Clear previously selected recipients so they can pick C
+    if (window.__clearSelectedReceivers) window.__clearSelectedReceivers();
+
+    // Set active forward state
+    forwardOriginalMessageId = id;
+    forwardOriginalSenderId = data.senderId;
+
+    // Prefill subject with Fwd prefix if not already present
+    const subjectInput = document.getElementById('subjectInput');
+    if (subjectInput) {
+        const prefix = "İletildi: ";
+        subjectInput.value = data.subject.startsWith(prefix) ? data.subject : prefix + data.subject;
+    }
+
+    // Prefill message body with a nice header and the original content
+    const messageBodyInput = document.getElementById('messageBodyInput');
+    if (messageBodyInput) {
+        const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('tr-TR') : 'Bilinmeyen Tarih';
+        const separator = "\n\n-----------------------------------------\n";
+        const header = `--- İletilen Mesaj ---\nKimden: ${data.senderName}\nTarih: ${dateStr}\nKonu: ${data.subject}\n\n`;
+        messageBodyInput.value = separator + header + data.content + separator;
+    }
+}
+
 window.selectThread = async (id) => {
     activeThreadId = id;
     const docSnap = await getDoc(doc(db, "messages", id));
@@ -325,6 +363,26 @@ window.selectThread = async (id) => {
             attachmentsArea.classList.add('hidden');
             attachmentsList.innerHTML = '';
         }
+    }
+
+    // Dynamic Forward Button Addition
+    const btnGroup = document.querySelector('.meta-row .btn-group') || document.querySelector('.action-row .btn-group');
+    if (btnGroup) {
+        const existingFwd = document.getElementById('btnForward');
+        if (existingFwd) existingFwd.remove();
+
+        const fwdBtn = document.createElement('button');
+        fwdBtn.id = 'btnForward';
+        fwdBtn.className = 'btn-action';
+        fwdBtn.title = 'İlet / Paylaş';
+        fwdBtn.style.background = 'var(--primary-soft)';
+        fwdBtn.style.color = 'var(--primary)';
+        fwdBtn.style.marginLeft = '4px';
+        fwdBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
+        fwdBtn.addEventListener('click', () => {
+            handleForwardMessage(id, data);
+        });
+        btnGroup.appendChild(fwdBtn);
     }
 };
 
@@ -607,6 +665,7 @@ function initCompose() {
     };
 
     window.__getSelectedReceivers = () => selectedReceivers;
+    window.__clearSelectedReceivers = () => { selectedReceivers = []; renderReceivers(); };
 
     if (closeCompose) {
         closeCompose.addEventListener('click', () => resetDetailView());
@@ -809,12 +868,17 @@ async function handleComposeSubmit(e) {
         if (finalRecipients.size === 0) throw new Error("Gönderilecek alıcı bulunamadı.");
 
         const promises = Array.from(finalRecipients.entries()).map(async ([tid, tdata]) => {
+            const pArr = [currentUserData.id, tid];
+            if (forwardOriginalSenderId && !pArr.includes(forwardOriginalSenderId)) {
+                pArr.push(forwardOriginalSenderId);
+            }
+            
             return addDoc(collection(db, "messages"), {
                 senderId: currentUserData.id,
                 senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
                 receiverId: tid,
                 receiverName: tdata.name,
-                participants: [currentUserData.id, tid],
+                participants: pArr,
                 subject: subject,
                 content: body,
                 lastMessage: body,
@@ -822,12 +886,17 @@ async function handleComposeSubmit(e) {
                 isRead: false,
                 timestamp: serverTimestamp(),
                 attachmentUrl,
-                attachmentName
+                attachmentName,
+                originalSenderId: forwardOriginalSenderId || null
             });
         });
 
         await Promise.all(promises);
         alert(`${finalRecipients.size} farklı alıcıya mesaj başarıyla gönderildi!`);
+        
+        // Reset forward state
+        forwardOriginalMessageId = null;
+        forwardOriginalSenderId = null;
         
         if (fileInput) fileInput.value = '';
         resetDetailView();
