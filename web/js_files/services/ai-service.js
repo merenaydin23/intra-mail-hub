@@ -49,3 +49,50 @@ export async function refineMessageWithAI(originalText, context) {
         }
     }
 }
+
+export async function summarizeThreadWithAI(subject, senderName, receiverName, content, replies) {
+    const url = "https://api.cohere.ai/v1/chat";
+    
+    let threadText = `Konu: ${subject}\nGönderen: ${senderName}\nAlıcı: ${receiverName}\nMesaj: ${content}\n`;
+    if (replies && replies.length > 0) {
+        threadText += `\nYanıtlar:\n`;
+        replies.forEach((r, idx) => {
+            threadText += `[Yanıt ${idx + 1}] Yazar: ${r.authorName || 'Bilinmeyen'}, Metin: ${r.text}\n`;
+        });
+    }
+
+    const preamble = `Sen üst düzey bir kurumsal yapay zeka asistanısın. Görevin, sana iletilen bir e-posta yazışma zincirini (konu, ana mesaj ve tüm yanıtlar dahil olmak üzere) 2-3 cümle ile özetlemektir.
+Özetinde şu bilgileri net, profesyonel ve kurumsal bir dille sunmalısın:
+1. Hangi ana konunun işlendiği/tartışıldığı.
+2. Yazışmaya hangi kişilerin katıldığı (isimleriyle belirt).
+3. Sonuç veya gelinen son durumun ne olduğu.
+Lütfen özet dışında hiçbir açıklama, giriş veya kapanış cümlesi ekleme. Doğrudan 2-3 cümlelik özeti döndür.`;
+
+    const prompt = `Lütfen şu yazışma zincirini özetle:\n\n${threadText}`;
+
+    for (let i = 0; i < COHERE_KEYS.length; i++) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${COHERE_KEYS[i]}`
+                },
+                body: JSON.stringify({
+                    message: prompt,
+                    model: "command-nightly",
+                    preamble: preamble
+                })
+            });
+
+            const data = await response.json();
+            if (data.text) {
+                return data.text.trim();
+            }
+            continue;
+        } catch (error) {
+            if (i === COHERE_KEYS.length - 1) return "Özet oluşturulurken bir bağlantı hatası oluştu.";
+            continue;
+        }
+    }
+}

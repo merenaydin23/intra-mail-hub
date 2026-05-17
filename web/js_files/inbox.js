@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { auth, db, storage, messaging } from './firebase/config.js';
 import { getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
-import { refineMessageWithAI } from './services/ai-service.js';
+import { refineMessageWithAI, summarizeThreadWithAI } from './services/ai-service.js';
 
 function cleanTextForSearch(str) {
     if (!str) return "";
@@ -223,6 +223,53 @@ function initNavigation() {
                     }
                 }
             }
+        });
+    }
+
+    const summarizeBtn = document.getElementById('btnSummarize');
+    const summaryBox = document.getElementById('aiSummaryBox');
+    const summaryContent = document.getElementById('aiSummaryContent');
+    const closeSummary = document.getElementById('closeSummary');
+
+    if (summarizeBtn && summaryBox && summaryContent) {
+        summarizeBtn.addEventListener('click', async () => {
+            if (!activeThreadId || !activeThreadData) {
+                alert("Lütfen önce özetlenecek bir mesaj seçin.");
+                return;
+            }
+
+            // Show summary box and set state to Loading
+            summaryBox.classList.remove('hidden');
+            summaryContent.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); padding:0.5rem 0;">
+                    <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent);"></i>
+                    <span style="font-weight:500;">Yazışmalar yapay zeka ile inceleniyor ve özetleniyor, lütfen bekleyin...</span>
+                </div>`;
+
+            try {
+                const summary = await summarizeThreadWithAI(
+                    activeThreadData.subject,
+                    activeThreadData.senderName,
+                    activeThreadData.receiverName,
+                    activeThreadData.content,
+                    activeThreadData.replies || []
+                );
+                
+                if (summary) {
+                    summaryContent.innerHTML = `<p style="line-height:1.6; font-size:0.92rem; color:var(--text-main); font-weight:500; margin:0;">${summary}</p>`;
+                } else {
+                    summaryContent.textContent = "Yazışma özeti çıkarılamadı.";
+                }
+            } catch (err) {
+                console.error("Summarization error:", err);
+                summaryContent.textContent = "Özetleme işlemi sırasında bir hata oluştu.";
+            }
+        });
+    }
+
+    if (closeSummary && summaryBox) {
+        closeSummary.addEventListener('click', () => {
+            summaryBox.classList.add('hidden');
         });
     }
 }
