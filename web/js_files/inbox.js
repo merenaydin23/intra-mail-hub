@@ -448,14 +448,62 @@ function initCompose() {
         });
     }
 
-    window.__selectReceiver = (id, name, type, region = "", company = "", category = "") => {
+    window.__selectReceiver = (id, name, type, region = "", company = "", category = "", subRole = "") => {
         if (selectedReceivers.find(r => r.id === id)) {
             if (resultsArea) resultsArea.classList.add('hidden');
             if (searchInput) searchInput.value = "";
             return;
         }
 
-        selectedReceivers.push({ id, name, type, region, company, category });
+        if (type === 'individual') {
+            const isCovered = selectedReceivers.some(r => {
+                if (r.type !== 'bulk') return false;
+                const parts = r.id.split(':');
+                const cat = parts[1];
+                const reg = parts[2] || "";
+                if (cat === 'local_boss') {
+                    return category === 'local' && subRole === 'manager' && (reg ? region === reg : region === currentUserData.region);
+                } else if (cat === 'local_colleagues') {
+                    return region === currentUserData.region;
+                } else if (cat === 'region_dealers') {
+                    return category === 'regional' && (reg ? region === reg : region === currentUserData.region);
+                } else if (cat === 'factory_hq') {
+                    return category === 'factory';
+                } else if (cat === 'global') {
+                    return reg ? region === reg : true;
+                }
+                return false;
+            });
+            if (isCovered) {
+                alert(`${name} zaten seçtiğiniz grup alıcıları (Toplu) içerisinde yer alıyor.`);
+                if (resultsArea) resultsArea.classList.add('hidden');
+                if (searchInput) searchInput.value = "";
+                return;
+            }
+        } else if (type === 'bulk') {
+            const parts = id.split(':');
+            const cat = parts[1];
+            const reg = parts[2] || "";
+            
+            selectedReceivers = selectedReceivers.filter(r => {
+                if (r.type === 'bulk') return true;
+                let isCovered = false;
+                if (cat === 'local_boss') {
+                    isCovered = r.category === 'local' && r.subRole === 'manager' && (reg ? r.region === reg : r.region === currentUserData.region);
+                } else if (cat === 'local_colleagues') {
+                    isCovered = r.region === currentUserData.region;
+                } else if (cat === 'region_dealers') {
+                    isCovered = r.category === 'regional' && (reg ? r.region === reg : r.region === currentUserData.region);
+                } else if (cat === 'factory_hq') {
+                    isCovered = r.category === 'factory';
+                } else if (cat === 'global') {
+                    isCovered = reg ? r.region === reg : true;
+                }
+                return !isCovered;
+            });
+        }
+
+        selectedReceivers.push({ id, name, type, region, company, category, subRole });
         renderReceivers();
         
         if (resultsArea) resultsArea.classList.add('hidden');
@@ -606,7 +654,7 @@ function initCompose() {
 
             if (filtered.length > 0) {
                 html += filtered.map(u => `
-                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}', '${u.category || ''}')">
+                    <div class="search-result-item" onclick="window.__selectReceiver('${u.id}', '${u.name} ${u.surname || ''}', 'individual', '${u.region || ''}', '${u.company || ''}', '${u.category || ''}', '${u.subRole || ''}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="item-title">${u.name} ${u.surname || ''}</span>
                             <span style="font-size:0.65rem; background:var(--primary-soft); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">#${u.dealerCode || '0000'}</span>
