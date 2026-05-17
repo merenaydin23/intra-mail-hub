@@ -1521,27 +1521,29 @@ async function handleComposeSubmit(e) {
                 
                 try {
                     const formData = new FormData();
-                    formData.append('file', file);
-                    const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+                    formData.append('reqtype', 'fileupload');
+                    formData.append('time', '72h'); // Keep file for 72 hours
+                    formData.append('fileToUpload', file);
+                    
+                    const res = await fetch('https://litterbox.catbox.moe/api', {
                         method: 'POST',
                         body: formData
                     });
                     if (!res.ok) throw new Error("Cloud fallback server status " + res.status);
-                    const json = await res.json();
                     
-                    if (json && json.data && json.data.url) {
-                        // Convert view link to direct download link (e.g. tmpfiles.org/1234 -> tmpfiles.org/dl/1234)
-                        attachmentUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                    const textUrl = await res.text();
+                    if (textUrl && textUrl.startsWith('http')) {
+                        attachmentUrl = textUrl.trim();
                         console.log("[Storage] Cloud fallback upload successful! URL:", attachmentUrl);
                     } else {
-                        throw new Error("Invalid response schema from cloud fallback");
+                        throw new Error("Invalid response from cloud fallback");
                     }
                 } catch (fallbackErr) {
                     console.warn("[Storage] Cloud fallback failed, executing Tier 3 Base64 fallback...", fallbackErr);
                     
-                    // Firestore limit is 1MB per document, so we limit local Base64 attachments to 800KB
-                    if (file.size > 800 * 1024) {
-                        alert("Seçilen dosya çok büyük ve bulut depolama sunucuları meşgul. Lütfen daha küçük bir dosya (en fazla 800KB) seçiniz veya internet bağlantınızı kontrol ediniz.");
+                    // Firestore limit is 1MB per document, so we limit local Base64 attachments to 900KB
+                    if (file.size > 900 * 1024) {
+                        alert("Seçilen dosya çok büyük ve bulut depolama sunucuları meşgul. Lütfen daha küçük bir dosya seçiniz veya internet bağlantınızı kontrol ediniz.");
                         if (sendBtn) sendBtn.disabled = false;
                         return;
                     }
