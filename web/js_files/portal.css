@@ -2,19 +2,19 @@
    ULTIMATE PORTAL DESIGN SYSTEM
 ============================== */
 :root {
-  --primary: #0a2e2e;
-  --primary-light: #2a7f7f;
-  --primary-soft: #eef7f7;
-  --bg-app: #f8fafc;
+  --primary: #00828a;
+  --primary-light: #00a4ad;
+  --primary-soft: #eaf7f7;
+  --bg-app: #f5f9f9;
   --surface: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+  --text-main: #0c2d30;
+  --text-muted: #5c7b7d;
+  --border: #e0ecec;
   --success: #10b981;
   --radius-xl: 24px;
   --radius-lg: 16px;
-  --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
-  --accent: #2a7f7f;
+  --shadow-premium: 0 20px 40px -10px rgba(0, 130, 138, 0.06);
+  --accent: #00a4ad;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
@@ -38,10 +38,31 @@ body {
   display: flex;
   flex-direction: column;
   padding: 2rem 1.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.logo { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 3rem; font-family: 'Outfit'; font-size: 1.4rem; font-weight: 800; }
-.brand-logo-img { max-height: 40px; border-radius: 6px; }
+.logo { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  margin-bottom: 3rem; 
+  width: 100%;
+}
+
+.brand-logo-img { 
+  max-height: 56px; 
+  width: auto;
+  border-radius: 12px; 
+  padding: 5px;
+  background: white;
+  box-shadow: 0 8px 24px rgba(0, 130, 138, 0.15), 0 2px 6px rgba(0, 130, 138, 0.08);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brand-logo-img:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 130, 138, 0.25), 0 4px 10px rgba(0, 130, 138, 0.12);
+}
 
 .nav-item {
   display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem;
@@ -49,7 +70,7 @@ body {
   margin-bottom: 0.5rem; transition: 0.3s;
 }
 .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: white; }
-.nav-item.active { background: var(--primary-light); box-shadow: 0 10px 20px rgba(42, 127, 127, 0.2); }
+.nav-item.active { background: var(--primary-light); box-shadow: 0 10px 20px rgba(0, 130, 138, 0.25); }
 
 /* MAIN VIEWPORT */
 .main-content {

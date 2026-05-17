@@ -1,17 +1,17 @@
 :root {
-  --primary: #0a2e2e; /* Dark Pine Teal */
-  --primary-dark: #082424;
-  --primary-soft: #eef7f7;
-  --accent: #2a7f7f; /* Accent Teal */
-  --bg: #f8fafc;
+  --primary: #00828a; /* Official Bellona Corporate Teal */
+  --primary-dark: #006066;
+  --primary-soft: #eaf7f7;
+  --accent: #00a4ad; /* Accent Teal */
+  --bg: #f5f9f9;
   --card-bg: rgba(255, 255, 255, 0.45); /* Highly transparent glass background */
   --glass-border: rgba(255, 255, 255, 0.5);
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --error: #ef4444;
+  --text: #0c2d30;
+  --text-muted: #5c7b7d;
+  --error: #f43f5e;
   --success: #10b981;
-  --shadow-sm: 0 10px 15px -3px rgba(10, 46, 46, 0.02);
-  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 10px 15px -3px rgba(0, 130, 138, 0.02);
+  --shadow-lg: 0 25px 50px -12px rgba(0, 130, 138, 0.05);
   --font-heading: 'Outfit', sans-serif;
 }
 
@@ -48,7 +48,7 @@ body {
 .orb-1 {
   width: 550px;
   height: 550px;
-  background: radial-gradient(circle, rgba(42, 127, 127, 0.22) 0%, rgba(238, 247, 247, 0.1) 100%);
+  background: radial-gradient(circle, rgba(0, 130, 138, 0.22) 0%, rgba(234, 247, 247, 0.1) 100%);
   top: -10%;
   left: -5%;
 }
@@ -56,7 +56,7 @@ body {
 .orb-2 {
   width: 650px;
   height: 650px;
-  background: radial-gradient(circle, rgba(10, 46, 46, 0.12) 0%, rgba(238, 247, 247, 0.05) 100%);
+  background: radial-gradient(circle, rgba(0, 96, 102, 0.12) 0%, rgba(234, 247, 247, 0.05) 100%);
   bottom: -15%;
   right: -5%;
   animation-delay: -5s;
@@ -65,7 +65,7 @@ body {
 .orb-3 {
   width: 450px;
   height: 450px;
-  background: radial-gradient(circle, rgba(42, 127, 127, 0.14) 0%, transparent 80%);
+  background: radial-gradient(circle, rgba(0, 130, 138, 0.14) 0%, transparent 80%);
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
