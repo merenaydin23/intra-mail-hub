@@ -59,8 +59,8 @@ export function initRegisterPage() {
         const selRegion = regionIn.value;
         const selCity = cityIn.value;
         let filtered = allUsersCache.filter(u => u.company && u.category === 'local');
-        if (selRegion) filtered = filtered.filter(u => u.region === selRegion);
-        if (selCity)   filtered = filtered.filter(u => u.city === selCity);
+        if (selRegion) filtered = filtered.filter(u => normalizeTr(u.region) === normalizeTr(selRegion));
+        if (selCity)   filtered = filtered.filter(u => normalizeTr(u.city) === normalizeTr(selCity));
 
         const seen = new Set();
         const uniqueDealers = [];
@@ -143,7 +143,7 @@ export function initRegisterPage() {
             }
 
             const existingDealer = allUsersCache.find(u => 
-                u.company?.toLocaleLowerCase('tr-TR') === companyName.toLocaleLowerCase('tr-TR') && 
+                normalizeTr(u.company) === normalizeTr(companyName) && 
                 u.city && u.region
             );
             
@@ -156,7 +156,7 @@ export function initRegisterPage() {
                 const targetCity = existingDealer.city;
                 const options = Array.from(cityIn.options);
                 const matchingOption = options.find(opt => 
-                    opt.value.toLocaleLowerCase('tr-TR') === targetCity.toLocaleLowerCase('tr-TR')
+                    normalizeTr(opt.value) === normalizeTr(targetCity)
                 );
                 if (matchingOption) cityIn.value = matchingOption.value;
                 else cityIn.value = targetCity;
