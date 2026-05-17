@@ -619,9 +619,8 @@ body {
   width: 320px;
 }
 
-.compose-area.minimized .form-body,
-.compose-area.minimized .form-footer {
-  display: none;
+.compose-area.minimized .compose-form {
+  display: none !important;
 }
 
 .compose-header {
