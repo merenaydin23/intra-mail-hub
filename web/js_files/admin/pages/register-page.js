@@ -235,14 +235,74 @@ export function initRegisterPage() {
         }
 
         deptGroup.style.display = roleIn.value === "manager" ? "none" : "block";
-        const optF = document.getElementById("optFactory");
-        const optR = document.getElementById("optRegional");
-        const optL = document.getElementById("optLocal");
-        if (optF) optF.style.display = catIn.value === "factory" ? "block" : "none";
-        if (optR) optR.style.display = catIn.value === "regional" ? "block" : "none";
-        if (optL) optL.style.display = catIn.value === "local" ? "block" : "none";
+        
         const deptInput = document.getElementById("newDept");
-        if (deptInput && roleIn.value !== "manager") deptInput.value = "";
+        if (deptInput) {
+            const currentVal = deptInput.value;
+            deptInput.innerHTML = '<option value="">Seçiniz...</option>';
+            
+            const factoryDepts = [
+                "Fabrika Üretim Planlama",
+                "Fabrika Lojistik ve Depo",
+                "Fabrika Kalite Kontrol",
+                "Fabrika Ar-Ge",
+                "Fabrika İnsan Kaynakları",
+                "Fabrika Bilgi Teknolojileri"
+            ];
+            const regionalDepts = [
+                "Bölge Satış Yönetimi",
+                "Bölge Pazarlama Sorumlusu",
+                "Bölge Muhasebe Müdürü",
+                "Bölge Sevkiyat Koordinatörü"
+            ];
+            const localDepts = [
+                "Mağaza Satış Temsilcisi",
+                "Mağaza Muhasebe",
+                "Mağaza Teknik Servis",
+                "Mağaza Depo Sorumlusu"
+            ];
+
+            let activeGroup = null;
+            if (catIn.value === "factory") {
+                activeGroup = document.createElement("optgroup");
+                activeGroup.label = "Fabrika Birimleri";
+                factoryDepts.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d;
+                    opt.textContent = d;
+                    activeGroup.appendChild(opt);
+                });
+            } else if (catIn.value === "regional") {
+                activeGroup = document.createElement("optgroup");
+                activeGroup.label = "Bölge Birimleri";
+                regionalDepts.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d;
+                    opt.textContent = d;
+                    activeGroup.appendChild(opt);
+                });
+            } else if (catIn.value === "local") {
+                activeGroup = document.createElement("optgroup");
+                activeGroup.label = "Yerel Mağaza Birimleri";
+                localDepts.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d;
+                    opt.textContent = d;
+                    activeGroup.appendChild(opt);
+                });
+            }
+            
+            if (activeGroup) {
+                deptInput.appendChild(activeGroup);
+            }
+            
+            if (currentVal && Array.from(deptInput.options).some(o => o.value === currentVal)) {
+                deptInput.value = currentVal;
+            } else {
+                deptInput.value = "";
+            }
+        }
+
         if (nameIn.value && surnameIn.value) {
             const code = dealerCodeIn?.value || "xxxx";
             emailPreview.value = `${normalizeTr(nameIn.value)}.${normalizeTr(surnameIn.value)}.${code}@bellona.com.tr`;
