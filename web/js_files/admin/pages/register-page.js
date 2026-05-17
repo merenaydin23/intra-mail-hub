@@ -160,7 +160,17 @@ export function initRegisterPage() {
                 );
                 if (matchingOption) cityIn.value = matchingOption.value;
                 else cityIn.value = targetCity;
-                dealerCodeIn.value = existingDealer.dealerCode || "";
+                
+                if (catIn.value === "local" && companySelectEl && companySelectEl.style.display !== "none" && companySelectEl.value !== "__NEW__") {
+                    const selOpt = companySelectEl.options[companySelectEl.selectedIndex];
+                    if (selOpt && selOpt.dataset.code) {
+                        dealerCodeIn.value = selOpt.dataset.code;
+                    } else {
+                        dealerCodeIn.value = existingDealer.dealerCode || "";
+                    }
+                } else {
+                    dealerCodeIn.value = existingDealer.dealerCode || "";
+                }
                 lockedByDealer = true;
             }
         }
