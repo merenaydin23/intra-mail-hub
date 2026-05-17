@@ -235,17 +235,41 @@ function exportToCSV(messages, filename = 'mesajlar.csv') {
     }
 
     const headers = ['Tarih', 'Konu', 'Gönderen', 'Alıcı', 'Tip', 'İçerik'];
-    const rows = messages.map(m => {
+    const rows = [];
+
+    messages.forEach(m => {
         const ts = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleString('tr-TR') : '-';
         const content = (m.content || '').replace(/"/g, '""').replace(/\n/g, ' ');
-        return [
+        
+        // 1. Ana mesaj satırını ekle
+        rows.push([
             `"${ts}"`,
             `"${m.subject || '-'}"`,
             `"${m.senderName || '-'}"`,
-            `"${m.receiverName || '-'}"`,
+            `"${m.receiverName || (m.isBroadcast ? 'Toplu Gönderim' : '-')}"`,
             `"${m.type || 'direct'}"`,
             `"${content}"`
-        ].join(',');
+        ].join(','));
+
+        // 2. Mesajın yanıtlarını alt satırlar olarak ekle
+        if (m.replies && m.replies.length > 0) {
+            m.replies.forEach((r, idx) => {
+                const rTs = r.timestamp ? new Date(r.timestamp).toLocaleString('tr-TR') : ts;
+                const rContent = (r.text || '').replace(/"/g, '""').replace(/\n/g, ' ');
+                const directed = r.directedToName ? ` [Hitaben: ${r.directedToName}]` : ' [Genel]';
+                const isSys = r.isSystem ? ' [Sistem Kaydı]' : '';
+                const cleanRContent = `↳ [YANIT ${idx + 1}]${directed}${isSys} - ${rContent}`;
+                
+                rows.push([
+                    `"${rTs}"`,
+                    `"↳ YANIT: ${m.subject || '-'}"`,
+                    `"${r.authorName || '-'}"`,
+                    `"${r.directedToName || 'Herkes (Genel)'}"`,
+                    `"reply"`,
+                    `"${cleanRContent}"`
+                ].join(','));
+            });
+        }
     });
 
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n'); // BOM for Turkish chars
@@ -256,7 +280,7 @@ function exportToCSV(messages, filename = 'mesajlar.csv') {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    showToast(`${messages.length} mesaj Excel'e aktarıldı.`, 'success');
+    showToast(`${messages.length} ana mesaj ve tüm alt yanıtları Excel'e aktarıldı.`, 'success');
 }
 
 // ── EXPORT BUTTON (header) ─────────────────────────────────────
@@ -411,6 +435,42 @@ function showMessageDetail(msg) {
             const linkEl = document.getElementById('detAttachLink');
             if (nameEl) nameEl.textContent = msg.attachmentName || 'Ek Dosya';
             if (linkEl) linkEl.href = msg.attachmentUrl;
+        }
+    }
+
+    const repliesContainer = document.getElementById('detReplies');
+    const repliesBody = document.getElementById('detRepliesBody');
+    if (repliesContainer && repliesBody) {
+        if (msg.replies && msg.replies.length > 0) {
+            repliesContainer.style.display = 'block';
+            repliesBody.innerHTML = msg.replies.map((r, idx) => {
+                const rDate = new Date(r.timestamp).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+                if (r.isSystem) {
+                    return `
+                        <div class="reply-item system-log" style="background:#f1f5f9; padding:0.75rem 1rem; border-radius:10px; border-left:3px solid var(--text-light); margin-bottom:0.75rem; font-size:0.8rem; display:flex; align-items:center; gap:0.5rem;">
+                            <i class="fa-solid fa-circle-info" style="color:var(--text-light);"></i>
+                            <span>${r.text}</span>
+                            <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted); font-weight:500;">${rDate}</span>
+                        </div>
+                    `;
+                } else {
+                    const targetStr = r.directedToName 
+                        ? ` <i class="fa-solid fa-angle-right" style="font-size:0.75rem; color:var(--text-muted); margin:0 0.25rem;"></i> <span style="color:var(--brand); font-weight:600;"><i class="fa-solid fa-reply-all" style="font-size:0.7rem;"></i> ${r.directedToName}</span>` 
+                        : '';
+                    return `
+                        <div class="reply-item" style="background:#f8fafc; border:1px solid var(--border); border-left:3px solid var(--brand); padding:1.25rem; border-radius:12px; margin-bottom:0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s;">
+                            <div class="reply-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.8rem;">
+                                <span class="reply-author" style="font-weight:700; color:var(--brand-ink);"><i class="fa-solid fa-reply"></i> ${r.authorName}${targetStr}</span>
+                                <span class="reply-date" style="color:var(--text-light); font-size:0.75rem; font-weight:500;">${rDate}</span>
+                            </div>
+                            <div class="reply-text" style="font-size:0.85rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${r.text}</div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        } else {
+            repliesContainer.style.display = 'none';
+            repliesBody.innerHTML = '';
         }
     }
 }
