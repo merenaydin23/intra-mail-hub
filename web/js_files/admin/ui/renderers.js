@@ -102,11 +102,17 @@ export function renderMessageFeed(container, messages) {
         }
 
         // Normal mesaj kartı
+        const replyCount = m.replies ? m.replies.length : 0;
+        const totalCount = 1 + replyCount;
+        const badgeHtml = replyCount > 0 
+            ? `<span style="background:var(--brand-soft); color:var(--brand); font-size:0.68rem; font-weight:800; padding:2px 6px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; margin-left:6px; vertical-align:middle;"><i class="fa-solid fa-comments" style="font-size:0.65rem;"></i> ${totalCount}</span>` 
+            : '';
+
         return `
         <article class="msg-card" data-msg-id="${m.id}" data-type="${m.type || 'direct'}">
             <div class="msg-card-top">
                 <span class="msg-card-sender"><i class="fa-solid fa-paper-plane" style="font-size:0.75rem; opacity:0.6; margin-right:4px;"></i>${m.senderName || 'Bilinmiyor'}</span>
-                <span class="msg-card-time">${time}</span>
+                <span class="msg-card-time">${time}${badgeHtml}</span>
             </div>
             <div class="msg-card-subject">${m.subject || 'Konu Yok'}</div>
             <div class="msg-card-preview">${m.lastMessage || m.content || '...'}</div>
