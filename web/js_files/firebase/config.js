@@ -3,6 +3,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { getMessaging } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 // Your web app's Firebase configuration
 export const firebaseConfig = {
@@ -21,3 +22,4 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+export const messaging = getMessaging(app);

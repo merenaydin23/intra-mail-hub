@@ -7,7 +7,8 @@ import {
 import { 
   ref, uploadBytes, getDownloadURL 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-import { auth, db, storage } from './firebase/config.js';
+import { auth, db, storage, messaging } from './firebase/config.js';
+import { getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 import { refineMessageWithAI } from './services/ai-service.js';
 
 function cleanTextForSearch(str) {
@@ -54,8 +55,57 @@ onAuthStateChanged(auth, async (user) => {
   initNavigation();
   initCompose();
   initUnreadCounter(); // Okunmamış sayacını başlat
+  initFCM(user.uid);   // Gerçek Zamanlı Bildirimleri (FCM) Başlat
   loadFolder(currentFolder);
 });
+
+// =====================
+// REAL-TIME NOTIFICATIONS (FCM)
+// =====================
+async function initFCM(userId) {
+    if (!('Notification' in window)) {
+        console.log("Bu tarayıcı anlık bildirimleri desteklemiyor.");
+        return;
+    }
+
+    if (Notification.permission === 'default') {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.log("Bildirim izni reddedildi.");
+                return;
+            }
+        } catch (err) {
+            console.error("Bildirim izni istenirken hata:", err);
+            return;
+        }
+    }
+
+    if (Notification.permission === 'granted') {
+        try {
+            // Register messaging service worker explicitly matching Vite's server assets routing
+            const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log("FCM Service Worker başarıyla kaydedildi:", serviceWorkerRegistration);
+
+            // Get messaging device token with standard configuration
+            const token = await getToken(messaging, { 
+                serviceWorkerRegistration,
+                vapidKey: "BM4V4aR4p5QjO2s628n7zP_nI1f7V7sK7B3c4W5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z"
+            });
+
+            if (token) {
+                console.log("FCM Device Token başarıyla alındı:", token);
+                const userDocRef = doc(db, "users", userId);
+                await updateDoc(userDocRef, { fcmToken: token });
+                console.log("FCM Token Firestore'a başarıyla kaydedildi.");
+            } else {
+                console.log("Etkin bir FCM token alınamadı. Bildirim izinlerini kontrol edin.");
+            }
+        } catch (err) {
+            console.error("FCM Token alımı veya SW kaydı sırasında hata:", err);
+        }
+    }
+}
 
 function initUnreadCounter() {
     const q = query(
