@@ -2,7 +2,7 @@ import {
     onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
-    collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs 
+    collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, getDocs, writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
   ref, uploadBytes, getDownloadURL 
@@ -26,6 +26,7 @@ function cleanTextForSearch(str) {
 
 let currentUserData = null;
 let activeThreadId = null;
+let activeThreadData = null;
 let currentFolder = 'inbox';
 let forwardOriginalMessageId = null;
 let forwardOriginalSenderId = null;
@@ -171,7 +172,26 @@ function loadFolder(folder) {
         }
 
         onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
+            let filteredDocs = [...snapshot.docs];
+
+            if (folder === 'inbox') {
+                filteredDocs = filteredDocs.filter(doc => {
+                    const m = doc.data();
+                    if (m.senderId === currentUserData.id) {
+                        // I am the sender of this message
+                        if (!m.replies || m.replies.length === 0) {
+                            // No replies yet, so this belongs only in "Sent", not in Gelen Kutusu
+                            return false;
+                        }
+                        // Only show in Gelen Kutusu if someone else replied to it
+                        return m.replies.some(r => r.authorId !== currentUserData.id);
+                    }
+                    // I am the receiver, so it definitely belongs in Gelen Kutusu
+                    return true;
+                });
+            }
+
+            if (filteredDocs.length === 0) {
                 const emptyMessages = {
                     'inbox': 'Henüz bir mesaj almadınız.',
                     'sent': 'Henüz bir mesaj göndermediniz.',
@@ -192,7 +212,7 @@ function loadFolder(folder) {
             }
 
             // Sort in memory to avoid composite index requirement
-            const sortedDocs = [...snapshot.docs].sort((a, b) => {
+            const sortedDocs = filteredDocs.sort((a, b) => {
                 const timeA = a.data().timestamp?.toMillis() || 0;
                 const timeB = b.data().timestamp?.toMillis() || 0;
                 return timeB - timeA;
@@ -286,6 +306,7 @@ window.selectThread = async (id) => {
     const docSnap = await getDoc(doc(db, "messages", id));
     if (!docSnap.exists()) return;
     const data = docSnap.data();
+    activeThreadData = data;
 
     const emptyState = document.getElementById('detailEmptyState') || document.getElementById('emptyView');
     const contentArea = document.getElementById('messageContent') || document.getElementById('messageView');
@@ -585,6 +606,7 @@ function initCompose() {
 
     window.__selectReceiver = (id, name, type, region = "", company = "", category = "", subRole = "", dealerCode = "") => {
         if (selectedReceivers.find(r => r.id === id)) {
+            alert(`⚠️ ${name} zaten alıcı listenizde ekli!`);
             if (resultsArea) resultsArea.classList.add('hidden');
             if (searchInput) searchInput.value = "";
             return;
@@ -853,6 +875,13 @@ function initCompose() {
         composeForm.addEventListener('submit', handleComposeSubmit);
     }
 
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', (e) => {
+            handleComposeSubmit(e);
+        });
+    }
+
     const replyBtn = document.getElementById('sendReply');
     if (replyBtn) {
         replyBtn.addEventListener('click', handleReplySubmit);
@@ -951,6 +980,52 @@ function initCompose() {
             }
         });
     }
+
+    const aiReplySuggestBtn = document.getElementById('aiReplySuggestBtn');
+    let lastOriginalReplyText = ""; 
+
+    if (aiReplySuggestBtn) {
+        aiReplySuggestBtn.addEventListener('click', async () => {
+            const replyInput = document.getElementById('replyInput');
+            if (!replyInput || !activeThreadData) return;
+
+            let currentText = replyInput.value.trim();
+            if (!currentText) return;
+
+            if (!currentText.includes("✨") || !lastOriginalReplyText) {
+                lastOriginalReplyText = currentText;
+            }
+
+            const receiverName = activeThreadData.senderId === currentUserData.id 
+                ? activeThreadData.receiverName.split('(')[0].trim() 
+                : activeThreadData.senderName.split('(')[0].trim();
+                
+            const myName = `${currentUserData.name} ${currentUserData.surname || ''}`;
+            const myCompany = currentUserData.company || "Bellona";
+
+            const statusEl = document.getElementById('replyAIStatus');
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Düzenleniyor...';
+
+            try {
+                const refinedText = await refineMessageWithAI(lastOriginalReplyText, {
+                    receiverName,
+                    senderName: myName,
+                    senderCompany: myCompany
+                });
+                
+                if (refinedText.error) throw new Error(refinedText.error);
+                replyInput.value = "✨ " + refinedText;
+                
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Düzenlendi.';
+                    setTimeout(() => statusEl.innerHTML = '', 3000);
+                }
+            } catch (err) {
+                console.error("AI Reply Refine UI Error:", err);
+                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:var(--danger)"></i> Hata.';
+            }
+        });
+    }
 }
 
 async function loadReceiversByCategory(category, regionFilter = "") {
@@ -995,6 +1070,20 @@ async function loadReceiversByCategory(category, regionFilter = "") {
     } catch (err) {
         console.error("Load receivers error:", err);
         return [];
+    }
+}
+
+function customizeMessageForRecipient(body, recipientName) {
+    const cleanName = recipientName.split('(')[0].trim();
+    // Welcome regex matches: (optional ✨) followed by "Sayın" or "Merhaba" or "Sevgili" and then the old greeting text up to comma/newline
+    const welcomeRegex = /^(✨\s*)?(Sayın|Merhaba|Sevgili)\s+[^,:\n]+([,\s:\n]*)/i;
+    if (welcomeRegex.test(body)) {
+        return body.replace(welcomeRegex, (match, spark, prefix, suffix) => {
+            return `${spark || ''}Sayın ${cleanName}${suffix || ',\n\n'}`;
+        });
+    } else {
+        // Prepend Sayın [Alıcı Adı],\n\n automatically
+        return `Sayın ${cleanName},\n\n${body}`;
     }
 }
 
@@ -1044,21 +1133,29 @@ async function handleComposeSubmit(e) {
 
         if (finalRecipients.size === 0) throw new Error("Gönderilecek alıcı bulunamadı.");
 
-        const promises = Array.from(finalRecipients.entries()).map(async ([tid, tdata]) => {
+        const batch = writeBatch(db);
+
+        Array.from(finalRecipients.entries()).forEach(([tid, tdata]) => {
             const pArr = [currentUserData.id, tid];
             if (forwardOriginalSenderId && !pArr.includes(forwardOriginalSenderId)) {
                 pArr.push(forwardOriginalSenderId);
             }
             
-            return addDoc(collection(db, "messages"), {
+            // Customize salutation/greeting to recipient name for each email individually!
+            const customizedBody = customizeMessageForRecipient(body, tdata.name);
+            
+            // Create a reference for a new document with an auto-generated ID inside the messages collection
+            const newMsgRef = doc(collection(db, "messages"));
+            
+            batch.set(newMsgRef, {
                 senderId: currentUserData.id,
                 senderName: `${currentUserData.name} ${currentUserData.surname || ''}`,
                 receiverId: tid,
                 receiverName: tdata.name,
                 participants: pArr,
                 subject: subject,
-                content: body,
-                lastMessage: body,
+                content: customizedBody,
+                lastMessage: customizedBody,
                 status: 'active',
                 isRead: false,
                 timestamp: serverTimestamp(),
@@ -1068,7 +1165,7 @@ async function handleComposeSubmit(e) {
             });
         });
 
-        await Promise.all(promises);
+        await batch.commit();
         alert(`${finalRecipients.size} farklı alıcıya mesaj başarıyla gönderildi!`);
         
         // Reset forward state
@@ -1076,6 +1173,12 @@ async function handleComposeSubmit(e) {
         forwardOriginalSenderId = null;
         
         if (fileInput) fileInput.value = '';
+        
+        // Clear selected receivers list and form inputs completely
+        window.__clearSelectedReceivers();
+        if (document.getElementById('subjectInput')) document.getElementById('subjectInput').value = '';
+        if (document.getElementById('messageBodyInput')) document.getElementById('messageBodyInput').value = '';
+        
         resetDetailView();
     } catch (err) { 
         console.error("Send error:", err); 
