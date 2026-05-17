@@ -486,6 +486,11 @@ window.selectThread = async (id) => {
                     const name = opt.getAttribute('data-name');
                     if (name) {
                         rInp.value = customizeMessageForRecipient(rInp.value, name);
+                    } else {
+                        const collectiveNames = otherParticipants.map(p => p.name.split('(')[0].trim()).join(', ');
+                        if (collectiveNames) {
+                            rInp.value = customizeMessageForRecipient(rInp.value, collectiveNames);
+                        }
                     }
                 });
             }
@@ -1460,18 +1465,43 @@ async function handleReplySubmit() {
 
     let finalReplyText = replyText;
     const targetSelect = document.getElementById('replyTargetSelect');
-    if (targetSelect && targetSelect.value) {
-        replyObj.directedToId = targetSelect.value;
-        const selectedOption = targetSelect.options[targetSelect.selectedIndex];
-        replyObj.directedToName = selectedOption.getAttribute('data-name');
-        finalReplyText = customizeMessageForRecipient(replyText, replyObj.directedToName);
-        replyObj.text = finalReplyText;
-    }
-
+    
     try {
         const docRef = doc(db, "messages", activeThreadId);
         const docSnap = await getDoc(docRef);
         const data = docSnap.data();
+
+        if (targetSelect && targetSelect.value) {
+            replyObj.directedToId = targetSelect.value;
+            const selectedOption = targetSelect.options[targetSelect.selectedIndex];
+            replyObj.directedToName = selectedOption.getAttribute('data-name');
+            finalReplyText = customizeMessageForRecipient(replyText, replyObj.directedToName);
+            replyObj.text = finalReplyText;
+        } else {
+            const otherParticipants = [];
+            if (data.senderId !== currentUserData.id) {
+                otherParticipants.push(data.senderName);
+            }
+            if (data.receiverId !== currentUserData.id) {
+                otherParticipants.push(data.receiverName);
+            }
+            if (data.originalSenderId && data.originalSenderId !== currentUserData.id && data.originalSenderName) {
+                otherParticipants.push(data.originalSenderName);
+            }
+            if (data.replies) {
+                data.replies.forEach(rep => {
+                    if (rep.authorId && rep.authorId !== currentUserData.id && !otherParticipants.includes(rep.authorName)) {
+                        otherParticipants.push(rep.authorName);
+                    }
+                });
+            }
+            
+            const collectiveNames = otherParticipants.map(name => name.split('(')[0].trim()).join(', ');
+            if (collectiveNames) {
+                finalReplyText = customizeMessageForRecipient(replyText, collectiveNames);
+                replyObj.text = finalReplyText;
+            }
+        }
         
         const replies = data.replies || [];
         replies.push(replyObj);
