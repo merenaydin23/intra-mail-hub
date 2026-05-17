@@ -244,14 +244,23 @@ function loadFolder(folder) {
                 }
                 
                 
-                const isSentByMe = m.senderId === currentUserData.id;
+                                const isSentByMe = m.senderId === currentUserData.id;
                 const senderDisplay = isSentByMe ? `<i class="fa-solid fa-share" style="font-size:0.7rem; color:var(--primary)"></i> Alıcı: ${m.receiverName}` : m.senderName;
                 
+                const replyCount = m.replies ? m.replies.length : 0;
+                const totalMessages = 1 + replyCount;
+                const badgeHtml = replyCount > 0 
+                    ? `<span class="thread-count-badge" style="background:var(--primary-soft); color:var(--primary); font-size:0.7rem; font-weight:700; padding:0.125rem 0.4rem; border-radius:12px; border:1px solid rgba(10, 46, 46, 0.1); display:inline-flex; align-items:center; gap:0.25rem;" title="${totalMessages} Mesaj"><i class="fa-solid fa-comments" style="font-size:0.6rem;"></i> ${totalMessages}</span>`
+                    : '';
+
                 return `
                     <div class="msg-item ${isActive}" onclick="selectThread('${doc.id}')">
                         <div class="msg-header">
                             <span class="msg-sender">${senderDisplay}</span>
-                            <span class="msg-time">${timeStr}</span>
+                            <div class="msg-meta-side" style="display:flex; align-items:center; gap:0.5rem;">
+                                ${badgeHtml}
+                                <span class="msg-time">${timeStr}</span>
+                            </div>
                         </div>
                         <div class="msg-subj">${m.subject || 'Konu Yok'}</div>
                         <p class="msg-preview">${(m.lastMessage || m.content || '').substring(0, 45).replace(/<[^>]*>?/gm, '')}...</p>
