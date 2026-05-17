@@ -10,6 +10,20 @@ import {
 import { auth, db, storage } from './firebase/config.js';
 import { refineMessageWithAI } from './services/ai-service.js';
 
+function cleanTextForSearch(str) {
+    if (!str) return "";
+    return str.trim()
+        .replace(/I/g, "ı")
+        .replace(/İ/g, "i")
+        .toLowerCase()
+        .replace(/ı/g, "i")
+        .replace(/ğ/g, "g")
+        .replace(/ü/g, "u")
+        .replace(/ş/g, "s")
+        .replace(/ö/g, "o")
+        .replace(/ç/g, "c");
+}
+
 let currentUserData = null;
 let activeThreadId = null;
 let currentFolder = 'inbox';
@@ -327,6 +341,7 @@ function initCompose() {
     const searchInput = document.getElementById('receiverSearchInput');
     const resultsArea = document.getElementById('receiverSearchResults');
     const receiversList = document.getElementById('selectedReceiversList');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
 
     let currentReceivers = [];
     let selectedReceivers = []; // [{id, name, type: 'individual'|'bulk'}]
@@ -561,14 +576,14 @@ function initCompose() {
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim().toLowerCase();
+            const val = cleanTextForSearch(e.target.value);
             if (!val) {
                 resultsArea.classList.add('hidden');
                 return;
             }
 
             const filtered = currentReceivers.filter(u => {
-                const searchStr = `${u.name} ${u.surname || ''} ${u.company || ''} ${u.dealerCode || ''} ${u.city || ''}`.toLowerCase();
+                const searchStr = cleanTextForSearch(`${u.name} ${u.surname || ''} ${u.company || ''} ${u.dealerCode || ''} ${u.city || ''}`);
                 return searchStr.includes(val);
             }).slice(0, 10);
 
@@ -580,7 +595,7 @@ function initCompose() {
             const regVal = regionFilterSelect?.value || "";
             const regText = regVal ? ` (${regVal})` : '';
             
-            if (currentReceivers.length > 1 && ("tümü".includes(val) || "herkes".includes(val) || val.length > 2)) {
+            if (currentReceivers.length > 1 && ("tumu".includes(val) || "herkes".includes(val) || val.length > 2)) {
                 html += `
                     <div class="search-result-item bulk-option" onclick="window.__selectReceiver('BULK:${catVal}:${regVal}', '📢 ${catText}${regText}', 'bulk')">
                         <div class="item-title">📢 ${catText}${regText} (${currentReceivers.length} Kişi)</div>
