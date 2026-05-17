@@ -401,6 +401,45 @@ function initCompose() {
     const receiversList = document.getElementById('selectedReceiversList');
     const addCategoryBtn = document.getElementById('addCategoryBtn');
 
+    // Dynamically Inject Premium Drag Resizer Bar
+    if (receiversList && !document.getElementById('receiversListResizer')) {
+        const resizer = document.createElement('div');
+        resizer.className = 'resizer-handle';
+        resizer.id = 'receiversListResizer';
+        resizer.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
+        
+        // Insert right after receiversList
+        receiversList.parentNode.insertBefore(resizer, receiversList.nextSibling);
+
+        let isResizing = false;
+        let startY, startHeight;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(receiversList).height, 10);
+            document.documentElement.addEventListener('mousemove', doDrag, false);
+            document.documentElement.addEventListener('mouseup', stopDrag, false);
+            resizer.classList.add('active');
+            e.preventDefault();
+        });
+
+        function doDrag(e) {
+            if (!isResizing) return;
+            const currentHeight = startHeight + (e.clientY - startY);
+            if (currentHeight >= 75 && currentHeight <= 250) {
+                receiversList.style.height = `${currentHeight}px`;
+            }
+        }
+
+        function stopDrag(e) {
+            isResizing = false;
+            document.documentElement.removeEventListener('mousemove', doDrag, false);
+            document.documentElement.removeEventListener('mouseup', stopDrag, false);
+            resizer.classList.remove('active');
+        }
+    }
+
     let currentReceivers = [];
     let selectedReceivers = []; // [{id, name, type: 'individual'|'bulk'}]
 
