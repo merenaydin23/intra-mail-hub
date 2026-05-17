@@ -31,6 +31,7 @@ let activeThreadListener = null;
 let currentFolder = 'inbox';
 let forwardOriginalMessageId = null;
 let forwardOriginalSenderId = null;
+let forwardOriginalSenderName = null;
 
 // =====================
 // AUTH & INITIALIZATION
@@ -143,6 +144,7 @@ function resetDetailView() {
     activeThreadId = null;
     forwardOriginalMessageId = null;
     forwardOriginalSenderId = null;
+    forwardOriginalSenderName = null;
 
     if (activeThreadListener) {
         activeThreadListener();
@@ -301,6 +303,7 @@ function handleForwardMessage(id, data) {
     // Set active forward state
     forwardOriginalMessageId = id;
     forwardOriginalSenderId = data.senderId;
+    forwardOriginalSenderName = data.senderName;
 
     // Prefill subject with Fwd prefix if not already present
     const subjectInput = document.getElementById('subjectInput');
@@ -351,10 +354,15 @@ window.selectThread = async (id) => {
         const dateObj = data.timestamp?.toDate();
         const fullDate = dateObj ? dateObj.toLocaleString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
 
+        let receiverDisplay = `Alıcı: ${data.receiverName || 'Bilinmiyor'}`;
+        if (data.originalSenderName) {
+            receiverDisplay += ` <span style="margin: 0 0.5rem; color: var(--border);">|</span> <span class="to-label" style="background:var(--primary-soft); color:var(--primary); font-weight:700; border:1px solid rgba(10,46,46,0.1); border-radius:6px; padding:0.125rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Bayi ile başlayan ortak yazışma zinciri"><i class="fa-solid fa-link"></i> Ortak Zincir: <strong>${data.originalSenderName}</strong> <i class="fa-solid fa-arrow-right-long" style="font-size:0.7rem; color:var(--accent);"></i> <strong>${data.senderName}</strong> <i class="fa-solid fa-arrow-right-long" style="font-size:0.7rem; color:var(--accent);"></i> <strong>${data.receiverName}</strong></span>`;
+        }
+
         const map = {
             'detailSubject': data.subject,
             'detailSenderName': data.senderName,
-            'detailSenderEmail': `Alıcı: ${data.receiverName || 'Bilinmiyor'}`,
+            'detailSenderEmail': receiverDisplay,
             'detailDate': fullDate,
             'detailBody': data.content
         };
@@ -1184,7 +1192,8 @@ async function handleComposeSubmit(e) {
                 timestamp: serverTimestamp(),
                 attachmentUrl,
                 attachmentName,
-                originalSenderId: forwardOriginalSenderId || null
+                originalSenderId: forwardOriginalSenderId || null,
+                originalSenderName: forwardOriginalSenderName || null
             });
         });
 
@@ -1194,6 +1203,7 @@ async function handleComposeSubmit(e) {
         // Reset forward state
         forwardOriginalMessageId = null;
         forwardOriginalSenderId = null;
+        forwardOriginalSenderName = null;
         
         if (fileInput) fileInput.value = '';
         
