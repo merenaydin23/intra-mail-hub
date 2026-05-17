@@ -1406,9 +1406,10 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0.2rem 0.6rem;
+  padding: 0.3rem 0.65rem 0.2rem; /* Üst padding'i hafif artırıp altı azaltarak yazıyı aşağı kaydırdık */
   border-radius: 99px;
   margin-left: 0.75rem; /* Uzaklık sağlandı */
+  line-height: 1; /* Satır yüksekliği sabitlendi */
 }
 
 .reply-badge-target.for-me {
@@ -1431,6 +1432,7 @@ body {
 
 .reply-badge-target i {
   font-size: 0.7rem;
+  transform: translateY(0.5px); /* İkonu da yeni yazı hizasına göre milimetrik ortaladık */
 }
 
 /* ===== QUICK REPLY EDITOR PANEL ===== */
