@@ -1,6 +1,6 @@
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "../../firebase/config.js";
-import { createUserRecord, getAllUsers } from "../services/user-service.js";
+import { createUserRecord } from "../services/user-service.js";
 import { generateEnterpriseEmail, generateStrictPassword, normalizeTr } from "../utils/user-utils.js";
 import { getRandomCityForRegion, getCitiesForRegion } from "../utils/location-utils.js";
 import { getSessionActor } from "../auth/session-service.js";
@@ -31,15 +31,14 @@ export function initRegisterPage() {
     const companySelectEl = document.getElementById("companySelect");
 
     let allUsersCache = [];
-    const loadUsers = async () => {
-        try {
-            allUsersCache = await getAllUsers();
-            updateDealers();
-        } catch (e) {
-            console.error("User load error:", e);
-        }
-    };
-    loadUsers();
+    const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snap) => {
+        allUsersCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateDealers();
+        updateUI();
+    }, (error) => {
+        console.error("Real-time users listener error:", error);
+    });
 
     const updateCities = () => {
         const selectedRegion = regionIn.value;
