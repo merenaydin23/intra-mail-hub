@@ -1520,21 +1520,27 @@ async function handleComposeSubmit(e) {
                 console.warn("[Storage] Standard Firebase Storage upload failed, trying cloud fallback (tmpfiles.org)...", storageErr);
                 
                 try {
+                    // Gofile API Upload Process
+                    // 1. Get best server
+                    const serverRes = await fetch('https://api.gofile.io/servers');
+                    const serverJson = await serverRes.json();
+                    if (serverJson.status !== 'ok') throw new Error("Gofile sunucu alinamadi");
+                    const serverName = serverJson.data.servers[0].name;
+
+                    // 2. Upload file
                     const formData = new FormData();
-                    formData.append('reqtype', 'fileupload');
-                    formData.append('time', '72h'); // Keep file for 72 hours
-                    formData.append('fileToUpload', file);
-                    
-                    const res = await fetch('https://litterbox.catbox.moe/api', {
+                    formData.append('file', file);
+                    const res = await fetch(`https://${serverName}.gofile.io/contents/uploadfile`, {
                         method: 'POST',
                         body: formData
                     });
-                    if (!res.ok) throw new Error("Cloud fallback server status " + res.status);
                     
-                    const textUrl = await res.text();
-                    if (textUrl && textUrl.startsWith('http')) {
-                        attachmentUrl = textUrl.trim();
-                        console.log("[Storage] Cloud fallback upload successful! URL:", attachmentUrl);
+                    if (!res.ok) throw new Error("Cloud fallback server status " + res.status);
+                    const json = await res.json();
+                    
+                    if (json.status === 'ok' && json.data && json.data.downloadPage) {
+                        attachmentUrl = json.data.downloadPage;
+                        console.log("[Storage] Cloud fallback (Gofile) upload successful! URL:", attachmentUrl);
                     } else {
                         throw new Error("Invalid response from cloud fallback");
                     }
