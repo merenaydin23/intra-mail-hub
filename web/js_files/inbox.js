@@ -205,6 +205,9 @@ function resetDetailView() {
     forwardOriginalSenderId = null;
     forwardOriginalSenderName = null;
 
+    const existingTrashNotice = document.getElementById('trashNoticeBox');
+    if (existingTrashNotice) existingTrashNotice.remove();
+
     if (activeThreadListener) {
         activeThreadListener();
         activeThreadListener = null;
@@ -594,6 +597,42 @@ window.selectThread = async (id) => {
             } else {
                 trashBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
                 trashBtn.title = 'Sil';
+            }
+        }
+
+        const replySection = document.getElementById('replySection');
+        if (replySection) {
+            if (currentFolder === 'trash') {
+                replySection.classList.add('hidden');
+                
+                let existingTrashNotice = document.getElementById('trashNoticeBox');
+                if (!existingTrashNotice) {
+                    existingTrashNotice = document.createElement('div');
+                    existingTrashNotice.id = 'trashNoticeBox';
+                    existingTrashNotice.className = 'trash-notice-box';
+                    existingTrashNotice.style.margin = '1.5rem 2rem';
+                    existingTrashNotice.style.padding = '1.2rem';
+                    existingTrashNotice.style.background = 'linear-gradient(135deg, #fff1f2, #ffe4e6)';
+                    existingTrashNotice.style.borderRadius = '14px';
+                    existingTrashNotice.style.border = '1.2px solid #fecdd3';
+                    existingTrashNotice.style.color = '#9f1239';
+                    existingTrashNotice.style.fontSize = '0.9rem';
+                    existingTrashNotice.style.fontWeight = '500';
+                    existingTrashNotice.style.display = 'flex';
+                    existingTrashNotice.style.alignItems = 'center';
+                    existingTrashNotice.style.gap = '0.75rem';
+                    existingTrashNotice.innerHTML = `
+                        <i class="fa-solid fa-circle-exclamation" style="font-size:1.4rem; color:#e11d48; flex-shrink: 0;"></i>
+                        <div>
+                            <strong>Bu mesaj çöp kutusundadır.</strong> Yanıt yazmak veya işlem yapmak için mesajı yukarıdaki <strong>Geri Yükle</strong> butonunu kullanarak kurtarabilirsiniz. Çöp kutusundaki iletiler 15 gün boyunca saklanır, ardından kalıcı olarak silinir.
+                        </div>
+                    `;
+                    replySection.parentNode.insertBefore(existingTrashNotice, replySection);
+                }
+            } else {
+                replySection.classList.remove('hidden');
+                const existingTrashNotice = document.getElementById('trashNoticeBox');
+                if (existingTrashNotice) existingTrashNotice.remove();
             }
         }
     });
