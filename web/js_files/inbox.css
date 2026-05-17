@@ -590,41 +590,79 @@ body {
   padding: 1rem 0;
 }
 
-/* AI Summary Box Overlay */
+/* AI Summary Box (Top Docked Premium Styling) */
 .ai-summary-box {
-  background: #0f172a;
-  color: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-top: 2rem;
-  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, rgba(0, 130, 138, 0.04), rgba(0, 164, 173, 0.07));
+  color: var(--text-main);
+  padding: 1.25rem 1.75rem;
+  border-radius: 16px;
+  margin: 0.5rem 2.5rem 0.5rem; /* Margini yukarı çektik ve yanlardan eşitledik */
+  box-shadow: 0 10px 25px -5px rgba(0, 130, 138, 0.04), 0 8px 16px -6px rgba(0, 164, 173, 0.03);
+  border: 1px solid rgba(0, 164, 173, 0.15);
   border-left: 4px solid var(--accent);
+  animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
 .summary-header {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
+  justify-content: center; /* Başlığı yatayda tamamen ortaladık */
+  align-items: center;
+  position: relative;
+  margin-bottom: 0.85rem;
 }
 
-.summary-header i {
+.summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+  background: rgba(0, 130, 138, 0.08);
+  padding: 0.3rem 0.85rem;
+  border-radius: 99px;
+  border: 1px solid rgba(0, 130, 138, 0.1);
+  margin: 0 auto;
+}
+
+.summary-badge i {
   color: var(--accent);
-  margin-right: 0.5rem;
+  filter: drop-shadow(0 0 2px rgba(0, 164, 173, 0.4));
 }
 
 .close-summary {
-  background: none;
+  position: absolute; /* Kapatma butonunu sağa sabitledik */
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.04);
   border: none;
-  color: white;
-  opacity: 0.5;
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.close-summary:hover {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
 }
 
 .summary-content {
-  font-size: 0.9375rem;
+  font-size: 0.93rem;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: #1e293b;
+  font-weight: 500;
+  text-align: center; /* Özet metnini yatayda tamamen ortaladık */
 }
 
 /* ==============================
