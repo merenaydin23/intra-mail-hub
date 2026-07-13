@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Yardımcı Fonksiyonlar ─────────────────────────────────────────────────
+
+    // Kullanıcı giriş yapmış mı?
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Kullanıcının kendi dokümanı mı?
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Kullanıcı rolünü getir
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Admin mi?
+    function isAdmin() {
+      return isAuth() && userRole() == 'admin';
+    }
+
+    // ─── KULLANICILAR ──────────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Herkes kendi profilini okuyabilir, diğer kullanıcıları da listeleme amacıyla okuyabilir
+      allow read: if isAuth();
+
+      // Sadece admin kullanıcı oluşturabilir/silebilir (web admin paneli)
+      allow create, delete: if isAdmin();
+
+      // Kullanıcı kendi profilini güncelleyebilir VEYA admin her şeyi güncelleyebilir
+      allow update: if isAuth() && (isOwner(userId) || isAdmin());
+    }
+
+    // ─── MESAJLAR ──────────────────────────────────────────────────────────────
+    match /messages/{messageId} {
+      // Sadece katılımcılar okuyabilir
+      allow read: if isAuth() &&
+        request.auth.uid in resource.data.participants;
+
+      // Giriş yapmış herkes mesaj oluşturabilir
+      allow create: if isAuth() &&
+        request.auth.uid in request.resource.data.participants;
+
+      // Sadece katılımcılar güncelleyebilir (okundu, yıldız, sil)
+      allow update: if isAuth() &&
+        request.auth.uid in resource.data.participants;
+
+      // Admin veya gönderen silebilir
+      allow delete: if isAdmin() ||
+        (isAuth() && request.auth.uid == resource.data.from);
+    }
+
+    // ─── ADMİN PANELİ — SADECE WEB, SADECE ADMİN ──────────────────────────────
+    // Bayi yönetimi
+    match /dealers/{dealerId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();  // 🔴 Sadece admin yazabilir
+    }
+
+    // Bölge yönetimi
+    match /regions/{regionId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();  // 🔴 Sadece admin yazabilir
+    }
+
+    // Şehir-bölge eşleştirmeleri
+    match /city_region_map/{doc} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Audit logları — sadece okunabilir (admin)
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;  // 🔴 Sadece Cloud Functions yazabilir
+    }
+
+    // ─── FCM TOKEN'LARI ────────────────────────────────────────────────────────
+    match /fcm_tokens/{userId} {
+      allow read, write: if isAuth() && isOwner(userId);
+    }
+
+    // ─── DİĞER HER ŞEY YASAK ──────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
