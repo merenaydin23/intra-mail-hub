@@ -1,0 +1,29 @@
+name: intra_mobil
+description: A new Flutter project for Intra Mail Hub
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: any
+  firebase_auth: any
+  cloud_firestore: any
+  shared_preferences: any
+  file_picker: ^8.1.7
+  firebase_storage: any
+  url_launcher: any
+  http: ^1.6.0
+  open_filex: ^4.7.0
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
