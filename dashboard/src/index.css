@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Antigravity UI base */
+html, body {
+  @apply bg-grayBg text-text font-sans antialiased;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Glassmorphism utility */
+.antigravity-glass {
+  @apply bg-white/35 backdrop-blur-[20px] border border-white/60 rounded-2xl shadow-float;
+}
+
+/* Floating hover effect */
+.hover-float:hover {
+  @apply -translate-y-1.5 shadow-hover;
+}
