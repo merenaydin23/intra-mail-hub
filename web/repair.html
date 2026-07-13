@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hesap Onarım — IntraMail Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: #f1f5f9;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    }
+    .header { text-align: center; margin-bottom: 32px; }
+    .icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .subtitle { color: #94a3b8; font-size: 13px; line-height: 1.5; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #f1f5f9;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: #6366f1; }
+    select option { background: #1e1b4b; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none; border-radius: 10px;
+      color: #fff; font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+    }
+    #status.info  { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; }
+    #status.ok    { background: rgba(34,197,94,0.15);  border: 1px solid rgba(34,197,94,0.3);  color: #86efac; }
+    #status.err   { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .warning-box {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #fcd34d;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6366f1;
+      margin: 20px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(99,102,241,0.2);
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div class="icon">🔧</div>
+    <h1>Hesap Onarım Aracı</h1>
+    <p class="subtitle">Firestore kaydı eksik olan hesabı yeniden oluşturur.<br>Auth bilgileriniz korunur, sadece sistem kaydı düzeltilir.</p>
+  </div>
+
+  <div class="warning-box">
+    ⚠️ Bu sayfa yalnızca <strong>giriş yapamayan</strong> kullanıcılar için kullanılmalıdır. İşlem tamamlandıktan sonra bu sayfayı kapatın.
+  </div>
+
+  <div class="section-title">🔑 Kimlik Doğrulama</div>
+
+  <div class="field">
+    <label>E-posta</label>
+    <input type="email" id="email" placeholder="ornek@bellona.com.tr" />
+  </div>
+  <div class="field">
+    <label>Şifre</label>
+    <input type="password" id="password" placeholder="Mevcut şifreniz" />
+  </div>
+
+  <div class="section-title">👤 Eksik Profil Bilgileri</div>
+
+  <div class="row">
+    <div class="field">
+      <label>Ad</label>
+      <input type="text" id="name" placeholder="Adınız" />
+    </div>
+    <div class="field">
+      <label>Soyad</label>
+      <input type="text" id="surname" placeholder="Soyadınız" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Sistem Rolü</label>
+    <select id="role">
+      <option value="admin">Admin (Yönetici)</option>
+      <option value="factory">Fabrika</option>
+      <option value="regional">Bölgesel Bayi</option>
+      <option value="local">Yerel Bayi</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Şirket</label>
+      <input type="text" id="company" placeholder="Bellona Genel Müdürlük" />
+    </div>
+    <div class="field">
+      <label>Şehir</label>
+      <input type="text" id="city" placeholder="Kayseri" />
+    </div>
+  </div>
+
+  <button class="btn" id="repairBtn" onclick="repair()">
+    <i class="fa-solid fa-wrench"></i> Hesabı Onar ve Giriş Yap
+  </button>
+
+  <div id="status"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
+  authDomain: "bellona-71bee.firebaseapp.com",
+  projectId: "bellona-71bee",
+  storageBucket: "bellona-71bee.firebasestorage.app",
+  messagingSenderId: "622122795654",
+  appId: "1:622122795654:web:9a42d0026d5df595f68707"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = type;
+  el.style.display = 'block';
+}
+
+// URL'den email parametresini oku ve otomatik doldur
+const urlParams = new URLSearchParams(window.location.search);
+const preEmail = urlParams.get('email');
+if (preEmail) {
+  document.getElementById('email').value = preEmail;
+  document.getElementById('email').readOnly = true;
+}
+
+window.repair = async function() {
+  const btn     = document.getElementById('repairBtn');
+  const email   = document.getElementById('email').value.trim();
+  const password= document.getElementById('password').value;
+  const name    = document.getElementById('name').value.trim();
+  const surname = document.getElementById('surname').value.trim();
+  const role    = document.getElementById('role').value;
+  const company = document.getElementById('company').value.trim();
+  const city    = document.getElementById('city').value.trim();
+
+  if (!email || !password) {
+    setStatus('❌ E-posta ve şifre zorunludur.', 'err');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+  setStatus('🔍 Kimlik doğrulanıyor...', 'info');
+
+  try {
+    // 1. Auth doğrula
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const uid  = cred.user.uid;
+    setStatus(`✅ Auth başarılı (UID: ${uid.slice(0,8)}...). Firestore kontrol ediliyor...`, 'info');
+
+    // 2. Firestore kontrol
+    const userRef  = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      setStatus('ℹ️ Firestore kaydınız zaten mevcut! Sorun başka bir yerde. <br>Anasayfaya yönlendiriliyorsunuz...', 'ok');
+      setTimeout(() => window.location.href = '/', 2500);
+      return;
+    }
+
+    // 3. Eksik Firestore dokümanını oluştur
+    setStatus('⚙️ Firestore kaydı oluşturuluyor...', 'info');
+
+    const categoryMap = { admin: 'admin', factory: 'factory', regional: 'regional', local: 'local' };
+    const regionMap   = { admin: 'İç Anadolu', factory: 'İç Anadolu', regional: '', local: '' };
+    const codeMap     = { admin: '0000', factory: '0000', regional: '0001', local: '0002' };
+
+    await setDoc(userRef, {
+      uid,
+      name:       name || 'Admin',
+      surname:    surname || '',
+      email,
+      role,
+      category:   categoryMap[role],
+      company:    company || 'Bellona Genel Müdürlük',
+      region:     regionMap[role],
+      city:       city || 'Kayseri',
+      phone:      '',
+      dealerCode: codeMap[role],
+      subRole:    'manager',
+      department: role === 'admin' ? 'Yönetim' : 'Operasyon',
+      isActive:   true,
+      createdAt:  serverTimestamp(),
+      repairedAt: serverTimestamp(),
+      repairedNote: 'repair.html ile yeniden oluşturuldu'
+    });
+
+    setStatus('✅ Hesabınız başarıyla onarıldı! Sisteme yönlendiriliyorsunuz...', 'ok');
+
+    setTimeout(() => {
+      if (role === 'admin') window.location.href = '/pages/admin/yonetim.html';
+      else if (role === 'factory') window.location.href = '/pages/portals/fabrika.html';
+      else if (role === 'regional') window.location.href = '/pages/portals/bolge.html';
+      else window.location.href = '/pages/portals/yerel.html';
+    }, 2000);
+
+  } catch (e) {
+    let msg = e.message;
+    if (e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı!';
+    if (e.code === 'auth/user-not-found')     msg = 'Bu e-posta ile kayıtlı kullanıcı bulunamadı!';
+    if (e.code === 'auth/network-request-failed') msg = 'İnternet bağlantısını kontrol et!';
+    setStatus('❌ Hata: ' + msg, 'err');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-wrench"></i> Hesabı Onar ve Giriş Yap';
+  }
+};
+</script>
+</body>
+</html>

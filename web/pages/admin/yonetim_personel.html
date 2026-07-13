@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | Personel Listesi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+    <style>
+        /* Watermark */
+        .main-watermark {
+            position: fixed; bottom: 2rem; right: 2rem;
+            width: 200px; opacity: 0.045; pointer-events: none;
+            user-select: none; z-index: 0;
+        }
+
+        /* Filtre Kartı Revize */
+        .filter-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .main-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 0.2rem; }
+        .filter-label {
+            font-size: 0.65rem; font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            margin-left: 0.5rem;
+        }
+        .f-box {
+            display: flex; align-items: center; gap: 0.5rem;
+            border: 1.5px solid #f1f5f9; border-radius: 12px;
+            padding: 0.5rem 0.85rem; background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .f-box:focus-within { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 4px var(--brand-glow); }
+        .f-box i { color: #94a3b8; font-size: 0.8rem; }
+        .f-box input, .f-box select {
+            border: none; background: transparent; outline: none;
+            font-size: 0.85rem; color: #1e293b; width: 100%;
+            font-weight: 600; padding: 0.25rem 0;
+            appearance: none; /* Hide default dropdown arrow if it looks bad */
+        }
+        .f-box select { cursor: pointer; padding-right: 1.5rem; background-image: url('data:image/svg+xml;utf8,<svg fill="%2364748b" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 0.25rem center; background-size: 16px; }
+        
+        /* Advanced Panel */
+        .advanced-filters {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            animation: slideDown 0.3s ease-out forwards;
+        }
+        .advanced-filters.show { display: grid; }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-toggle-adv {
+            background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 10px; color: #64748b; font-size: 0.8rem;
+            font-weight: 700; padding: 0.6rem 1rem; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;
+            height: 42px;
+        }
+        .btn-toggle-adv:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+        .btn-toggle-adv.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+        .btn-reset {
+            width: 42px; height: 42px; border-radius: 10px;
+            border: 1.5px solid #f1f5f9; background: #f8fafc;
+            color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-reset:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
+        /* Tablo Tasarımı */
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .static-card:hover { transform: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important; border-color: #e2e8f0 !important; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left; padding: 1rem 1.5rem;
+            background: #f8fafc; font-size: 0.7rem;
+            font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+        td {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+            font-size: 0.88rem; color: #334155;
+            vertical-align: middle;
+        }
+        tr.personnel-main-row:hover { background: #fbfdfe; }
+        tr.personnel-main-row:last-child td { border-bottom: none; }
+        
+        .personnel-name-wrap strong { color: #1e293b; font-weight: 700; }
+        .badge-role {
+            font-size: 0.65rem; font-weight: 800;
+            padding: 4px 10px; border-radius: 8px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .badge-role-manager { background: #ecfdf5; color: #059669; }
+        .badge-role-employee { background: #f1f5f9; color: #475569; }
+
+        .detail-chevron { color: #cbd5e1; font-size: 0.6rem; margin-right: 0.5rem; transition: 0.2s; }
+        .is-open .detail-chevron { transform: rotate(90deg); color: var(--brand); }
+
+        /* Sonuç satırı & Chips */
+        .result-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 0.5rem; margin-bottom: 1.25rem; padding: 0 0.5rem;
+        }
+        .result-bar h3 { font-size: 1rem; font-weight: 800; color: #1e293b; }
+        .result-bar .count-badge {
+            background: var(--brand); color: #fff; border-radius: 8px;
+            padding: 2px 8px; font-size: 0.75rem; font-weight: 800; margin-left: 6px;
+        }
+        .chips-row { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+        .chip {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: #f1f7f7; border: 1px solid #d7e7ea;
+            border-radius: 20px; padding: 0.25rem 0.8rem;
+            font-size: 0.72rem; font-weight: 700; color: var(--brand);
+            cursor: pointer; transition: 0.2s;
+        }
+        .chip:hover { background: #e8f4f4; border-color: var(--brand); }
+        .chip i { font-size: 0.65rem; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <!-- Şeffaf Watermark -->
+    <img src="../../assets/bellona-logo.svg" class="main-watermark" alt="">
+
+    <aside class="sidebar" id="global-sidebar">
+        <style>
+            .btn-personel { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:linear-gradient(135deg, #008B8B, #006666); color:white; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; box-shadow:0 4px 12px -2px rgba(0,139,139,0.4); border:none; }
+            .btn-personel:hover { transform:translateY(-2px); box-shadow:0 6px 16px -2px rgba(0,139,139,0.5); color:white; }
+            .btn-logout { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:#fef2f2; color:#ef4444; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; border:1px solid #fecaca; }
+            .btn-logout:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+        </style>
+        <div class="logo">
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users-viewfinder"></i> Personel</a>
+            <a href="yonetim_gecmis.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</a>
+            <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelopes-bulk"></i> Mesajlar</a>
+            <a href="yonetim_onarim.html" class="nav-item"><i class="fa-solid fa-wrench"></i> Sistem Onarım</a>
+        </nav>
+        <div class="sidebar-logout" style="display:flex; flex-direction:column; gap:0.75rem; padding: 1.5rem 1.25rem; border-top: 1px solid #e2e8f0; margin-top:auto;">
+            <a href="/pages/portals/calisan.html" class="btn-personel"><i class="fa-solid fa-user-tie"></i> Personel Portalı</a>
+            <a href="../../index.html" class="btn-logout"><i class="fa-solid fa-power-off"></i> Sistemden Çıkış</a>
+        </div>
+    </aside>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const currentPage = window.location.pathname.split('/').pop() || 'yonetim.html';
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+          el.classList.remove('active');
+          if (el.getAttribute('href') === currentPage) el.classList.add('active');
+        });
+      });
+    </script>
+
+    <main>
+        <header>
+            <div>
+                <h1>Personel Yönetimi</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Kurumsal personel listesini yönetin ve yeni kayıtlar oluşturun.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/pages/portals/calisan.html" class="btn-outline" style="background:var(--brand-soft); color:var(--brand); border-color:var(--brand); text-decoration:none;">
+                    <i class="fa-solid fa-user-tie"></i> Personel Ekranı
+                </a>
+                <a href="yonetim_mesajlar.html" class="btn-outline">
+                    <i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi
+                </a>
+                <a href="yonetim_ekle.html" class="btn-outline" style="background: var(--brand); color: white; border-color: var(--brand);">
+                    <i class="fa-solid fa-plus"></i> Yeni Personel
+                </a>
+            </div>
+        </header>
+
+        <div class="personnel-layout">
+            <!-- SOL PANEL: Pasif Personeller -->
+            <div class="personnel-side-panel">
+                <div class="side-panel-card card">
+                    <div class="side-panel-header">
+                        <h3><i class="fa-solid fa-user-slash"></i> Pasif Listesi</h3>
+                        <span class="badge" id="passiveCountBadge" style="background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">0</span>
+                    </div>
+                    <div class="side-panel-list" id="passiveUserList">
+                        <div class="side-empty-state">Pasif personel yok.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ PANEL: Ana İçerik -->
+            <div class="personnel-main-content">
+
+        <div class="filter-card">
+            <div class="main-filter-bar">
+                <div class="filter-group" style="flex: 1; min-width: 250px;">
+                    <div class="f-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchUser" placeholder="İsim, bayi veya e-posta ile ara..." />
+                    </div>
+                </div>
+                <div class="filter-group" style="min-width: 170px;">
+                    <div class="f-box">
+                        <select id="filterCategory">
+                            <option value="all">Tüm Birimler</option>
+                            <option value="factory">Fabrika</option>
+                            <option value="regional">Bölge Bayisi</option>
+                            <option value="local">Yerel Bayi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group" style="min-width: 170px;">
+                    <div class="f-box">
+                        <select id="filterRegion">
+                            <option value="all">Tüm Bölgeler</option>
+                            <option value="Marmara">Marmara</option>
+                            <option value="Ege">Ege</option>
+                            <option value="İç Anadolu">İç Anadolu</option>
+                            <option value="Akdeniz">Akdeniz</option>
+                            <option value="Karadeniz">Karadeniz</option>
+                            <option value="Doğu Anadolu">Doğu Anadolu</option>
+                            <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-toggle-adv" id="btnToggleAdvanced" style="margin-left: auto;">
+                    <i class="fa-solid fa-sliders"></i> Gelişmiş
+                </button>
+                <button class="btn-reset" id="btnResetFilters" title="Sıfırla">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+
+            <!-- Advanced Panel -->
+            <div class="advanced-filters" id="advancedFilters">
+                <div class="filter-group">
+                    <div class="filter-label">Şehir</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-city"></i>
+                        <select id="filterCity" disabled>
+                            <option value="all">Tümü</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Bayi</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-store"></i>
+                        <select id="filterDealer" disabled>
+                            <option value="all">Tümü</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Yetki</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <select id="filterRole">
+                            <option value="all">Tümü</option>
+                            <option value="manager">Patron / Müdür</option>
+                            <option value="employee">Çalışan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Durum</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-toggle-on"></i>
+                        <select id="filterStatus">
+                            <option value="all">Tümü</option>
+                            <option value="active" selected>Sadece Aktifler</option>
+                            <option value="passive">Sadece Pasifler</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">Sıralama</div>
+                    <div class="f-box">
+                        <i class="fa-solid fa-arrow-down-a-z"></i>
+                        <select id="sortUser">
+                            <option value="name-asc">A → Z</option>
+                            <option value="name-desc">Z → A</option>
+                            <option value="newest">En Yeni</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                <div class="result-bar" style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="font-family:'Outfit'; font-weight:700; color:var(--brand-ink); margin:0;">
+                        Aktif Personeller <span class="count-badge" id="totalPersonnelCount" style="background:var(--brand); color:white;">0</span>
+                    </h3>
+                    <div id="activeChips" class="chips-row"></div>
+                </div>
+
+                <div class="card static-card" style="padding: 0; overflow: hidden;">
+                    <div class="table-shell">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>PERSONEL BİLGİLERİ</th>
+                                        <th>KURUM / BAYİ</th>
+                                        <th>YETKİ & DURUM</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PERSONEL DETAY DRAWER -->
+    <div id="userDrawerOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:1000; backdrop-filter:blur(2px);"></div>
+    <div id="userDrawer" style="position:fixed; right:-500px; top:0; bottom:0; width:480px; background:white; z-index:1001; box-shadow: -20px 0 60px rgba(0,0,0,0.12); transition:right 0.4s cubic-bezier(0.4, 0, 0.2, 1); display:flex; flex-direction:column;">
+        <div style="padding:2rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
+            <h3 style="font-family:'Outfit'; margin:0; font-size:1.25rem; color:var(--brand-ink);">Personel Kartı</h3>
+            <button id="btnCloseDrawer" style="border:none; background:none; cursor:pointer; font-size:1.5rem; color:var(--text-light); transition:0.2s;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div style="flex:1; overflow-y:auto; padding:2rem;">
+            <div style="text-align:center; margin-bottom:2.5rem; padding: 1.5rem; background: linear-gradient(135deg, #f0fdf4 0%, #f5f3ff 100%); border-radius: 20px; border: 1px solid #e9d5ff;">
+                <div id="drawAvatar" style="width:96px; height:96px; border-radius:50%; background:linear-gradient(135deg, var(--brand) 0%, #059669 100%); color:white; font-size:2.2rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; box-shadow: 0 12px 30px rgba(0,71,51,0.25);">AB</div>
+                <h2 id="drawName" style="font-family:'Plus Jakarta Sans'; font-size:1.4rem; margin-bottom:0.5rem; color:var(--brand-ink); font-weight:800;">İsim Soyisim</h2>
+                <div id="drawStatus" style="display:inline-block; font-size:0.72rem; font-weight:800; padding:5px 14px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;">AKTİF</div>
+            </div>
+
+            <div style="display:grid; gap:1.5rem;">
+                <div class="draw-section">
+                    <h4 style="font-size:0.7rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">GÖREV BİLGİLERİ</h4>
+                    <div style="display:grid; gap:1rem;">
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid fa-building-user" style="width:20px; color:var(--brand);"></i>
+                            <div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Birim</div>
+                                <div id="drawCategory" style="font-size:0.9rem; font-weight:700;">-</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid fa-store" style="width:20px; color:var(--brand);"></i>
+                            <div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Firma / Mağaza</div>
+                                <div id="drawCompany" style="font-size:0.9rem; font-weight:700;">-</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid fa-briefcase" style="width:20px; color:var(--brand);"></i>
+                            <div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Unvan</div>
+                                <div id="drawSubRole" style="font-size:0.9rem; font-weight:700;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="draw-section">
+                    <h4 style="font-size:0.75rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:1.25rem; border-bottom:1.5px solid var(--border); padding-bottom:0.75rem;">İLETİŞİM</h4>
+                    <div style="display:grid; gap:1.5rem;">
+                        <div style="display:flex; align-items:flex-start; gap:1.25rem;">
+                            <div style="width:44px; height:44px; border-radius:12px; background:var(--brand-soft); color:var(--brand); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-envelope" style="font-size:1.1rem;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:0.2rem;">E-posta</div>
+                                <div id="drawEmail" style="font-size:0.95rem; font-weight:700; color:var(--brand-ink); word-break:break-all; line-height:1.4;">-</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:flex-start; gap:1.25rem;">
+                            <div style="width:44px; height:44px; border-radius:12px; background:var(--brand-soft); color:var(--brand); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-solid fa-phone" style="font-size:1.1rem;"></i>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:0.2rem;">Telefon</div>
+                                <div id="drawPhone" style="font-size:0.95rem; font-weight:700; color:var(--brand-ink);">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="draw-section">
+                    <h4 style="font-size:0.7rem; font-weight:800; color:var(--text-light); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">DİĞER</h4>
+                    <div style="display:grid; gap:1rem;">
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid fa-location-dot" style="width:20px; color:var(--brand);"></i>
+                            <div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Bölge / Şehir</div>
+                                <div id="drawLocation" style="font-size:0.9rem; font-weight:700;">-</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <i class="fa-solid fa-cake-candles" style="width:20px; color:var(--brand);"></i>
+                            <div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Doğum Tarihi</div>
+                                <div id="drawBirthDate" style="font-size:0.9rem; font-weight:700;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding:1.5rem 2rem; border-top:1px solid var(--border); background:#fafbfc; display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+            <button id="btnEditUser" class="btn-outline" style="grid-column: span 2; padding: 0.85rem;"><i class="fa-solid fa-pen-to-square"></i> Bilgileri Düzenle</button>
+            <button id="btnToggleStatus" class="btn-outline" style="padding: 0.85rem;"><i class="fa-solid fa-ban"></i> Pasife Al</button>
+            <button id="btnDeleteUser" class="btn-outline btn-danger-soft" style="padding: 0.85rem;"><i class="fa-solid fa-trash"></i> Kaydı Sil</button>
+        </div>
+    </div>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+</body>
+</html>

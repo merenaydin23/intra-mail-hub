@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | Yeni Personel Kaydı</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+</head>
+<body>
+    <aside class="sidebar" id="global-sidebar">
+        <style>
+            .btn-personel { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:linear-gradient(135deg, #008B8B, #006666); color:white; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; box-shadow:0 4px 12px -2px rgba(0,139,139,0.4); border:none; }
+            .btn-personel:hover { transform:translateY(-2px); box-shadow:0 6px 16px -2px rgba(0,139,139,0.5); color:white; }
+            .btn-logout { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:#fef2f2; color:#ef4444; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; border:1px solid #fecaca; }
+            .btn-logout:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+        </style>
+        <div class="logo">
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users-viewfinder"></i> Personel</a>
+            <a href="yonetim_gecmis.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</a>
+            <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelopes-bulk"></i> Mesajlar</a>
+            <a href="yonetim_onarim.html" class="nav-item"><i class="fa-solid fa-wrench"></i> Sistem Onarım</a>
+        </nav>
+        <div class="sidebar-logout" style="display:flex; flex-direction:column; gap:0.75rem; padding: 1.5rem 1.25rem; border-top: 1px solid #e2e8f0; margin-top:auto;">
+            <a href="/pages/portals/calisan.html" class="btn-personel"><i class="fa-solid fa-user-tie"></i> Personel Portalı</a>
+            <a href="../../index.html" class="btn-logout"><i class="fa-solid fa-power-off"></i> Sistemden Çıkış</a>
+        </div>
+    </aside>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const currentPage = window.location.pathname.split('/').pop() || 'yonetim.html';
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+          el.classList.remove('active');
+          if (el.getAttribute('href') === currentPage) el.classList.add('active');
+        });
+      });
+    </script>
+
+    <main>
+        <header>
+            <div>
+                <h1>Yeni Personel Kaydı</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Sisteme yeni bir kullanıcı ekleyin. E-posta ve şifre otomatik olarak oluşturulacaktır.</p>
+            </div>
+            <a href="/pages/portals/calisan.html" class="btn-outline" style="background:var(--brand-soft); color:var(--brand); border-color:var(--brand);"><i class="fa-solid fa-user-tie"></i> Personel Ekranı</a>
+        </header>
+
+        <div class="form-shell">
+            <form id="addUserForm">
+                <!-- 1. KİŞİSEL BİLGİLER -->
+                <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-user-plus"></i> Kişisel Bilgiler</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ad</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="newName" name="newName" placeholder="Örn: Ahmet" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Soyad</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="newSurname" name="newSurname" placeholder="Örn: Yılmaz" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Doğum Tarihi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-calendar-day"></i>
+                                <input type="date" id="newBirth" name="newBirth" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Cinsiyet</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-venus-mars"></i>
+                                <select id="newGender" name="newGender" required>
+                                    <option value="" disabled selected>Seçiniz</option>
+                                    <option value="male">Erkek</option>
+                                    <option value="female">Kadın</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefon</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="tel" id="newPhone" name="newPhone" placeholder="+90 5xx xxx xx xx" pattern="^\+90\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. İŞ BİLGİLERİ -->
+                <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-building-user"></i> İş & Görev Bilgileri</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Hizmet Kategorisi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-sitemap"></i>
+                                <select id="newCategory" name="category">
+                                    <option value="factory">Fabrika (Merkez)</option>
+                                    <option value="regional">Bölge Bayisi</option>
+                                    <option value="local">Yerel Bayi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Bölge</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-map"></i>
+                                <select id="newRegion" name="region" required>
+                                    <option value="" disabled selected>Seçiniz...</option>
+                                    <option value="Marmara">Marmara</option>
+                                    <option value="Ege">Ege</option>
+                                    <option value="İç Anadolu">İç Anadolu</option>
+                                    <option value="Akdeniz">Akdeniz</option>
+                                    <option value="Karadeniz">Karadeniz</option>
+                                    <option value="Doğu Anadolu">Doğu Anadolu</option>
+                                    <option value="Güneydoğu Anadolu">Güneydoğu Anadolu</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="cityGroup">
+                            <label>Şehir</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-city"></i>
+                                <select id="newCity" name="city" required>
+                                    <option value="" disabled selected>Önce bölge seçin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="companyGroup">
+                            <label>Bayi / Şirket Adı</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-store"></i>
+                                <select id="companySelect" name="companySelect" style="display:none;"></select>
+                                <input type="text" id="newCompany" name="company" placeholder="Şirket adını yazın" required />
+                                <select id="newRegionCompany" name="regionCompany" style="display:none;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="dealerCodeGroup">
+                            <label>Bayi Kodu</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-hashtag"></i>
+                                <input type="number" id="newDealerCode" name="dealerCode" placeholder="Kod girin" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Yetki Seviyesi</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-user-shield"></i>
+                                <select id="newSubRole" name="subRole">
+                                    <option value="manager">Yönetici / Patron</option>
+                                    <option value="employee">Çalışan / Personel</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="deptGroup" style="display: none; margin-top: 1.5rem;">
+                        <label>Departman / Birim</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <select id="newDept" name="newDept">
+                                <option value="">Seçiniz...</option>
+                                <optgroup label="Fabrika Birimleri" id="optFactory"></optgroup>
+                                <optgroup label="Bölge Birimleri" id="optRegional"></optgroup>
+                                <optgroup label="Yerel Mağaza Birimleri" id="optLocal"></optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. HESAP BİLGİLERİ -->
+                <div class="card" style="padding: 2rem; border-left: 4px solid var(--brand);">
+                    <div class="form-section-head" style="margin-top: 0;"><i class="fa-solid fa-shield-halved"></i> Otomatik Oluşturulan Hesap</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Kurumsal E-posta</label>
+                            <div class="input-box">
+                                <i class="fa-solid fa-at"></i>
+                                <input type="text" id="newEmail" readonly placeholder="ad.soyad@bellona.com.tr" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Geçici Şifre</label>
+                            <div class="input-box" style="position:relative; display:flex; align-items:center;">
+                                <i class="fa-solid fa-key"></i>
+                                <input type="password" id="newPassword" readonly style="flex:1; padding-right: 110px;" />
+                                <div style="position:absolute; right:8px; top:50%; transform:translateY(-50%); display:flex; gap:4px; align-items:center;">
+                                    <button type="button" id="btnTogglePw" style="border:none; background:none; color:var(--text-light); cursor:pointer; padding:6px; font-size:0.9rem; transition:0.2s;" title="Şifreyi Göster/Gizle">
+                                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                                    </button>
+                                    <button type="button" id="btnCopyUserPw" style="border:none; background:var(--brand-soft); color:var(--brand); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.7rem; font-weight:800;">KOPYALA</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2.5rem; text-align: center;">
+                    <button type="submit" class="btn-submit-premium" id="addUserBtn">
+                        <i class="fa-solid fa-check-double"></i> Personel Kaydını Sisteme Aktar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+    <script type="module">
+        import { generateStrictPassword } from '../../js_files/admin_logic.js';
+        const btnCopy = document.getElementById('btnCopyUserPw');
+        const btnTogglePw = document.getElementById('btnTogglePw');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const pwIn = document.getElementById('newPassword');
+        
+        if(btnCopy) {
+            btnCopy.addEventListener('click', () => {
+                navigator.clipboard.writeText(pwIn.value).then(() => {
+                    btnCopy.textContent = 'Kopyalandı!';
+                    setTimeout(() => btnCopy.textContent = 'KOPYALA', 2000);
+                });
+            });
+        }
+
+        if(btnTogglePw) {
+            btnTogglePw.addEventListener('click', () => {
+                if (pwIn.type === 'password') {
+                    pwIn.type = 'text';
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                } else {
+                    pwIn.type = 'password';
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

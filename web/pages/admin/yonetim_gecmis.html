@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona | İşlem Geçmişi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../js_files/admin.css">
+    <style>
+        .audit-timeline {
+            position: relative;
+            padding: 1rem 0;
+            max-width: 1000px;
+        }
+
+        .audit-item {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .audit-item::before {
+            content: '';
+            position: absolute;
+            left: 59px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .audit-item:last-child::before {
+            display: none;
+        }
+
+        .audit-time {
+            width: 60px;
+            text-align: right;
+            padding-top: 0.5rem;
+        }
+
+        .audit-time-clock {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--brand-ink);
+        }
+
+        .audit-time-date {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .audit-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            z-index: 2;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .audit-content {
+            flex: 1;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+        }
+
+        .audit-content:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .audit-actor {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--brand);
+        }
+
+        .audit-action-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .tag-add { background: #ecfdf5; color: #059669; }
+        .tag-delete { background: #fef2f2; color: #dc2626; }
+        .tag-update { background: #eff6ff; color: #2563eb; }
+        .tag-auth { background: #fffbeb; color: #d97706; }
+
+        .audit-detail {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .audit-target {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .audit-target i { color: var(--text-light); }
+
+        .empty-audit {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: var(--text-light);
+        }
+
+        /* Audit Filter Buttons */
+        .audit-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: white;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .audit-filter-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-soft);
+        }
+        .audit-filter-btn.active {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+            box-shadow: 0 4px 12px rgba(0,71,51,0.2);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="global-sidebar">
+        <style>
+            .btn-personel { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:linear-gradient(135deg, #008B8B, #006666); color:white; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; box-shadow:0 4px 12px -2px rgba(0,139,139,0.4); border:none; }
+            .btn-personel:hover { transform:translateY(-2px); box-shadow:0 6px 16px -2px rgba(0,139,139,0.5); color:white; }
+            .btn-logout { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.85rem; background:#fef2f2; color:#ef4444; border-radius:12px; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.2s ease; border:1px solid #fecaca; }
+            .btn-logout:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+        </style>
+        <div class="logo">
+            <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="yonetim.html" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="yonetim_personel.html" class="nav-item"><i class="fa-solid fa-users-viewfinder"></i> Personel</a>
+            <a href="yonetim_gecmis.html" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</a>
+            <a href="yonetim_mesajlar.html" class="nav-item"><i class="fa-solid fa-envelopes-bulk"></i> Mesajlar</a>
+            <a href="yonetim_onarim.html" class="nav-item"><i class="fa-solid fa-wrench"></i> Sistem Onarım</a>
+        </nav>
+        <div class="sidebar-logout" style="display:flex; flex-direction:column; gap:0.75rem; padding: 1.5rem 1.25rem; border-top: 1px solid #e2e8f0; margin-top:auto;">
+            <a href="/pages/portals/calisan.html" class="btn-personel"><i class="fa-solid fa-user-tie"></i> Personel Portalı</a>
+            <a href="../../index.html" class="btn-logout"><i class="fa-solid fa-power-off"></i> Sistemden Çıkış</a>
+        </div>
+    </aside>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const currentPage = window.location.pathname.split('/').pop() || 'yonetim.html';
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+          el.classList.remove('active');
+          if (el.getAttribute('href') === currentPage) el.classList.add('active');
+        });
+      });
+    </script>
+
+    <main>
+        <header>
+            <div>
+                <h1>İşlem Geçmişi</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem;">Sistem üzerindeki tüm idari hareketleri ve değişiklikleri izleyin.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/pages/portals/calisan.html" class="btn-outline" style="background:var(--brand-soft); color:var(--brand); border-color:var(--brand); text-decoration:none;">
+                    <i class="fa-solid fa-user-tie"></i> Personel Ekranı
+                </a>
+                <button id="btnRefreshAudit" class="btn-outline"><i class="fa-solid fa-rotate"></i> Yenile</button>
+            </div>
+        </header>
+
+        <!-- Filtre Bar -->
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:2rem; flex-wrap:wrap;">
+            <button class="audit-filter-btn active" data-range="today">
+                <i class="fa-solid fa-calendar-day"></i> Bugün
+            </button>
+            <button class="audit-filter-btn" data-range="week">
+                <i class="fa-solid fa-calendar-week"></i> Bu Hafta
+            </button>
+            <button class="audit-filter-btn" data-range="month">
+                <i class="fa-solid fa-calendar"></i> Bu Ay
+            </button>
+            <button class="audit-filter-btn" data-range="all">
+                <i class="fa-solid fa-list"></i> Tümü
+            </button>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                <div style="position:relative;">
+                    <i class="fa-solid fa-user-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-light);"></i>
+                    <input type="text" id="auditUserFilter" placeholder="Kişi Ara (Örn: Ahmet)..." style="padding:0.5rem 0.75rem 0.5rem 2.2rem; border:1.5px solid var(--border); border-radius:10px; font-size:0.85rem; font-family:inherit; color:var(--text); background:white; outline:none; width:180px;">
+                </div>
+                <div style="position:relative;">
+                    <i class="fa-solid fa-shoe-prints" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-light);"></i>
+                    <select id="auditActionFilter" style="padding:0.5rem 0.75rem 0.5rem 2.2rem; border:1.5px solid var(--border); border-radius:10px; font-size:0.85rem; font-family:inherit; color:var(--text); background:white; outline:none; cursor:pointer;">
+                        <option value="all">Tüm Ayak İzleri</option>
+                        <option value="EKLEME">Sadece Personel Ekleme</option>
+                        <option value="SİLME">Sadece Silme / Pasif</option>
+                        <option value="GÜNCELLEME">Sadece Güncelleme</option>
+                        <option value="GİRİŞ">Giriş ve Yetki İzleri</option>
+                    </select>
+                </div>
+                <input type="date" id="auditDatePicker" style="padding:0.5rem 0.75rem; border:1.5px solid var(--border); border-radius:10px; font-size:0.85rem; font-family:inherit; color:var(--text); background:white; cursor:pointer; outline:none;" title="Tarih Seç">
+                <button id="btnExportAuditCSV" style="padding:0.5rem 1rem; border:none; border-radius:10px; background:var(--brand-soft); color:var(--brand); font-size:0.85rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:all 0.2s;"><i class="fa-solid fa-file-excel"></i> Excel'e Aktar</button>
+            </div>
+            <div id="auditResultCount" style="font-size:0.8rem; color:var(--text-muted); font-weight:600; white-space:nowrap;">
+                — kayıt
+            </div>
+        </div>
+
+        <div id="auditTimeline" class="audit-timeline">
+            <!-- Dinamik olarak yüklenecek -->
+            <div class="empty-audit"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:1rem;">Kayıtlar yükleniyor...</p></div>
+        </div>
+    </main>
+
+    <script src="../../js_files/admin_logic.js" type="module"></script>
+</body>
+</html>

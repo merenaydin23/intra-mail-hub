@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellona Hub | Sistem Kurulumu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: rgba(79, 70, 229, 0.1);
+            --accent: #0ea5e9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --bg: #0f172a;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle gradient background — no image */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 50%, rgba(79,70,229,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(14,165,233,0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 70% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Subtle grid */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        .setup-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 460px;
+        }
+
+        .setup-card {
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.05);
+            animation: fadeUp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .logo i {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 0.6rem;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .logo strong {
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* Badge */
+        .setup-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(79,70,229,0.1);
+            border: 1px solid rgba(79,70,229,0.2);
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.15;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+            margin: 0 0 2rem 0;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 1.25rem; }
+
+        label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i.field-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color 0.25s;
+            pointer-events: none;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.9rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .input-group input::placeholder { color: #b0bec5; }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79,70,229,0.12);
+        }
+
+        .input-group input:focus ~ i.field-icon { color: var(--primary); }
+
+        /* Email auto hint */
+        .email-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: var(--primary);
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .email-hint.show { opacity: 1; }
+
+        /* Password toggle */
+        .pw-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: var(--primary); }
+
+        .pw-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .btn-generate {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            background: var(--primary-light);
+            border: 1px solid rgba(79,70,229,0.25);
+            border-radius: 8px;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-generate:hover { background: rgba(79,70,229,0.18); transform: translateY(-1px); }
+
+        .btn-copy {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.25);
+            border-radius: 8px;
+            color: #059669;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-copy.visible { display: inline-flex; }
+        .btn-copy:hover { background: rgba(16,185,129,0.18); }
+
+        .pw-strength { display: none; margin-top: 0.5rem; }
+        .pw-strength.visible { display: block; }
+        .pw-strength-bar { height: 4px; border-radius: 99px; background: #e2e8f0; overflow: hidden; margin-bottom: 0.3rem; }
+        .pw-strength-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease, background 0.4s ease; }
+        .pw-strength-label { font-size: 0.7rem; font-weight: 600; }
+
+        /* Button */
+        .btn-setup {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.25s;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-setup:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79,70,229,0.35);
+        }
+
+        .btn-setup:active { transform: translateY(0); }
+        .btn-setup:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Log */
+        #log {
+            margin-top: 1.25rem;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            display: none;
+        }
+        #log.success {
+            display: block;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            color: #065f46;
+        }
+        #log.error {
+            display: block;
+            background: rgba(239,68,68,0.07);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #991b1b;
+        }
+
+        /* Info chips */
+        .info-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-chip {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .info-chip i { color: var(--primary); font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="setup-wrapper">
+        <div class="setup-card">
+
+            <div class="logo">
+                <i class="fa-solid fa-paper-plane"></i>
+                IntraMail <strong>Hub</strong>
+            </div>
+
+            <div class="setup-badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> İlk Kurulum
+            </div>
+            <h1>Admin <span>Hesabı</span><br>Oluştur</h1>
+            <p class="subtitle">Sistemi başlatmak için yönetici profilini tanımla. Bu işlem yalnızca bir kez yapılır.</p>
+
+            <div class="divider"></div>
+
+            <form id="setupForm">
+                <div class="form-group">
+                    <label>Ad Soyad</label>
+                    <div class="input-group">
+                        <input type="text" id="name" placeholder="Adınızı ve soyadınızı girin" autocomplete="off" required />
+                        <i class="fa-solid fa-user field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kurumsal E-posta</label>
+                    <div class="input-group">
+                        <input type="email" id="email" placeholder="Ad girince otomatik oluşur" autocomplete="off" required />
+                        <i class="fa-solid fa-at field-icon"></i>
+                    </div>
+                    <div class="email-hint" id="emailHint">
+                        <i class="fa-solid fa-bolt"></i> Otomatik oluşturuldu — üzerine yazabilirsin
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Şifre <small style="font-size:0.7rem; text-transform:none; letter-spacing:0; color:#94a3b8;">(10 karakter: 6 harf + 2 simge + 2 rakam)</small></label>
+                    <div class="input-group">
+                        <input type="password" id="password" placeholder="Şifre oluştur →" maxlength="10" required />
+                        <i class="fa-solid fa-lock field-icon"></i>
+                        <button type="button" class="pw-toggle" id="pwToggle">
+                            <i class="fa-regular fa-eye" id="pwIcon"></i>
+                        </button>
+                    </div>
+                    <div class="pw-actions">
+                        <button type="button" class="btn-generate" id="btnGenerate">
+                            <i class="fa-solid fa-wand-sparkles"></i> Şifre Oluştur
+                        </button>
+                        <button type="button" class="btn-copy" id="btnCopy">
+                            <i class="fa-regular fa-copy"></i> Kopyala
+                        </button>
+                        <span id="charCounter" style="font-size:0.7rem; color:#94a3b8; display:flex; align-items:center; margin-left:auto;">0/10</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-setup" id="setupBtn">
+                    <i class="fa-solid fa-rocket"></i>
+                    Sistemi Kur ve Admin Oluştur
+                </button>
+            </form>
+
+            <div id="log"></div>
+
+            <div class="info-row">
+                <div class="info-chip"><i class="fa-solid fa-shield-halved"></i> Güvenli</div>
+                <div class="info-chip"><i class="fa-solid fa-fire"></i> Firebase Auth</div>
+                <div class="info-chip"><i class="fa-solid fa-database"></i> Firestore</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP6ywEHkZKzUb-QqDDMaubuffGznMeUc0",
+            authDomain: "bellona-71bee.firebaseapp.com",
+            projectId: "bellona-71bee",
+            storageBucket: "bellona-71bee.firebasestorage.app",
+            messagingSenderId: "622122795654",
+            appId: "1:622122795654:web:9a42d0026d5df595f68707"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const nameInput  = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const emailHint  = document.getElementById('emailHint');
+        let emailManuallyEdited = false;
+
+        // Admin email otomatik doldur
+        nameInput.addEventListener('input', () => {
+            if (emailManuallyEdited) return;
+            if (nameInput.value.trim()) {
+                emailInput.value = 'admin@bellona.com.tr';
+                emailHint.classList.add('show');
+            } else {
+                emailInput.value = '';
+                emailHint.classList.remove('show');
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            emailManuallyEdited = emailInput.value !== 'admin@bellona.com.tr';
+            emailHint.classList.toggle('show', !emailManuallyEdited && emailInput.value !== '');
+        });
+
+        // Şifre göster/gizle
+        document.getElementById('pwToggle').addEventListener('click', () => {
+            const pw = document.getElementById('password');
+            const ico = document.getElementById('pwIcon');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+            ico.className = pw.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+        });
+
+        // 10 karakterli şifre üretici: 6 harf + 2 simge + 2 rakam
+        function generatePassword() {
+            const letters = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+            const symbols = '!@#$%&*-_+';
+            const digits  = '23456789';
+            let pw = [];
+            // 6 harf
+            for (let i = 0; i < 6; i++) pw.push(letters[Math.floor(Math.random() * letters.length)]);
+            // 2 özel simge
+            for (let i = 0; i < 2; i++) pw.push(symbols[Math.floor(Math.random() * symbols.length)]);
+            // 2 rakam
+            for (let i = 0; i < 2; i++) pw.push(digits[Math.floor(Math.random() * digits.length)]);
+            // Karıştır (Fisher-Yates)
+            for (let i = pw.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pw[i], pw[j]] = [pw[j], pw[i]];
+            }
+            return pw.join('');
+        }
+
+        const pwInput     = document.getElementById('password');
+        const btnGen      = document.getElementById('btnGenerate');
+        const btnCopy     = document.getElementById('btnCopy');
+        const charCounter = document.getElementById('charCounter');
+
+        // Elle yazarken 10 karakter sınırı (maxlength HTML'de de var ama JS ile de kontrol)
+        pwInput.addEventListener('input', () => {
+            const len = pwInput.value.length;
+            charCounter.textContent = len + '/10';
+            charCounter.style.color = len === 10 ? '#10b981' : '#94a3b8';
+            btnCopy.classList.toggle('visible', len > 0);
+        });
+
+        btnGen.addEventListener('click', () => {
+            const newPw = generatePassword();
+            pwInput.type = 'text';
+            document.getElementById('pwIcon').className = 'fa-regular fa-eye-slash';
+            pwInput.value = newPw;
+            charCounter.textContent = '10/10';
+            charCounter.style.color = '#10b981';
+            btnCopy.classList.add('visible');
+        });
+
+        btnCopy.addEventListener('click', () => {
+            if (!pwInput.value) return;
+            navigator.clipboard.writeText(pwInput.value).then(() => {
+                btnCopy.innerHTML = '<i class="fa-solid fa-check"></i> Kopyalandı!';
+                btnCopy.style.background = 'rgba(16,185,129,0.2)';
+                setTimeout(() => {
+                    btnCopy.innerHTML = '<i class="fa-regular fa-copy"></i> Kopyala';
+                    btnCopy.style.background = '';
+                }, 2000);
+            });
+        });
+
+        // Submit
+        document.getElementById('setupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('setupBtn');
+            const log = document.getElementById('log');
+            const name     = nameInput.value.trim();
+            const email    = emailInput.value.trim();
+            const password = document.getElementById('password').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kuruluyor...';
+            log.className = '';
+            log.style.display = 'none';
+
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    name, email,
+                    role: "admin",
+                    isActive: true,
+                    company: "Bellona Kurumsal",
+                    createdAt: new Date()
+                });
+                log.style.display = 'block';
+                log.className = 'success';
+                log.innerHTML = `✅ Admin hesabı oluşturuldu!\n👤 ${name}\n📧 ${email}\n\n🚀 Giriş sayfasına yönlendiriliyorsunuz...`;
+                setTimeout(() => { window.location.href = '/index.html'; }, 2500);
+            } catch (err) {
+                let msg = err.message;
+                if (err.code === 'auth/email-already-in-use') {
+                    // E-posta Auth'ta varsa (belki önceki denemede DB'ye yazılamadı)
+                    try {
+                        log.innerHTML = '🔄 E-posta kullanımda, giriş yapılarak veritabanı kaydı tamamlanıyor...';
+                        log.style.display = 'block';
+                        log.className = '';
+                        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+                        const cred = await signInWithEmailAndPassword(auth, email, password);
+                        
+                        await setDoc(doc(db, "users", cred.user.uid), {
+                            name, email,
+                            role: "admin",
+                            isActive: true,
+                            company: "Bellona Kurumsal",
+                            createdAt: new Date()
+                        });
+                        
+                        log.className = 'success';
+                        log.innerHTML = `✅ Var olan admin hesabı veritabanına bağlandı!\n👤 ${name}\n📧 ${email}\n\n🚀 Giriş sayfasına yönlendiriliyorsunuz...`;
+                        setTimeout(() => { window.location.href = '/index.html'; }, 2500);
+                        return; // İşlemi bitir
+                    } catch(loginErr) {
+                        msg = 'Bu e-posta zaten kayıtlı ve girdiğiniz şifre yanlış! Lütfen yeni bir mail veya doğru şifre deneyin.';
+                    }
+                } else if (err.code === 'auth/weak-password') {
+                    msg = 'Şifre çok zayıf! En az 6 karakter gir.';
+                }
+                
+                log.style.display = 'block';
+                log.className = 'error';
+                log.textContent = '❌ Hata: ' + msg;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Sistemi Kur ve Admin Oluştur';
+            }
+        });
+    </script>
+</body>
+</html>
