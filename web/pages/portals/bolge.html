@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bellona | Bölge Bayi Portalı</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../../js_files/inbox.css">
+  <script type="module" src="../../js_files/page_guard.js"></script>
+  <style>
+    #userAvatar:hover .avatar-hover-overlay { opacity: 1 !important; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header" style="display:flex; flex-direction:column; align-items:center; gap:0.25rem; padding-bottom:1rem;">
+      <div class="logo">
+        <img src="../../assets/bellona-logo.svg" alt="Bellona Logo" class="brand-logo-img">
+      </div>
+      <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase;">İletişim Portalı</div>
+    </div>
+
+    <button class="compose-btn" id="composeBtn">
+      <i class="fa-solid fa-pen-nib"></i> Yeni Mesaj
+    </button>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-folder="inbox">
+        <i class="fa-solid fa-inbox"></i>
+        <span>Gelen Kutusu</span>
+        <span class="badge" id="unreadCount">0</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="sent">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Gönderilenler</span>
+      </a>
+      
+      <a href="#" class="nav-item" data-folder="drafts">
+        <i class="fa-solid fa-file-signature"></i>
+        <span>Taslaklar</span>
+      </a>
+
+      <a href="#" class="nav-item" data-folder="scheduled">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Zamanlanmış</span>
+      </a>
+
+      <a href="#" class="nav-item" data-folder="important">
+        <i class="fa-solid fa-star"></i>
+        <span>Yıldızlı Mesajlar</span>
+      </a>
+
+      <a href="#" class="nav-item" data-folder="archive">
+        <i class="fa-solid fa-box-archive"></i>
+        <span>Arşiv</span>
+      </a>
+      <a href="#" class="nav-item" data-folder="trash">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>Çöp Kutusu</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="userAvatar" style="position:relative; cursor:pointer; overflow:hidden;" title="Profil Resmini Değiştir">
+          <span id="userAvatarText">--</span>
+          <img id="userAvatarImg" src="" style="display:none; width:100%; height:100%; object-fit:cover;" alt="Profil" />
+          <div class="avatar-hover-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; opacity:0; transition:0.2s;">
+            <i class="fa-solid fa-camera" style="color:white; font-size:1.2rem;"></i>
+          </div>
+          <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
+        </div>
+        <div class="user-details">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-company" id="userCompany" style="font-size: 0.7rem; font-weight: 700; color: var(--accent); margin: 2px 0;">--</div>
+          <div class="user-role" id="userRole">--</div>
+        </div>
+        <button class="logout-sm" id="logoutBtn" title="Çıkış Yap">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- LIST COLUMN -->
+  <div class="message-list-col">
+    <header class="list-header">
+      <h2 id="currentFolderName">Gelen Kutusu</h2>
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Mesajlarda ara..." />
+      </div>
+    </header>
+    <div class="message-list" id="messageList">
+      <div class="empty-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Yükleniyor...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL COLUMN -->
+  <main class="message-detail-col">
+    <!-- Background Watermark -->
+    <div class="bg-watermark"><i class="fa-solid fa-envelope-open-text"></i></div>
+
+    <!-- Empty State -->
+    <div class="detail-empty-state" id="detailEmptyState">
+      <div class="empty-content">
+        <i class="fa-solid fa-inbox"></i>
+        <h3>Bir mesaj seçin</h3>
+        <p>Okumak istediğiniz mesajı sol listeden seçebilirsiniz.</p>
+      </div>
+    </div>
+
+    <!-- Message Content -->
+    <div class="message-content hidden" id="messageContent">
+      <header class="content-header">
+        <div class="header-main">
+          <h3 class="subject" id="detailSubject">Konu...</h3>
+          <div class="header-tags">
+            <span class="tag tag-ai" id="aiTag"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Analiz</span>
+          </div>
+        </div>
+        
+        <div class="meta-row">
+          <div class="sender-info">
+            <div class="avatar" id="detailAvatar">A</div>
+            <div class="sender-text">
+              <div class="name" id="detailSenderName">Gönderen Adı</div>
+              <div class="email-row">
+                <span id="detailSenderEmail">email@intramail.corp</span>
+                <span class="to-label">Alıcı: Ben</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <span class="date" id="detailDate">Tarih</span>
+            <div class="btn-group">
+              <button id="btnSummarize" class="btn-action btn-ai-summary" title="Yapay Zeka ile Özetle">
+                <i class="fa-solid fa-bolt-lightning"></i> Özetle
+              </button>
+              <button id="btnEditScheduled" class="btn-action hidden" style="color:var(--primary); border-color:var(--primary);" title="Mesajı Düzenle"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
+              <button id="btnArchive" class="btn-action" title="Arşivle">
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
+              <button id="btnTrash" class="btn-action btn-danger" title="Sil">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+              <button id="btnImportant" class="btn-action" title="Yıldızla / Önemli İşaretle" style="color:var(--text-muted);">
+                <i class="fa-solid fa-star"></i>
+              </button>
+              <button id="btnPermanentDelete" class="btn-action hidden" title="Kalıcı Olarak Sil" style="color:#ef4444; border-color:#fecaca; background:#fef2f2;">
+                <i class="fa-solid fa-fire"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- AI Summary Box (Top Docked) -->
+      <div id="aiSummaryBox" class="ai-summary-box hidden">
+        <div class="summary-header">
+          <span class="summary-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Akıllı Özet</span>
+          <button class="close-summary" id="closeSummary" title="Özeti Kapat">✕</button>
+        </div>
+        <div class="summary-content" id="aiSummaryContent">Yazışmalar yapay zeka ile inceleniyor...</div>
+      </div>
+
+      <div class="detail-body-wrapper">
+        <div class="body" id="detailBody">
+          Mesaj içeriği burada görünecek...
+        </div>
+        
+        <!-- Ekilen Dosyalar Alanı -->
+        <div id="attachmentsArea" class="attachments-section hidden">
+          <div class="attachments-header"><i class="fa-solid fa-paperclip"></i> Ekli Dosyalar</div>
+          <div id="attachmentsList" class="attachments-list"></div>
+        </div>
+
+        <!-- Cevapla Alanı -->
+        <div class="reply-section" id="replySection">
+          <h4 class="reply-section-title"><i class="fa-solid fa-pen-nib"></i> Hızlı Yanıt Yaz</h4>
+          <div class="reply-input-wrapper">
+            <textarea id="replyInput" placeholder="Cevabınızı buraya yazın..."></textarea>
+            <div class="reply-file-row" style="margin-top:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #eee;">
+               <input type="file" id="replyFileInput" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="font-size:0.8rem; width:100%;" />
+            </div>
+            <div class="reply-actions-row">
+              <div class="ai-panel">
+                <div class="ai-status" id="replyAIStatus"></div>
+                <button type="button" class="btn-ai-reply" id="aiReplySuggestBtn" title="Yapay Zeka ile Cevabı Düzenle">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Akıllı Düzenle
+                </button>
+              </div>
+              <button id="sendReply" class="btn-reply-submit">
+                <i class="fa-solid fa-reply"></i> Cevapla
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compose Area -->
+        <div class="compose-area hidden" id="composeArea">
+      <header class="compose-header">
+        <div class="header-title">
+          <i class="fa-solid fa-pen-nib"></i>
+          <h3>Yeni Mesaj</h3>
+        </div>
+        <div class="header-tools">
+          <button class="tool-btn" id="minimizeCompose" style="color:var(--text-muted);"><i class="fa-solid fa-minus"></i></button>
+          <button class="close-btn" id="closeComposeBtn" style="color:var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </header>
+      <form class="compose-form" id="composeForm">
+        <div class="form-body" style="gap:1rem; padding:1.25rem;">
+          <div class="form-group" style="display:flex; gap:1rem;">
+            <div style="flex:1;">
+              <label>Alıcı Birimi</label>
+              <select id="receiverCategorySelect" class="modern-input">
+                <option value="">Birim seçiniz...</option>
+                <option value="local_colleagues">Bölge Personeli (Kendi Bölgem)</option>
+                <option value="local_boss">Bölge Bayi Temsilcileri</option>
+                <option value="region_dealers">Bölge Müdürlüğü Yetkilileri</option>
+                <option value="factory_hq">Genel Müdürlük ve Fabrika Birimleri</option>
+                <option value="global">Global Organizasyon Arama</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button type="button" id="addCategoryBtn" class="btn-action" style="height:44px; padding:0 1rem; border-radius:12px; background:rgba(0,164,173,0.1); color:var(--primary);" title="Birimi Ekle">
+                <i class="fa-solid fa-plus"></i> Ekle
+              </button>
+            </div>
+          </div>
+          <div id="regionFilterContainer" class="hidden form-group" style="margin-top:-0.5rem;">
+              <select id="regionFilterSelect" class="modern-input" style="border-color:var(--accent);">
+                <option value="">Tüm Bölgeler (Filtresiz)</option>
+                <option value="İç Anadolu">İç Anadolu Bölgesi</option>
+                <option value="Marmara">Marmara Bölgesi</option>
+                <option value="Ege">Ege Bölgesi</option>
+                <option value="Akdeniz">Akdeniz Bölgesi</option>
+                <option value="Karadeniz">Karadeniz Bölgesi</option>
+                <option value="Doğu Anadolu">Doğu Anadolu Bölgesi</option>
+                <option value="Güneydoğu Anadolu">Güneydoğu Anadolu Bölgesi</option>
+              </select>
+          </div>
+          <div class="form-group">
+            <label>Kişi Seçimi</label>
+            <div class="user-search-container">
+              <input type="text" id="receiverSearchInput" class="modern-input" placeholder="İsim, şirket veya bayi kodu..." disabled />
+              <div id="receiverSearchResults" class="search-results-overlay hidden"></div>
+              <div id="selectedReceiversList" class="selected-receivers-list" style="border:none; box-shadow:none; padding:0.25rem 0; margin-top:0.5rem; max-height:85px;"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Konu</label>
+            <input type="text" id="subjectInput" class="modern-input" placeholder="Mesaj konusu..." />
+          </div>
+          <div class="form-group flex-1" style="display:flex; flex-direction:column;">
+            <label>Mesajınız</label>
+            <textarea id="messageBodyInput" class="modern-input" placeholder="Mesajınızı buraya yazın..." required style="flex:1; resize:none; min-height:80px;"></textarea>
+          </div>
+          <div class="form-group scheduled-options-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">Zamanlı Gönderim</label>
+                <div style="display:flex; gap:0.25rem;" id="quickTimeButtons">
+                    <button type="button" class="btn-action quick-time-btn" data-time="tomorrow_08" style="padding:0.2rem 0.5rem; font-size:0.7rem; border-radius:6px;">Yarın 08</button>
+                    <button type="button" class="btn-action quick-time-btn" data-time="tomorrow_12" style="padding:0.2rem 0.5rem; font-size:0.7rem; border-radius:6px;">Yarın 12</button>
+                    <button type="button" class="btn-action quick-time-btn" id="clearTimeBtn" style="padding:0.2rem 0.5rem; font-size:0.7rem; border-radius:6px; display:none; background:var(--danger); color:white; border:none;">İptal</button>
+                </div>
+            </div>
+            <input type="datetime-local" id="scheduledTimeInput" class="modern-input" style="margin-top:0.4rem; padding:0.6rem;" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Dosya Eki (Opsiyonel)</label>
+            <input type="file" id="fileInput" class="modern-input" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" style="padding:0.5rem;" />
+          </div>
+        </div>
+        <div class="form-footer" style="background:#ffffff; display:flex; justify-content:flex-end; gap:1rem; padding:1rem 1.25rem; border-top:1px solid var(--border);">
+          <button type="button" class="btn-action" id="aiSuggestBtn" style="color:var(--primary); font-weight:600; padding:0.8rem 1.5rem; border-radius:12px; border:1px solid var(--border);"><i class="fa-solid fa-wand-magic-sparkles"></i> Akıllı Düzenle</button>
+          <button type="button" class="btn-action" id="btnUrgentToggle" style="color:var(--danger); font-weight:600; padding:0.8rem 1.5rem; border-radius:12px; border:1px solid var(--border); transition:all 0.2s;"><i class="fa-solid fa-bolt"></i> Acil</button>
+          <button type="submit" class="modern-btn-send" id="btnSendReal"><i class="fa-solid fa-paper-plane"></i> Gönder</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="../../js_files/inbox.js"></script>
+</body>
+</html>
+
